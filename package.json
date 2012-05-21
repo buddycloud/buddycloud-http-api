@@ -1,0 +1,29 @@
+{
+    "name": "buddycloud-http-api",
+    "version": "0.0.1",
+    "author": "Denis Washington <denisw@online.de>",
+    "description": "Access buddycloud via HTTP",
+    "license": "Apache 2.0",
+    "scripts": {
+        "start": "node ./server.js",
+        "test": "NODE_ENV=testing ./node_modules/.bin/mocha -r should"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/buddycloud/buddycloud-http-api.git"
+    },
+    "dependencies": {
+        "express": "",
+        "libxmljs": "",
+        "ltx": "0.2.0",
+        "node-stringprep": "0.1.4",
+        "node-xmpp": "0.3.2"
+    },
+    "devDependencies": {
+        "mocha": "1.0.3",
+        "should": "0.6.3"
+    },
+    "engine": {
+        "node": ">=0.6"
+    }
+}
