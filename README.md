@@ -17,5 +17,9 @@ You can then start it by invoking
 
     npm start
 
+To run the tests, do
+
+    npm test
+
 The server needs to be configured for the buddycloud/XMPP server it should
 use. See `config.js`.
