@@ -35,7 +35,8 @@ function setupConfig(app) {
 
 function setupResourceHandlers(app) {
     var handlers = [
-        require('./lib/api/node_feed')
+        require('./lib/api/node_feed'),
+        require('./lib/api/node_item')
     ];
     handlers.forEach(function(h) { h.setup(app); });
 }
