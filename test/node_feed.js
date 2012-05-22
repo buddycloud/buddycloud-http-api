@@ -27,7 +27,7 @@ var mockConfig = {
         'alice': 'alice'
     },
     stanzas: {
-        '<iq type="get">\
+        '<iq from="alice@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/alice@localhost/posts"/>\
            </pubsub>\
@@ -49,7 +49,37 @@ var mockConfig = {
                </item>\
              </items>\
            </pubsub>\
-         </iq>'
+         </iq>',
+
+        '<iq from="bob@localhost/http" type="get">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <items node="/user/alice@localhost/posts"/>\
+           </pubsub>\
+         </iq>':
+        '<iq type="error">\
+           <error type="cancel">\
+             <not-allowed xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
+             <closed-node xmlns="http://jabber.org/protocol/pubsub#errors"/>\
+           </error>\
+         </iq>',
+
+        '<iq type="get">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <items node="/user/public@localhost/posts"/>\
+           </pubsub>\
+         </iq>':
+        '<iq type="result">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <items node="/user/public@localhost/posts">\
+               <item id="foo">\
+                 <entry xmlns="http://www.w3.org/2005/Atom">\
+                   <id>bar</id>\
+                   <content>one</content>\
+                 </entry>\
+               </item>\
+             </items>\
+           </pubsub>\
+         </iq>',
     }
 };
 
@@ -66,7 +96,7 @@ describe('Node Feed', function() {
         it('should return items as Atom feed', function(done) {
             var options = {
                 path: '/channels/alice@localhost/posts',
-                auth: 'alice@localhost:alice'
+                auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
                 res.statusCode.should.equal(200);
@@ -87,23 +117,34 @@ describe('Node Feed', function() {
             }).on('error', done);
         });
 
-        it('should allow anonymous access', function(done) {
-            var options = {
-                path: '/channels/alice@localhost/posts',
-            };
-            tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(200);
-                done();
-            }).on('error', done);
-        });
-
-        it('should respond to wrong credentials with 401', function(done) {
+        it('should be 401 if credentials are wrong', function(done) {
             var options = {
                 path: '/channels/alice@localhost/posts',
                 auth: 'alice@localhost:bob'
             };
             tutil.get(options, function(res, body) {
                 res.statusCode.should.equal(401);
+                done();
+            }).on('error', done);
+        });
+
+        it('should be 401 if user doesn\'t have permissions', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts',
+                auth: 'bob@localhost:bob'
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(401);
+                done();
+            }).on('error', done);
+        });
+
+        it('should allow anonymous access', function(done) {
+            var options = {
+                path: '/channels/public@localhost/posts',
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(200);
                 done();
             }).on('error', done);
         });
