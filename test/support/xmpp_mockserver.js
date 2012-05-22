@@ -83,11 +83,16 @@ function start() {
 }
 
 function checkAuth(user, password, callback) {
-    var correctPassword = mockConfig.users[user];
-    if (correctPassword && password == correctPassword)
+    if (!user) {
+        // Anonymous login
         callback();
-    else
-        callback(new Error('Unauthorized'));
+    } else {
+        var correctPassword = mockConfig.users[user];
+        if (correctPassword && password == correctPassword)
+            callback();
+        else
+            callback(new Error('Unauthorized'));
+    }
 }
 
 function handleStanza(client, stanza) {

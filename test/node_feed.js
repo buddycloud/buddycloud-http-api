@@ -69,6 +69,7 @@ describe('Node Feed', function() {
                 auth: 'alice@localhost:alice'
             };
             tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(200);
                 var feed = xml.parseXmlString(body);
                 
                 feed.root().name().should.equal('feed');
@@ -82,6 +83,16 @@ describe('Node Feed', function() {
                 e2.get('a:id', {a: atom.ns}).text().should.equal('2');
                 e2.get('a:content', {a: atom.ns}).text().should.equal('two');
                 
+                done();
+            }).on('error', done);
+        });
+
+        it('should allow anonymous access', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts',
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(200);
                 done();
             }).on('error', done);
         });
