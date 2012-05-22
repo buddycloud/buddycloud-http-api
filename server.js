@@ -41,7 +41,9 @@ function setupResourceHandlers(app) {
 }
 
 function printInitialMessage() {
-    console.log('HTTP server started, listening on port ' + config.port);
+    var profile = config.profile;
+    console.log('Server started with configuration profile "' + profile + '"');
+    console.log('Listening on port ' + config.port);
 }
 
 var app = express.createServer();
