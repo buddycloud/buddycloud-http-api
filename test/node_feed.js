@@ -24,7 +24,8 @@ var tutil = require('./support/testutil');
 // See xmpp_mockserver.js
 var mockConfig = {
     users: {
-        'alice': 'alice'
+        'alice': 'alice',
+        'bob': 'bob'
     },
     stanzas: {
         '<iq from="alice@localhost/http" type="get">\
@@ -128,13 +129,13 @@ describe('Node Feed', function() {
             }).on('error', done);
         });
 
-        it('should be 401 if user doesn\'t have permissions', function(done) {
+        it('should be 403 if user doesn\'t have permissions', function(done) {
             var options = {
                 path: '/channels/alice@localhost/posts',
-                auth: 'bob@localhost:bob'
+                auth: 'bob@localhost/http:bob'
             };
             tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(401);
+                res.statusCode.should.equal(403);
                 done();
             }).on('error', done);
         });
