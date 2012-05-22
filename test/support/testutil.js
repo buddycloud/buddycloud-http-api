@@ -39,6 +39,11 @@ exports.startHttpServer = function(callback) {
             callback = null;
         }
     });
+
+    // Echo the server's error output
+    httpserver.stderr.on('data', function(data) {
+        console.error(data.toString());
+    });        
 };
 
 /**
