@@ -17,6 +17,7 @@
 // test/node_feed.js:
 // Tests node feed related requests.
 
+var should = require('should');
 var xml = require('libxmljs'); 
 var atom = require('../lib/atom');
 var tutil = require('./support/testutil');
@@ -110,9 +111,11 @@ describe('Node Feed', function() {
                 var e1 = entries[0];
                 e1.get('a:id', {a: atom.ns}).text().should.equal('1');
                 e1.get('a:content', {a: atom.ns}).text().should.equal('one');
+                should.exist(e1.get('a:title', {a: atom.ns}));
                 var e2 = entries[1];
                 e2.get('a:id', {a: atom.ns}).text().should.equal('2');
                 e2.get('a:content', {a: atom.ns}).text().should.equal('two');
+                should.exist(e1.get('a:title', {a: atom.ns}));
                 
                 done();
             }).on('error', done);
