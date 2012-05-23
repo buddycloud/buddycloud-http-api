@@ -109,13 +109,13 @@ describe('Node Feed', function() {
                 
                 var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
                 var e1 = entries[0];
-                e1.get('a:id', {a: atom.ns}).text().should.equal('1');
-                e1.get('a:content', {a: atom.ns}).text().should.equal('one');
-                should.exist(e1.get('a:title', {a: atom.ns}));
+                atom.get(e1, 'atom:id').text().should.equal('1');
+                atom.get(e1, 'atom:content').text().should.equal('one');
+                should.exist(atom.get(e1, 'atom:title'));
                 var e2 = entries[1];
-                e2.get('a:id', {a: atom.ns}).text().should.equal('2');
-                e2.get('a:content', {a: atom.ns}).text().should.equal('two');
-                should.exist(e1.get('a:title', {a: atom.ns}));
+                atom.get(e2, 'atom:id').text().should.equal('2');
+                atom.get(e2, 'atom:content').text().should.equal('two');
+                should.exist(atom.get(e2, 'atom:title'));
                 
                 done();
             }).on('error', done);
