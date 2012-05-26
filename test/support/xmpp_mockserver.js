@@ -106,6 +106,7 @@ function handleStanza(client, stanza) {
             return;
         }
     }
+    console.error('No rule for handling stanza ' + stanza.toString()); 
     replyServiceUnavailable(client, stanza.attrs.id);
 }
 
