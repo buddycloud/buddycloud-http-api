@@ -79,7 +79,7 @@ function start() {
         client.on('stanza', function(stanza) {
             handleStanza(client, stanza);
         });
-    });  
+    });
 }
 
 function checkAuth(user, password, callback) {
@@ -101,12 +101,12 @@ function handleStanza(client, stanza) {
         keyStanza.attrs.id = stanza.attrs.id;
         if (elementMatches(keyStanza, stanza)) {
             var reply = ltx.parse(mockConfig.stanzas[key]);
-            reply.attrs.id = stanza.attrs.id;   
+            reply.attrs.id = stanza.attrs.id;
             client.send(reply);
             return;
         }
     }
-    console.error('No rule for handling stanza ' + stanza.toString()); 
+    console.error('No rule for handling stanza ' + stanza.toString());
     replyServiceUnavailable(client, stanza.attrs.id);
 }
 
@@ -130,7 +130,7 @@ function elementMatches(expected, actual) {
         if (expected.attrs[key] != actual.attrs[key])
             return false;
     }
-    
+
     if (expected.children.length != actual.children.length)
         return false;
 
@@ -138,7 +138,7 @@ function elementMatches(expected, actual) {
         if (!elementMatches(expected.children[i], actual.children[i]))
             return false;
     }
-    
+
     return true;
 }
 

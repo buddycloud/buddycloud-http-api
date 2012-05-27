@@ -43,7 +43,7 @@ exports.startHttpServer = function(callback) {
     // Echo the server's error output
     httpserver.stderr.on('data', function(data) {
         console.error(data.toString());
-    });        
+    });
 };
 
 /**
@@ -73,7 +73,7 @@ exports.get = function(options, callback) {
         readBody(response, function(body) {
             callback(response, body);
         });
-    });    
+    });
 };
 
 function readBody(response, callback) {
@@ -94,7 +94,7 @@ function readBody(response, callback) {
     response.on('end', function() {
         callback(buffer);
     });
-    
+
     response.on('close', function() {
         callback(null);
     });

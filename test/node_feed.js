@@ -18,7 +18,7 @@
 // Tests node feed related requests.
 
 var should = require('should');
-var xml = require('libxmljs'); 
+var xml = require('libxmljs');
 var atom = require('../lib/atom');
 var tutil = require('./support/testutil');
 
@@ -155,7 +155,7 @@ var mockConfig = {
     }
 };
 
-describe('Node Feed', function() {    
+describe('Node Feed', function() {
 
     before(function(done) {
         tutil.startHttpServer(function() {
@@ -164,7 +164,7 @@ describe('Node Feed', function() {
     });
 
     describe('GET', function() {
-        
+
         it('should return items as Atom feed', function(done) {
             var options = {
                 path: '/channels/alice@localhost/posts',
@@ -173,10 +173,10 @@ describe('Node Feed', function() {
             tutil.get(options, function(res, body) {
                 res.statusCode.should.equal(200);
                 var feed = xml.parseXmlString(body);
-                
+
                 feed.root().name().should.equal('feed');
                 feed.root().namespace().href().should.equal(atom.ns);
-                
+
                 var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
                 var e1 = entries[0];
                 atom.get(e1, 'atom:id').text().should.equal('1');
@@ -190,7 +190,7 @@ describe('Node Feed', function() {
                 atom.get(e3, 'atom:id').text().should.equal('3');
                 atom.get(e3, 'atom:content').text().should.equal('three');
                 should.exist(atom.get(e3, 'atom:title'));
-                
+
                 done();
             }).on('error', done);
         });
@@ -258,7 +258,7 @@ describe('Node Feed', function() {
                 done();
             }).on('error', done);
         });
-    
+
     });
 
     after(function() {

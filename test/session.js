@@ -18,7 +18,7 @@
 // Tests session management.
 
 var should = require('should');
-var xml = require('libxmljs'); 
+var xml = require('libxmljs');
 var atom = require('../lib/atom');
 var tutil = require('./support/testutil');
 
@@ -46,7 +46,7 @@ var mockConfig = {
              </items>\
            </pubsub>\
          </iq>',
-         
+
          '<iq from="alice@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/private@localhost/posts"/>\
@@ -67,14 +67,14 @@ var mockConfig = {
     }
 };
 
-describe('Session ID', function() {    
+describe('Session ID', function() {
 
     before(function(done) {
         tutil.startHttpServer(function() {
             tutil.mockXmppServer(mockConfig, done);
         });
     });
-        
+
     it('should be returned on authenicated requests', function(done) {
         var options = {
             path: '/channels/public@localhost/posts',
