@@ -64,19 +64,19 @@ As an example, the following snippet tells the server to listen on port
 
 The following configuration options are supported:
 
-- `port` (Required): The port on which the server listens for HTTP requests.
-- `xmppDomain` (Required): The XMPP domain to which the server belongs. This
+- **port** (Required): The port on which the server listens for HTTP requests.
+- **xmppDomain** (Required): The XMPP domain to which the server belongs. This
   defines the XMPP server used for authentication and presence.
-- `xmppHost` (Optional): The hostname of the proxied XMPP server. This is
-  only needed if the hostname and port cannot be resolved from the `xmppDomain`
+- **xmppHost** (Optional): The hostname of the proxied XMPP server. This is
+  only needed if the hostname and port cannot be resolved from the *xmppDomain*
   via DNS service discovery.
-- `xmppPort` (Optional): The proxied XMPP server's port. See above.
-- `pubsubDomain` (Required): The XMPP domain used for Pub-Sub queries in the
-  `xmppDomain`. *(This option will go away once Pub-Sub service discovery is
-  implemented.)*
-- `xmppAnonymousDomain` (Optional): The XMPP domain used for anonymous
-  sessions. If omitted, `xmppDomain` is assumed to handle this case.
-- `xmppAnonymousHost` (Optional): Like `xmppHost`, but for
-  `xmppAnonymousDomain`.
-- `xmppAnonymousPort` (Optional): Like `xmppPort`, but for
-  `xmppAnonymousDomain`.
+- **xmppPort** (Optional): The proxied XMPP server's port. See above.
+- **pubsubDomain** (Required): The XMPP domain used for Pub-Sub queries in the
+  *xmppDomain*. *(Note: This option will go away once Pub-Sub service
+  discovery is implemented.)*
+- **xmppAnonymousDomain** (Optional): The XMPP domain used for anonymous
+  sessions. If omitted, *xmppDomain* is assumed to handle this case.
+- **xmppAnonymousHost** (Optional): Like *xmppHost*, but for
+  *xmppAnonymousDomain*.
+- **xmppAnonymousPort** (Optional): Like *xmppPort*, but for
+  *xmppAnonymousDomain*.
