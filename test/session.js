@@ -20,6 +20,7 @@
 var should = require('should');
 var xml = require('libxmljs');
 var atom = require('../lib/atom');
+var config = require('../lib/config');
 var tutil = require('./support/testutil');
 
 // See xmpp_mockserver.js
@@ -144,6 +145,26 @@ describe('Session ID', function() {
                 aliceSessionId.should.not.equal(bobSessionId);
                 done();
             }).on('error', done);;
+        }).on('error', done);
+    });
+
+   it('should expire', function(done) {
+       this.timeout(0);
+        var options = {
+            path: '/channels/private@localhost/posts',
+            auth: 'alice@localhost/http:alice'
+        };
+        tutil.get(options, function(res) {
+            setTimeout(function() {
+                delete options.auth;
+                options.headers = {
+                    'x-session-id': res.headers['x-session-id']
+                };
+                tutil.get(options, function(res2) {
+                    res2.statusCode.should.equal(401);
+                    done();
+                }).on('error', done);
+            }, config.sessionExpirationTime * 1000 + 100);
         }).on('error', done);
     });
 

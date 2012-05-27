@@ -80,3 +80,5 @@ The following configuration options are supported:
   *xmppAnonymousDomain*.
 - **xmppAnonymousPort** (Optional): Like *xmppPort*, but for
   *xmppAnonymousDomain*.
+- **sessionExpirationTime** (Optional): Number of seconds before a proxied
+  XMPP session expires. By default, this is 600 (10 minutes).
