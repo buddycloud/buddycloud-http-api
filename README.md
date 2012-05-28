@@ -1,7 +1,16 @@
 buddycloud HTTP API
 ===================
 
-The glue without the goo! Access buddycloud via HTTP.
+This little server implements a simple REST-like HTTP interface to a
+[buddycloud][bc] instance. At its heart, it is a proxy service that
+exposes the [XMPP][xmpp] publish-subscribe nodes underlying each buddycloud
+channel as Atom feeds that can be both received and modified. The
+interface follows the [Atom Publishing Protocol][atompub] as much
+as possible.
+
+[bc]: http://buddycloud.com/
+[xmpp]: http://xmpp.org/
+[atompub]: http://www.atomenabled.org/developers/protocol/
 
 Setup
 -----
