@@ -48,9 +48,22 @@ var mockConfig;
 function setup() {
     process.on('message', function(message) {
         mockConfig = message;
+        addDiscoverRule(mockConfig.stanzas);
         mockConfig.stanzas = removeWhitespaceTextNodes(mockConfig.stanzas);
         notifyReady();
     });
+}
+
+function addDiscoverRule(stanzas) {
+    stanzas[
+        '<iq type="get">\
+           <query xmlns="http://jabber.org/protocol/disco#info"/>\
+         </iq>'] =
+        '<iq type="result">\
+           <query xmlns="http://jabber.org/protocol/disco#info">\
+             <identity category="pubsub" type="channels"/>\
+           </query>\
+         </iq>';
 }
 
 function removeWhitespaceTextNodes(stanzas) {

@@ -10,7 +10,6 @@ exports._ = {
 exports.production = {
     xmppDomain: 'buddycloud.org',
     xmppAnonymousDomain: 'anon.buddycloud.org',
-    pubsubDomain: 'channels.buddycloud.org'
 };
 
 // Development settings (useful for local debugging)
@@ -18,7 +17,6 @@ exports.development = {
     xmppDomain: 'localhost',
     xmppHost: 'localhost',
     xmppPort: '5222',
-    pubsubDomain: 'localhost'
 };
 
 // Testing settings (used by the unit tests)
@@ -26,6 +24,5 @@ exports.testing = {
     xmppDomain: 'localhost',
     xmppHost: 'localhost',
     xmppPort: '5888',
-    pubsubDomain: 'localhost',
     sessionExpirationTime: 1
 };

@@ -80,9 +80,6 @@ The following configuration options are supported:
   only needed if the hostname and port cannot be resolved from the *xmppDomain*
   via DNS service discovery.
 - **xmppPort** (Optional): The proxied XMPP server's port. See above.
-- **pubsubDomain** (Required): The XMPP domain used for Pub-Sub queries in the
-  *xmppDomain*. *(Note: This option will go away once Pub-Sub service
-  discovery is implemented.)*
 - **xmppAnonymousDomain** (Optional): The XMPP domain used for anonymous
   sessions. If omitted, *xmppDomain* is assumed to handle this case.
 - **xmppAnonymousHost** (Optional): Like *xmppHost*, but for
