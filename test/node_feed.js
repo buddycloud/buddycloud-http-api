@@ -41,18 +41,21 @@ var mockConfig = {
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>1</id>\
                    <content>one</content>\
+                   <updated>2012-10-16</updated>\
                  </entry>\
                </item>\
                <item id="2">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>2</id>\
                    <content>two</content>\
+                   <updated>2012-08-21</updated>\
                  </entry>\
                </item>\
                <item id="3">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>3</id>\
                    <content>three</content>\
+                   <updated>2012-03-03</updated>\
                  </entry>\
                </item>\
              </items>\
@@ -174,8 +177,12 @@ describe('Node Feed', function() {
                 res.statusCode.should.equal(200);
                 var feed = xml.parseXmlString(body);
 
-                feed.root().name().should.equal('feed');
-                feed.root().namespace().href().should.equal(atom.ns);
+                var feedElem = feed.root();
+                feedElem.name().should.equal('feed');
+                feedElem.namespace().href().should.equal(atom.ns);
+                should.exist(atom.get(feedElem, 'atom:title'));
+                should.exist(atom.get(feedElem, 'atom:id'));
+                should.exist(atom.get(feedElem, 'atom:updated'));
 
                 var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
                 var e1 = entries[0];
