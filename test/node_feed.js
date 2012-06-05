@@ -29,6 +29,7 @@ var mockConfig = {
         'bob': 'bob'
     },
     stanzas: {
+        // Get node items
         '<iq from="alice@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/alice@localhost/posts"/>\
@@ -62,6 +63,7 @@ var mockConfig = {
            </pubsub>\
          </iq>',
 
+        // Get node items with RSM <max>
         '<iq from="alice@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/alice@localhost/posts"/>\
@@ -94,6 +96,7 @@ var mockConfig = {
            </pubsub>\
          </iq>',
 
+        // Get node items with RSM <after>
         '<iq from="alice@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/alice@localhost/posts"/>\
@@ -126,6 +129,7 @@ var mockConfig = {
            </pubsub>\
          </iq>',
 
+        // Get node items without permission
         '<iq from="bob@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/alice@localhost/posts"/>\
@@ -138,6 +142,7 @@ var mockConfig = {
            </error>\
          </iq>',
 
+        // Get public node items anonymously
         '<iq type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <items node="/user/public@localhost/posts"/>\
