@@ -49,7 +49,7 @@ function setup() {
     process.on('message', function(message) {
         mockConfig = message;
         addDiscoverRule(mockConfig.stanzas);
-        mockConfig.stanzas = removeWhitespaceTextNodes(mockConfig.stanzas);
+        mockConfig.stanzas = normalizeStanzas(mockConfig.stanzas);
         notifyReady();
     });
 }
@@ -66,14 +66,22 @@ function addDiscoverRule(stanzas) {
          </iq>';
 }
 
-function removeWhitespaceTextNodes(stanzas) {
+function normalizeStanzas(stanzas) {
     var newStanzas = {};
     for (var key in stanzas) {
-        var newKey = key.replace(/>\s+</g, '><');
-        var newValue = stanzas[key].replace(/>\s+</g, '><');
+        var newKey = removeWhitespaceNodes(key);
+        var newValue = removeWhitespaceNodes(stanzas[key]);
         newStanzas[newKey] = newValue;
     }
     return newStanzas;
+}
+
+function removeWhitespaceNodes(stanza) {
+    var normalized = stanza.toString().replace(/>\s+</g, '><');
+    if (typeof stanza != 'string') // was an already-parsed document
+        return ltx.parse(normalized);
+    else
+        return normalized;
 }
 
 function notifyReady() {
@@ -109,9 +117,12 @@ function checkAuth(user, password, callback) {
 }
 
 function handleStanza(client, stanza) {
+    stanza = removeWhitespaceNodes(stanza);
+
     for (var key in mockConfig.stanzas) {
         var keyStanza = ltx.parse(key);
         keyStanza.attrs.id = stanza.attrs.id;
+
         if (elementMatches(keyStanza, stanza)) {
             var reply = ltx.parse(mockConfig.stanzas[key]);
             reply.attrs.id = stanza.attrs.id;
@@ -119,6 +130,7 @@ function handleStanza(client, stanza) {
             return;
         }
     }
+
     console.error('No rule for handling stanza ' + stanza.toString());
     replyServiceUnavailable(client, stanza.attrs.id);
 }
@@ -130,11 +142,8 @@ function replyServiceUnavailable(client, id) {
 }
 
 function elementMatches(expected, actual) {
-    if (typeof expected == 'string') {
-        // Ignore whitespace-only text nodes
-        if (expected.trim())
-            return typeof actual == 'string' && expected == actual;
-    }
+    if (typeof expected == 'string')
+        return typeof actual == 'string' && expected == actual;
 
     if (!actual.is(expected.getName(), expected.getNS()))
         return false;
