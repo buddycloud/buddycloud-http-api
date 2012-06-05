@@ -77,28 +77,51 @@ exports.get = function(options, callback) {
 };
 
 function readBody(response, callback) {
-    var buffer;
-    var offset = 0;
+    var chunks = [];
+    var size = 0;
 
-    response.on('data', function(chunk) {
-        if (!buffer) {
-            buffer = chunk;
-        } else {
-            var newbuf = new Buffer(buffer.length + chunk.length);
-            buffer.copy(newbuf, 0);
-            chunk.copy(newbuf, buffer.length);
-            buffer = newbuf;
-        }
+    response.on('data', function(data) {
+        chunks.push(data);
+        size += data.length;
     });
 
     response.on('end', function() {
-        callback(buffer);
+        var body = new Buffer(size);
+        copyIntoBuffer(body, chunks);
+        callback(body);
     });
 
     response.on('close', function() {
         callback(null);
     });
 }
+
+function copyIntoBuffer(buffer, chunks) {
+    var offset = 0;
+    chunks.forEach(function(chunk) {
+        chunk.copy(buffer, offset);
+        offset += chunk.length;
+    });
+}
+
+/**
+ * Like http.get(), but with the target host and port automatically filled
+ * in from the server configuration.
+ */
+exports.post = function(options, callback) {
+    options.method = 'POST';
+    options.host = 'localhost';
+    options.port = config.port;
+
+    var req = http.request(options, function(response) {
+        readBody(response, function(body) {
+            callback(response, body);
+        });
+    });
+    req.write(options.body);
+    req.end();
+    return req;
+};
 
 /**
  * Stops all started serves.

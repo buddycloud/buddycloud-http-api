@@ -160,6 +160,64 @@ var mockConfig = {
              </items>\
            </pubsub>\
          </iq>',
+
+         // Post new item to node
+        '<iq from="alice@localhost/http" type="set">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <publish node="/user/alice@localhost/posts">\
+               <item>\
+                 <entry xmlns="http://www.w3.org/2005/Atom">\
+                   <content>TEST</content>\
+                 </entry>\
+               </item>\
+             </publish>\
+           </pubsub>\
+         </iq>':
+        '<iq type="result">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <publish node="/user/alice@localhost/posts">\
+               <item id="newid"/>\
+             </publish>\
+           </pubsub>\
+         </iq>',
+
+         // Post new item anonymously (although not allowed)
+        '<iq type="set">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <publish node="/user/alice@localhost/posts">\
+               <item>\
+                 <entry xmlns="http://www.w3.org/2005/Atom">\
+                   <content>ANONYMOUS TEST</content>\
+                 </entry>\
+               </item>\
+             </publish>\
+           </pubsub>\
+         </iq>':
+        '<iq type="error">\
+           <error type="cancel">\
+             <not-allowed xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
+             <closed-node xmlns="http://jabber.org/protocol/pubsub#errors"/>\
+           </error>\
+         </iq>',
+
+         // Post new item without permission
+        '<iq from="bob@localhost/http" type="set">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <publish node="/user/alice@localhost/posts">\
+               <item>\
+                 <entry xmlns="http://www.w3.org/2005/Atom">\
+                   <content>ANOTHER TEST</content>\
+                 </entry>\
+               </item>\
+             </publish>\
+           </pubsub>\
+         </iq>':
+        '<iq type="error">\
+           <error type="cancel">\
+             <not-allowed xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
+             <closed-node xmlns="http://jabber.org/protocol/pubsub#errors"/>\
+           </error>\
+         </iq>'
     }
 };
 
@@ -267,6 +325,53 @@ describe('Node Feed', function() {
             };
             tutil.get(options, function(res, body) {
                 res.statusCode.should.equal(200);
+                done();
+            }).on('error', done);
+        });
+
+    });
+
+    describe('POST', function() {
+
+        it('should create a new node item', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts',
+                auth: 'alice@localhost/http:alice',
+                body: '<entry xmlns="http://www.w3.org/2005/Atom">\
+                         <content>TEST</content>\
+                       </entry>'
+            };
+            tutil.post(options, function(res, body) {
+                res.statusCode.should.equal(201);
+                res.headers['location'].should.equal(
+                    '/channels/alice@localhost/posts/item?id=newid');
+                done();
+            }).on('error', done);
+        });
+
+        it('should be 401 on anonymous posting if not allowed', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts',
+                body: '<entry xmlns="http://www.w3.org/2005/Atom">\
+                         <content>ANONYMOUS TEST</content>\
+                       </entry>'
+            };
+            tutil.post(options, function(res, body) {
+                res.statusCode.should.equal(401);
+                done();
+            }).on('error', done);
+        });
+
+        it('should be 403 if user is not allowed to post', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts',
+                auth: 'bob@localhost/http:bob',
+                body: '<entry xmlns="http://www.w3.org/2005/Atom">\
+                         <content>ANOTHER TEST</content>\
+                       </entry>'
+            };
+            tutil.post(options, function(res, body) {
+                res.statusCode.should.equal(403);
                 done();
             }).on('error', done);
         });
