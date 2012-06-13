@@ -24,7 +24,7 @@
 // format:
 //
 // {
-//     accounts: {
+//     users: {
 //         'user1': 'password1',
 //         'user2': 'password2',
 //         ...
@@ -43,37 +43,41 @@ var ltx = require('ltx');
 var xmpp = require('node-xmpp');
 var config = require('../../lib/config');
 
+var stanzasNS = 'urn:ietf:params:xml:ns:xmpp-stanzas';
 var mockConfig;
 
 function setup() {
     process.on('message', function(message) {
-        mockConfig = message;
-        addDiscoverRule(mockConfig.stanzas);
-        mockConfig.stanzas = normalizeStanzas(mockConfig.stanzas);
-        notifyReady();
+        mockConfig = {};
+        mockConfig.users = message.users;
+
+        mockConfig.stanzas = {};
+        addDefaultStanzaRules();
+        addStanzaRules(message.stanzas);
+
+        process.send(true);
     });
 }
 
-function addDiscoverRule(stanzas) {
-    stanzas[
+function addDefaultStanzaRules() {
+    addStanzaRules({
         '<iq type="get">\
            <query xmlns="http://jabber.org/protocol/disco#info"/>\
-         </iq>'] =
+         </iq>':
         '<iq type="result">\
            <query xmlns="http://jabber.org/protocol/disco#info">\
              <identity category="pubsub" type="channels"/>\
            </query>\
-         </iq>';
+         </iq>'
+     });
 }
 
-function normalizeStanzas(stanzas) {
-    var newStanzas = {};
-    for (var key in stanzas) {
-        var newKey = removeWhitespaceNodes(key);
-        var newValue = removeWhitespaceNodes(stanzas[key]);
-        newStanzas[newKey] = newValue;
+function addStanzaRules(rules) {
+    for (var pattern in rules) {
+        var normalizedPattern = removeWhitespaceNodes(pattern);
+        var action = rules[pattern];
+        mockConfig.stanzas[normalizedPattern] = action;
     }
-    return newStanzas;
 }
 
 function removeWhitespaceNodes(stanza) {
@@ -82,10 +86,6 @@ function removeWhitespaceNodes(stanza) {
         return ltx.parse(normalized);
     else
         return normalized;
-}
-
-function notifyReady() {
-    process.send(true);
 }
 
 function start() {
@@ -117,28 +117,44 @@ function checkAuth(user, password, callback) {
 }
 
 function handleStanza(client, stanza) {
-    stanza = removeWhitespaceNodes(stanza);
-
-    for (var key in mockConfig.stanzas) {
-        var keyStanza = ltx.parse(key);
-        keyStanza.attrs.id = stanza.attrs.id;
-
-        if (elementMatches(keyStanza, stanza)) {
-            var reply = ltx.parse(mockConfig.stanzas[key]);
-            reply.attrs.id = stanza.attrs.id;
-            client.send(reply);
-            return;
-        }
+    var action = findMatchingRule(stanza);
+    if (!action) {
+        console.error('No rule for handling stanza ' + stanza.toString());
+        replyServiceUnavailable(client, stanza.attrs.id);
+        return;
     }
 
-    console.error('No rule for handling stanza ' + stanza.toString());
-    replyServiceUnavailable(client, stanza.attrs.id);
+    var reply;
+    if (typeof action == 'object') {
+        addStanzaRules(action);
+        reply = action[''];
+    } else {
+        reply = action;
+    }
+
+    reply = ltx.parse(reply);
+    reply.attrs.id = stanza.attrs.id;
+    client.send(reply);
 }
 
 function replyServiceUnavailable(client, id) {
     client.send(new xmpp.Iq({id: id, type: 'error'}).
         c('error', {type: '503'}).
-        c('service-unavailable', {xmlns: 'urn:ietf:params:xml:ns:xmpp-stanzas'}));
+        c('service-unavailable', {xmlns: stanzasNS}));
+}
+
+function findMatchingRule(stanza) {
+    stanza = removeWhitespaceNodes(stanza);
+
+    for (var key in mockConfig.stanzas) {
+        var pattern = ltx.parse(key);
+        pattern.attrs.id = stanza.attrs.id;
+
+        if (elementMatches(pattern, stanza))
+            return mockConfig.stanzas[key];
+    }
+
+    return null;
 }
 
 function elementMatches(expected, actual) {

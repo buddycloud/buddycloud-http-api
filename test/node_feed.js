@@ -173,13 +173,56 @@ var mockConfig = {
              </publish>\
            </pubsub>\
          </iq>':
-        '<iq type="result">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-             <publish node="/user/alice@localhost/posts">\
-               <item id="newid"/>\
-             </publish>\
-           </pubsub>\
-         </iq>',
+        {
+            '':
+            '<iq type="result">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+                 <publish node="/user/alice@localhost/posts">\
+                   <item id="newid"/>\
+                 </publish>\
+               </pubsub>\
+             </iq>',
+
+            '<iq from="alice@localhost/http" type="get">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+                 <items node="/user/alice@localhost/posts"/>\
+               </pubsub>\
+             </iq>':
+            '<iq type="result">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+                 <items node="/user/alice@localhost/posts">\
+                   <item id="newid">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>newid</id>\
+                       <content>TEST</content>\
+                       <updated>2012-10-17</updated>\
+                     </entry>\
+                   </item>\
+                   <item id="1">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>1</id>\
+                       <content>one</content>\
+                       <updated>2012-10-16</updated>\
+                     </entry>\
+                   </item>\
+                   <item id="2">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>2</id>\
+                       <content>two</content>\
+                       <updated>2012-08-21</updated>\
+                     </entry>\
+                   </item>\
+                   <item id="3">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>3</id>\
+                       <content>three</content>\
+                       <updated>2012-03-03</updated>\
+                     </entry>\
+                   </item>\
+                 </items>\
+               </pubsub>\
+             </iq>'
+        },
 
          // Post new item anonymously (although not allowed)
         '<iq type="set">\
@@ -341,11 +384,26 @@ describe('Node Feed', function() {
                          <content>TEST</content>\
                        </entry>'
             };
-            tutil.post(options, function(res, body) {
+            tutil.post(options, function(res) {
                 res.statusCode.should.equal(201);
                 res.headers['location'].should.equal(
                     '/channels/alice@localhost/posts/item?id=newid');
-                done();
+
+                var options2 = {
+                    path: '/channels/alice@localhost/posts',
+                    auth: 'alice@localhost/http:alice',
+                };
+                tutil.get(options2, function(res2, body2) {
+                    var feed = xml.parseXmlString(body2);
+                    var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
+                    entries.length.should.equal(4);
+
+                    var newest = entries[0];
+                    atom.get(newest, 'atom:id').text().should.equal('newid');
+                    atom.get(newest, 'atom:content').text().should.equal('TEST');
+
+                    done();
+                }).on('error', done);
             }).on('error', done);
         });
 
