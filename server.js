@@ -48,7 +48,23 @@ function printInitialMessage() {
     console.log('Listening on port ' + config.port);
 }
 
-var app = express.createServer();
+function createServer() {
+    if (config.https) {
+        var options = {
+            cert: config.httpsCert,
+            key: config.httpsKey
+        };
+        if (!options.cert || !options.key) {
+            console.error('HTTPS enabled, but no certificate/key specified');
+            process.exit(1);
+        }
+        return express.createServer(options);
+    } else {
+        return express.createServer();
+    }
+}
+
+var app = createServer();
 setupConfig(app);
 setupResourceHandlers(app);
 printInitialMessage();

@@ -88,3 +88,7 @@ The following configuration options are supported:
   *xmppAnonymousDomain*.
 - **sessionExpirationTime** (Optional): Number of seconds before a proxied
   XMPP session expires. By default, this is 600 (10 minutes).
+- **https** (Optional): If true, the server communicates exclusively via
+  HTTPS. *httpsCert* and *httpsKey* must be specified in this case.
+- **httpsCert** (Optional): The SSL certificate to use if **https** is defined.
+- **httpsKey** (Optional): The SSL private key to use if **https** is defined.
