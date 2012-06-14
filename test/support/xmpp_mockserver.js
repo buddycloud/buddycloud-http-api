@@ -74,9 +74,11 @@ function addDefaultStanzaRules() {
 
 function addStanzaRules(rules) {
     for (var pattern in rules) {
-        var normalizedPattern = removeWhitespaceNodes(pattern);
-        var action = rules[pattern];
-        mockConfig.stanzas[normalizedPattern] = action;
+        if (pattern) {
+            var normalizedPattern = removeWhitespaceNodes(pattern);
+            var action = rules[pattern];
+            mockConfig.stanzas[normalizedPattern] = action;
+        }
     }
 }
 
