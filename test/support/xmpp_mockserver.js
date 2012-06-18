@@ -62,7 +62,7 @@ function setup() {
 function addDefaultStanzaRules() {
     addStanzaRules({
         '<iq type="get">\
-           <query xmlns="http://jabber.org/protocol/disco#info"/>\
+           <query xmlns="http://jabber.org/protocol/disco#info" node=""/>\
          </iq>':
         '<iq type="result">\
            <query xmlns="http://jabber.org/protocol/disco#info">\
@@ -167,8 +167,12 @@ function elementMatches(expected, actual) {
         return false;
 
     for (var key in expected.attrs) {
-        if (expected.attrs[key] != actual.attrs[key])
+        if (expected.attrs[key]) {
+            if (expected.attrs[key] != actual.attrs[key])
+                return false;
+        } else if (actual.attrs[key]) {
             return false;
+        }
     }
 
     if (expected.children.length != actual.children.length)
