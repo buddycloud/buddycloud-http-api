@@ -75,19 +75,20 @@ function addDefaultStanzaRules() {
 function addStanzaRules(rules) {
     for (var pattern in rules) {
         if (pattern) {
-            var normalizedPattern = removeWhitespaceNodes(pattern);
+            var normalizedPattern = removeInsignificantWhitespace(pattern);
             var action = rules[pattern];
             mockConfig.stanzas[normalizedPattern] = action;
         }
     }
 }
 
-function removeWhitespaceNodes(stanza) {
-    var normalized = stanza.toString().replace(/>\s+</g, '><');
-    if (typeof stanza != 'string') // was an already-parsed document
-        return ltx.parse(normalized);
-    else
-        return normalized;
+function removeInsignificantWhitespace(stanza) {
+    var doc = ltx.parse(stanza.toString().replace(/>\s+</g, '><'));
+    if (typeof stanza != 'string') { // was an already-parsed document
+        return doc;
+    } else {
+        return doc.toString();
+    }
 }
 
 function start() {
@@ -146,7 +147,7 @@ function replyServiceUnavailable(client, id) {
 }
 
 function findMatchingRule(stanza) {
-    stanza = removeWhitespaceNodes(stanza);
+    stanza = removeInsignificantWhitespace(stanza);
 
     for (var key in mockConfig.stanzas) {
         var pattern = ltx.parse(key);
