@@ -71,7 +71,88 @@ var mockConfig = {
            <error type="cancel">\
              <item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
            </error>\
-         </iq>'
+         </iq>',
+
+        // Set node metadata
+        '<iq type="set">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
+             <configure node="/user/alice@localhost/posts">\
+               <x xmlns="jabber:x:data" type="submit">\
+                 <field var="FORM_TYPE" type="hidden">\
+                   <value>http://jabber.org/protocol/pubsub#node_config</value>\
+                 </field>\
+                 <field var="pubsub#description" type="text-single">\
+                   <value>The posts of Alice (now public!)</value>\
+                 </field>\
+                 <field var="pubsub#access_model" type="text-single">\
+                   <value>open</value>\
+                 </field>\
+               </x>\
+             </configure>\
+           </pubsub>\
+         </iq>':
+         {
+            '':
+            '<iq type="result"/>',
+
+            // Get node metadata after changes
+            '<iq from="alice@localhost/http" type="get">\
+               <query xmlns="http://jabber.org/protocol/disco#info" \
+                      node="/user/alice@localhost/posts"/>\
+             </iq>':
+            '<iq type="result">\
+               <query xmlns="http://jabber.org/protocol/disco#info" \
+                      node="/users/alice@localhost/posts">\
+                 <identity category="pubsub" type="leaf"/>\
+                 <identity category="pubsub" type="channel"/>\
+                 <x xmlns="jabber:x:data" type="result">\
+                   <field var="FORM_TYPE" type="hidden">\
+                     <value>http://jabber.org/protocol/pubsub#meta-data</value>\
+                   </field>\
+                   <field var="pubsub#title" type="text-single">\
+                     <value>Alice</value>\
+                   </field>\
+                   <field var="pubsub#description" type="text-single">\
+                     <value>The posts of Alice (now public!)</value>\
+                   </field>\
+                   <field var="pubsub#access_model" type="text-single">\
+                     <value>open</value>\
+                   </field>\
+                   <field var="pubsub#creation_date" type="text-single">\
+                     <value>1989-08-21T12:00:00</value>\
+                   </field>\
+                   <field var="buddycloud#channel_type" type="text-single">\
+                     <value>personal</value>\
+                   </field>\
+                   <field var="buddycloud#default_affiliation" type="text-single">\
+                     <value>member</value>\
+                   </field>\
+                 </x>\
+               </query>\
+             </iq>',
+         },
+
+        // Try to set metadata of non-existing node
+        '<iq type="set">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
+             <configure node="/user/ron@localhost/posts">\
+               <x xmlns="jabber:x:data" type="submit">\
+                 <field var="FORM_TYPE" type="hidden">\
+                   <value>http://jabber.org/protocol/pubsub#node_config</value>\
+                 </field>\
+                 <field var="pubsub#description" type="text-single">\
+                   <value>Dunno</value>\
+                 </field>\
+               </x>\
+             </configure>\
+           </pubsub>\
+         </iq>':
+         '<iq type="error">\
+           <error type="cancel">\
+             <item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
+           </error>\
+         </iq>',
+
     }
 };
 
@@ -111,6 +192,51 @@ describe('Node Metadata', function() {
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(404);
+                done();
+            }).on('error', done);
+        });
+
+    });
+
+    describe('POST', function() {
+
+        it('should alter the node\'s metadata', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts/meta',
+                auth: 'alice@localhost/http:alice',
+                body: JSON.stringify({
+                    'description': 'The posts of Alice (now public!)',
+                    'access_model': 'open'
+                })
+            };
+            tutil.post(options, function(res, body) {
+                res.statusCode.should.equal(200);
+
+                delete options.body;
+                tutil.get(options, function(res, body) {
+                    res.statusCode.should.equal(200);
+                    var metadata = JSON.parse(body);
+                    metadata.should.eql({
+                        'title': 'Alice',
+                        'description': 'The posts of Alice (now public!)',
+                        'access_model': 'open',
+                        'creation_date': '1989-08-21T12:00:00',
+                        'channel_type': 'personal',
+                        'default_affiliation': 'member'
+                    });
+                    done();
+                });
+            }).on('error', done);
+        });
+
+        it('should be 404 if the node does not exist', function(done) {
+            var options = {
+                path: '/channels/ron@localhost/posts/meta',
+                auth: 'alice@localhost/http:alice',
+                body: JSON.stringify({'description': 'Dunno'})
+            };
+            tutil.post(options, function(res, body) {
                 res.statusCode.should.equal(404);
                 done();
             }).on('error', done);
