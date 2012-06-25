@@ -43,6 +43,7 @@ var mockConfig = {
            </pubsub>\
          </iq>',
 
+        // Subscribe to a channel
         '<iq from="eve@localhost/http" type="set">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <subscribe node="/user/alice@localhost/posts" jid="eve@localhost"/>\
@@ -58,6 +59,7 @@ var mockConfig = {
               </pubsub>\
             </iq>',
 
+            // Get node subscriptions after subscribing
             '<iq from="eve@localhost/http" type="get">\
                <pubsub xmlns="http://jabber.org/protocol/pubsub">\
                  <affiliations node="/user/alice@localhost/posts"/>\
@@ -74,6 +76,7 @@ var mockConfig = {
              </iq>'
         },
 
+        // Unsubscribe from node
         '<iq from="eve@localhost/http" type="set">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <unsubscribe node="/user/alice@localhost/posts" jid="eve@localhost"/>\
@@ -83,6 +86,7 @@ var mockConfig = {
             '':
             '<iq type="result"/>',
 
+            // Get node subscriptions after unsubscribing
             '<iq from="eve@localhost/http" type="get">\
                <pubsub xmlns="http://jabber.org/protocol/pubsub">\
                  <affiliations node="/user/alice@localhost/posts"/>\
