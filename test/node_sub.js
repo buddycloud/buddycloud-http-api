@@ -116,7 +116,7 @@ describe('Node Subscription List', function() {
 
         it('should return the node\'s subscribers', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/sub',
+                path: '/channels/alice@localhost/posts/subscriptions',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -136,7 +136,7 @@ describe('Node Subscription List', function() {
 
         it('should allow subscription', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/sub',
+                path: '/channels/alice@localhost/posts/subscriptions',
                 auth: 'eve@localhost/http:eve',
                 body: JSON.stringify([true])
             };
@@ -144,7 +144,7 @@ describe('Node Subscription List', function() {
                 res.statusCode.should.equal(200);
 
                 var options2 = {
-                    path: '/channels/alice@localhost/posts/sub',
+                    path: '/channels/alice@localhost/posts/subscriptions',
                     auth: 'eve@localhost/http:eve'
                 };
                 tutil.get(options2, function(res, body) {
@@ -161,7 +161,7 @@ describe('Node Subscription List', function() {
 
         it('should allow unsubscription', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/sub',
+                path: '/channels/alice@localhost/posts/subscriptions',
                 auth: 'eve@localhost/http:eve',
                 body: JSON.stringify([false])
             };
@@ -169,7 +169,7 @@ describe('Node Subscription List', function() {
                 res.statusCode.should.equal(200);
 
                 var options2 = {
-                    path: '/channels/alice@localhost/posts/sub',
+                    path: '/channels/alice@localhost/posts/subscriptions',
                     auth: 'eve@localhost/http:eve'
                 };
                 tutil.get(options2, function(res, body) {
