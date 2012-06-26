@@ -26,11 +26,22 @@ function setupConfig(app) {
     app.configure(function() {
         app.use(express.logger({immediate: true}));
         app.use(auth.parser);
+        app.use(crossOriginAllower);
+        app.use(app.router);
         app.use(express.errorHandler());
     });
     app.configure('development', function() {
         app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
     });
+}
+
+function crossOriginAllower(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    if (req.method == 'OPTIONS') {
+        res.send(200);
+    } else {
+        next();
+    }
 }
 
 function setupResourceHandlers(app) {
