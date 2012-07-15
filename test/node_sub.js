@@ -30,7 +30,7 @@ var mockConfig = {
     stanzas: {
         // Get node subscriptions + affiliations
         '<iq from="alice@localhost/http" type="get">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
              <affiliations node="/user/alice@localhost/posts"/>\
            </pubsub>\
          </iq>':
@@ -61,7 +61,7 @@ var mockConfig = {
 
             // Get node subscriptions after subscribing
             '<iq from="eve@localhost/http" type="get">\
-               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
                  <affiliations node="/user/alice@localhost/posts"/>\
                </pubsub>\
              </iq>':
@@ -88,7 +88,7 @@ var mockConfig = {
 
             // Get node subscriptions after unsubscribing
             '<iq from="eve@localhost/http" type="get">\
-               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
                  <affiliations node="/user/alice@localhost/posts"/>\
                </pubsub>\
              </iq>':
