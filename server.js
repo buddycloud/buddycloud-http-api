@@ -18,9 +18,9 @@
 // The HTTP API server's entry point.
 
 var express = require('express');
-var auth = require('./lib/auth');
-var config = require('./lib/config');
-var session = require('./lib/session');
+var auth = require('./src/util/auth');
+var config = require('./src/util/config');
+var session = require('./src/util/session');
 
 function setupConfig(app) {
     app.configure(function() {
@@ -46,10 +46,10 @@ function crossOriginAllower(req, res, next) {
 
 function setupResourceHandlers(app) {
     var handlers = [
-        require('./lib/api/node_feed'),
-        require('./lib/api/node_item'),
-        require('./lib/api/node_meta'),
-        require('./lib/api/node_sub')
+        require('./src/node_feed'),
+        require('./src/node_item'),
+        require('./src/node_meta'),
+        require('./src/node_sub')
     ];
     handlers.forEach(function(h) { h.setup(app); });
 }

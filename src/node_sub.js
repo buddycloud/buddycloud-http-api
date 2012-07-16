@@ -18,10 +18,10 @@
 // Handles requests regarding node subscription lists.
 
 var xml = require('libxmljs');
-var autil = require('./api_util');
-var config = require('../config');
-var pubsub = require('../pubsub');
-var session = require('../session');
+var autil = require('./util/api');
+var config = require('./util/config');
+var pubsub = require('./util/pubsub');
+var session = require('./util/session');
 
 /**
  * Registers resource URL handlers.

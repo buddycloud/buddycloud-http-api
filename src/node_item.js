@@ -18,10 +18,10 @@
 // Handles requests regarding single node items.
 
 var xml = require('libxmljs');
-var autil = require('./api_util');
-var atom = require('../atom');
-var pubsub = require('../pubsub');
-var session = require('../session');
+var autil = require('./util/api');
+var atom = require('./util/atom');
+var pubsub = require('./util/pubsub');
+var session = require('./util/session');
 
 /**
  * Registers resource URL handlers.

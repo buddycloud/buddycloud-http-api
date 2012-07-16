@@ -41,7 +41,7 @@
 
 var ltx = require('ltx');
 var xmpp = require('node-xmpp');
-var config = require('../../lib/config');
+var config = require('../../src/util/config');
 
 var stanzasNS = 'urn:ietf:params:xml:ns:xmpp-stanzas';
 var mockConfig;

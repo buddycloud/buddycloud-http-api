@@ -19,8 +19,8 @@
 
 var should = require('should');
 var xml = require('libxmljs');
-var atom = require('../lib/atom');
-var config = require('../lib/config');
+var atom = require('../src/util/atom');
+var config = require('../src/util/config');
 var tutil = require('./support/testutil');
 
 // See xmpp_mockserver.js

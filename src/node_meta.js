@@ -18,9 +18,9 @@
 // Handles requests regarding node metadata.
 
 var xml = require('libxmljs');
-var autil = require('./api_util');
-var pubsub = require('../pubsub');
-var session = require('../session');
+var autil = require('./util/api');
+var pubsub = require('./util/pubsub');
+var session = require('./util/session');
 
 /**
  * Registers resource URL handlers.

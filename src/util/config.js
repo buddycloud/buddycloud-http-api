@@ -19,7 +19,7 @@
 // The exported names exactly match the ones of the corresponding
 // config options.
 
-var config = require('../config');
+var config = require('../../config');
 
 // Defaults
 exports.sessionExpirationTime = 600; // 10min

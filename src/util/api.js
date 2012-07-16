@@ -19,9 +19,9 @@
 
 var xml = require('libxmljs');
 var xmpp = require('node-xmpp');
-var auth = require('../auth');
-var cache = require('../cache');
-var config = require('../config');
+var auth = require('./auth');
+var cache = require('./cache');
+var config = require('./config');
 
 var discoInfoNS = 'http://jabber.org/protocol/disco#info';
 var discoItemsNS = 'http://jabber.org/protocol/disco#items';

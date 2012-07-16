@@ -21,7 +21,7 @@ var child_process = require('child_process');
 var fork = child_process.fork;
 var spawn = child_process.spawn;
 var http = require('http');
-var config = require('../../lib/config');
+var config = require('../../src/util/config');
 
 var httpserver;
 var mockserver;
