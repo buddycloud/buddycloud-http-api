@@ -14,49 +14,16 @@
  * limitations under the License.
  */
 
-// api_util.js:
-// Utility functions used by the resource handlers.
+// api.js:
+// Utility functions and middleware used by the API resource handlers.
 
 var xml = require('libxmljs');
 var xmpp = require('node-xmpp');
 var auth = require('./auth');
 var cache = require('./cache');
 var config = require('./config');
-
-var discoInfoNS = 'http://jabber.org/protocol/disco#info';
-var discoItemsNS = 'http://jabber.org/protocol/disco#items';
-
-// Used by discoverChannelNode() to cache the server responsible
-// for a channel domain
-var discoverCache = new cache.Cache();
-
-/**
- * Middleware that reads the request body into a Buffer which is stored
- * in req.body.
- */
-exports.bodyReader = function(req, res, next) {
-    var chunks = [];
-    var size = 0;
-
-    req.on('data', function(data) {
-        chunks.push(data);
-        size += data.length;
-    });
-
-    req.on('end', function(data) {
-        req.body = new Buffer(size);
-        copyIntoBuffer(req.body, chunks);
-        next();
-    });
-};
-
-function copyIntoBuffer(buffer, chunks) {
-    var offset = 0;
-    chunks.forEach(function(chunk) {
-        chunk.copy(buffer, offset);
-        offset += chunk.length;
-    });
-}
+var disco = require('./disco');
+var pubsub = require('./disco');
 
 /**
  * Like session.sendQuery(), but takes care of any returned XMPP error
@@ -89,117 +56,52 @@ function reportXmppError(req, res, errorStanza) {
 };
 
 /**
- * Returns the Pub-Sub node ID for the specified channel node.
+ * Middleware that reads the request body into a Buffer which is stored
+ * in req.body.
  */
-exports.channelNodeId = function(channel, subnode) {
-    return '/user/' + channel + '/' + subnode;
+exports.bodyReader = function(req, res, next) {
+    var chunks = [];
+    var size = 0;
+
+    req.on('data', function(data) {
+        chunks.push(data);
+        size += data.length;
+    });
+
+    req.on('end', function(data) {
+        req.body = new Buffer(size);
+        copyIntoBuffer(req.body, chunks);
+        next();
+    });
 };
 
-/**
- * Discovers the server and pub-sub node ID for the specified buddycloud
- * channel subnode and calls 'callback(server, id)' on success. If the server
- * could not be determined, "404 Not Found" is returned to the client instead
- * (and the callback is not called).
- */
-exports.discoverChannelNode = function(req, res, channel, subnode, callback) {
-    var domain = channel.slice(channel.lastIndexOf('@') + 1);
-    var nodeId = exports.channelNodeId(channel, subnode);
+function copyIntoBuffer(buffer, chunks) {
+    var offset = 0;
+    chunks.forEach(function(chunk) {
+        chunk.copy(buffer, offset);
+        offset += chunk.length;
+    });
+}
 
-    exports.discoverChannelServer(req, res, domain, function(server) {
-        if (!server) {
-            res.send(404);
+/**
+ * Middleware that uses discoverChannelServer() from "util/buddycloud"
+ * to look up the requested channel's home server name. It is assumed
+ * that the request handler's URL pattern has a ":channel" placeholder.
+ * On success, the middleware sets req.channelServer to the discovered
+ * server's hostname.
+ *
+ * This is assumed to run after session.provider().
+ */
+ exports.channelServerDiscoverer = function(req, res, next) {
+    var channel = req.params.channel;
+    var domain = channel.slice(channel.lastIndexOf('@') + 1);
+
+    disco.discoverChannelServer(domain, req.session, function(server, err) {
+        if (err) {
+            res.send(err);
         } else {
-            discoverCache.put(domain, server, config.discoveryExpirationTime);
-            callback(server, nodeId);
+            req.channelServer = server;
+            next();
         }
     });
-}
-
-exports.discoverChannelServer = function(req, res, domain, callback) {
-    var server = discoverCache.get(domain);
-    if (server) {
-        callback(server);
-        return;
-    }
-
-    queryServer(req, res, domain, function(isChannelServer) {
-        if (isChannelServer)
-            callback(domain);
-        else
-            queryAdvertisedServers(req, res, domain, callback);
-    });
-}
-
-function queryServer(req, res, server, callback) {
-    sendDiscoInfo(req, res, server, function(reply) {
-        var replyDoc = xml.parseXmlString(reply.toString());
-        var channelIdentity = replyDoc.find(
-            '//disco:identity[@category="pubsub"][@type=\"channels"]',
-            {disco: discoInfoNS}
-        );
-        callback(channelIdentity.length > 0 ? server : null);
-    });
-}
-
-function sendDiscoInfo(req, res, server, callback) {
-    var iq = new xmpp.Iq({to: server, type: 'get'}).
-        c('query', {xmlns: discoInfoNS}).root();
-
-    req.session.sendQuery(iq, function(reply) {
-        if (reply.type == 'error')
-            // Ignore servers that don't support disco#info by
-            // returning an empty result
-            callback(new xmpp.Iq());
-        else
-            callback(reply);
-    });
-}
-
-function queryAdvertisedServers(req, res, server, callback) {
-    sendDiscoItems(req, res, server, function(reply) {
-        var replyDoc = xml.parseXmlString(reply.toString());
-        var servers = replyDoc.
-            find('//disco:item/@jid', {disco: discoItemsNS}).
-            map(extractJID);
-        queryEachServer(req, res, servers, callback);
-    });
-}
-
-function extractJID(jidAttr) {
-    if (typeof(jidAttr.text) == 'function') {
-	    return jidAttr.text();
-    }
-    jid = /jid\=\"(.*)\"/.exec(jidAttr);
-    return jid[1];
-}
-
-function sendDiscoItems(req, res, server, callback) {
-    var iq = new xmpp.Iq({to: server, type: 'get'}).
-        c('query', {xmlns: discoItemsNS});
-    exports.sendQuery(req, res, iq, callback);
-}
-
-function queryEachServer(req, res, servers, callback) {
-    if (servers.length == 0) {
-        callback(null);
-    } else {
-        var server = servers.shift();
-        queryServer(req, res, server, function(isChannelServer) {
-            if (isChannelServer)
-                callback(server);
-            else
-                queryEachServer(req, res, servers, callback);
-        });
-    }
-}
-
-/**
- *
- */
-exports.discoverNodeMetadata = function(req, res, channel, node, callback) {
-    exports.discoverChannelNode(req, res, channel, node, function(server, id) {
-        var iq = new xmpp.Iq({to: server, type: 'get'}).
-            c('query', {xmlns: discoInfoNS, node: id});
-        exports.sendQuery(req, res, iq, callback);
-    });
-}
+};

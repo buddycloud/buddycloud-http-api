@@ -27,7 +27,10 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/channels/:channel/:node/item', session.provider, getNodeItem);
+    app.get('/channels/:channel/:node/item',
+        session.provider,
+        autil.channelServerDiscoverer,
+        getNodeItem);
 };
 
 function getNodeItem(req, res) {
@@ -52,11 +55,10 @@ function getNodeItem(req, res) {
 }
 
 function requestNodeItem(req, res, channel, node, item, callback) {
-    autil.discoverChannelNode(req, res, channel, node, function(server, id) {
-        var iq = pubsub.singleItemIq(id, item);
-        iq.to = server;
-        autil.sendQuery(req, res, iq, callback);
-    });
+    var nodeId = pubsub.channelNodeId(channel, node);
+    var iq = pubsub.singleItemIq(nodeId, item);
+    iq.to = req.channelServer;
+    autil.sendQuery(req, res, iq, callback);
 }
 
 function extractEntry(reply) {

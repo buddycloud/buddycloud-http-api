@@ -20,6 +20,7 @@
 var xml = require('libxmljs');
 var autil = require('./util/api');
 var config = require('./util/config');
+var disco = require('./util/disco');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
 
@@ -29,6 +30,7 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node/subscriptions',
         session.provider,
+        autil.channelServerDiscoverer,
         getNodeSubscriptions);
     app.post('/channels/:channel/:node/subscriptions',
         autil.bodyReader,
@@ -111,9 +113,15 @@ function doSubscribeAction(iqFn, req, res, channel, node, callback) {
     // go to the home buddycloud server.
     var home = config.xmppDomain;
 
-    autil.discoverChannelServer(req, res, home, function(server) {
-        var nodeId = autil.channelNodeId(channel, node);
+    disco.discoverChannelServer(home, req.session, function(server, err) {
+        if (err) {
+            res.send(500);
+            return;
+        }
+
+        var nodeId = pubsub.channelNodeId(channel, node);
         var bareJid = req.user.split('/', 2)[0];
+        
         var iq = iqFn(nodeId, bareJid);
         iq.to = server;
         autil.sendQuery(req, res, iq, callback);

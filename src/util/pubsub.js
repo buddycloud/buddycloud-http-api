@@ -26,6 +26,13 @@ exports.ns = 'http://jabber.org/protocol/pubsub';
 exports.ownerNS = 'http://jabber.org/protocol/pubsub#owner';
 
 /**
+ * Returns the Pub-Sub node ID for the specified buddycloud channel node.
+ */
+exports.channelNodeId = function(channel, name) {
+    return '/user/' + channel + '/' + name;
+};
+
+/**
  * Generates an XMPP pub-sub query URI with the passed parameters.
  * (See secion 16.1 of XEP-0060.)
  */
@@ -37,6 +44,15 @@ exports.queryURI = function(host, action, node) {
 function iq(attrs, ns) {
     return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns || exports.ns});
 };
+
+/**
+ * Creates an Pub-Sub node <query/> IQ to retrieve a node's metadata.
+ */
+exports.metadataIq = function(nodeId) {
+    return new xmpp.Iq({type: 'get'}).
+        c('query', {node: nodeId, xmlns: 'http://jabber.org/protocol/disco#info'}).
+        root();
+}
 
 /**
  * Creates a Pub-Sub <items/> IQ that retrieves all items of a node (or

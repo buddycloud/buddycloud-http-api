@@ -31,10 +31,12 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node',
         session.provider,
+        autil.channelServerDiscoverer,
         getNodeFeed);
     app.post('/channels/:channel/:node',
         autil.bodyReader,
         session.provider,
+        autil.channelServerDiscoverer,
         postToNodeFeed);
 };
 
@@ -49,11 +51,10 @@ function getNodeFeed(req, res) {
 }
 
 function requestNodeItems(req, res, channel, node, callback) {
-    autil.discoverChannelNode(req, res, channel, node, function(server, id) {
-        var iq = pubsub.itemsIq(id, req.query.max, req.query.after);
-        iq.to = server;
-        autil.sendQuery(req, res, iq, callback);
-    });
+    var nodeId = pubsub.channelNodeId(channel, node);
+    var iq = pubsub.itemsIq(nodeId, req.query.max, req.query.after);
+    iq.to = req.channelServer;
+    autil.sendQuery(req, res, iq, callback);
 }
 
 function generateNodeFeed(channel, node, reply) {
@@ -61,7 +62,7 @@ function generateNodeFeed(channel, node, reply) {
     feed.node('feed').namespace(atom.ns);
     feed.root().node('title', channel + ' ' + node);
 
-    var nodeId = autil.channelNodeId(channel, node);
+    var nodeId = pubsub.channelNodeId(channel, node);
     var queryURI = pubsub.queryURI(reply.attr('from'), 'retrieve', nodeId);
     feed.root().node('id', queryURI);
 
@@ -110,11 +111,10 @@ function postToNodeFeed(req, res) {
 }
 
 function publishNodeItem(req, res, channel, node, entry, callback) {
-    autil.discoverChannelNode(req, res, channel, node, function(server, id) {
-        var iq = pubsub.publishIq(id, entry.toString());
-        iq.to = server;
-        autil.sendQuery(req, res, iq, callback);
-    });
+    var nodeId = pubsub.channelNodeId(channel, node);    
+    var iq = pubsub.publishIq(nodeId, entry.toString());
+    iq.to = req.channelServer;
+    autil.sendQuery(req, res, iq, callback);
 }
 
 function getPublishedItemId(reply) {

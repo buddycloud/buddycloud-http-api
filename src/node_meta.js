@@ -28,22 +28,31 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node/metadata',
         session.provider,
+        autil.channelServerDiscoverer,
         getNodeMetadata);
     app.post('/channels/:channel/:node/metadata',
         autil.bodyReader,
         session.provider,
+        autil.channelServerDiscoverer,
         setNodeMetadata);
 };
 
 function getNodeMetadata(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
-
-    autil.discoverNodeMetadata(req, res, channel, node, function(reply) {
+ 
+    requestNodeMetadata(req, res, channel, node, function(reply) {
         var body = replyToJSON(reply);
         res.contentType('json');
         res.send(body);
     });
+}
+
+function requestNodeMetadata(req, res, channel, node, callback) {
+    var nodeId = pubsub.channelNodeId(channel, node);
+    var iq = pubsub.metadataIq(nodeId);
+    iq.to = req.channelServer;
+    autil.sendQuery(req, res, iq, callback);
 }
 
 function replyToJSON(reply) {
@@ -82,6 +91,13 @@ function setNodeMetadata(req, res) {
     });
 }
 
+function configureNode(req, res, channel, node, fields, callback) {
+    var nodeId = pubsub.channelNodeId(channel, node);
+    var iq = makeConfigureIq(nodeId, fields);
+    iq.to = req.channelServer;
+    autil.sendQuery(req, res, iq, callback);
+}
+
 function makeConfigureIq(node, fields) {
     var pfields = {};
 
@@ -104,13 +120,4 @@ function pubsubFieldName(field) {
         case 'access_model': return 'pubsub#access_model';
         default:             return null;
     }
-}
-
-function configureNode(req, res, channel, node, fields, callback) {
-    autil.discoverChannelNode(req, res, channel, node, function(server, id) {
-        var iq = makeConfigureIq(id, fields);
-        iq.to = server;
-        console.log(iq.toString());
-        autil.sendQuery(req, res, iq, callback);
-    });
 }
