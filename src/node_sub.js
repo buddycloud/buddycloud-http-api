@@ -47,16 +47,15 @@ function getNodeSubscriptions(req, res) {
 }
 
 function requestNodeAffiliations(req, res, channel, node, callback) {
-    autil.discoverChannelNode(req, res, channel, node, function(server, id) {
-        var iq = pubsub.affiliationsIq(id);
-        iq.to = server;
-        autil.sendQuery(req, res, iq, callback);
-    });
+    var nodeId = pubsub.channelNodeId(channel, node);
+    var iq = pubsub.affiliationsIq(nodeId);
+    iq.to = req.channelServer;
+    autil.sendQuery(req, res, iq, callback);
 }
 
 function replyToJSON(reply) {
     var replydoc = xml.parseXmlString(reply.toString());
-    var entries = replydoc.find('//p:affiliation', {p: pubsub.ownerNS});
+    var entries = replydoc.find('//p:affiliation', {p: pubsub.ns});
 
     var subscriptions = {};
     entries.forEach(function(entry) {
