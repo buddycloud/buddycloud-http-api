@@ -32,7 +32,14 @@ The tests are run with
     npm test
 
 The server needs to be configured for the buddycloud/XMPP server it should
-communicate with. See `config.js`.
+communicate with. See the *Configuration* section.
+
+Usage
+-----
+
+The API is described in detail on the
+[https://buddycloud.org/wiki/Buddycloud_HTTP_API Buddycloud HTTP API page]
+of the [https://buddycloud.org/wiki/ buddycloud.org wiki].
 
 Configuration
 -------------
