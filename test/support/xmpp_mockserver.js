@@ -36,7 +36,7 @@
 //     }
 // }
 //
-// 'accounts' defines the username/password combinations accepted by the
+// 'users' defines the username/password combinations accepted by the
 // server. 'stanzas' specifies how each request is replied to.
 
 var ltx = require('ltx');
