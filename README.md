@@ -37,9 +37,7 @@ communicate with. See the *Configuration* section.
 Usage
 -----
 
-The API is described in detail on the
-[https://buddycloud.org/wiki/Buddycloud_HTTP_API Buddycloud HTTP API page]
-of the [https://buddycloud.org/wiki/ buddycloud.org wiki].
+The API is described in detail at https://buddycloud.org/wiki/Buddycloud_HTTP_API.
 
 Configuration
 -------------
