@@ -19,7 +19,7 @@
 
 var xmpp = require('node-xmpp');
 var xml = require('libxmljs');
-var autil = require('./util/api');
+var api = require('./util/api');
 var atom = require('./util/atom');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
@@ -31,12 +31,12 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node',
         session.provider,
-        autil.channelServerDiscoverer,
+        api.channelServerDiscoverer,
         getNodeFeed);
     app.post('/channels/:channel/:node',
-        autil.bodyReader,
+        api.bodyReader,
         session.provider,
-        autil.channelServerDiscoverer,
+        api.channelServerDiscoverer,
         postToNodeFeed);
 };
 
@@ -54,7 +54,7 @@ function requestNodeItems(req, res, channel, node, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
     var iq = pubsub.itemsIq(nodeId, req.query.max, req.query.after);
     iq.to = req.channelServer;
-    autil.sendQuery(req, res, iq, callback);
+    api.sendQuery(req, res, iq, callback);
 }
 
 function generateNodeFeed(channel, node, reply) {
@@ -114,7 +114,7 @@ function publishNodeItem(req, res, channel, node, entry, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);    
     var iq = pubsub.publishIq(nodeId, entry.toString());
     iq.to = req.channelServer;
-    autil.sendQuery(req, res, iq, callback);
+    api.sendQuery(req, res, iq, callback);
 }
 
 function getPublishedItemId(reply) {

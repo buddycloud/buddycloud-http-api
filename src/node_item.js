@@ -18,7 +18,7 @@
 // Handles requests regarding single node items.
 
 var xml = require('libxmljs');
-var autil = require('./util/api');
+var api = require('./util/api');
 var atom = require('./util/atom');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
@@ -29,7 +29,7 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node/item',
         session.provider,
-        autil.channelServerDiscoverer,
+        api.channelServerDiscoverer,
         getNodeItem);
 };
 
@@ -58,7 +58,7 @@ function requestNodeItem(req, res, channel, node, item, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
     var iq = pubsub.singleItemIq(nodeId, item);
     iq.to = req.channelServer;
-    autil.sendQuery(req, res, iq, callback);
+    api.sendQuery(req, res, iq, callback);
 }
 
 function extractEntry(reply) {

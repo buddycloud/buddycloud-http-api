@@ -18,7 +18,7 @@
 // Handles requests regarding node subscription lists.
 
 var xml = require('libxmljs');
-var autil = require('./util/api');
+var api = require('./util/api');
 var config = require('./util/config');
 var disco = require('./util/disco');
 var pubsub = require('./util/pubsub');
@@ -30,10 +30,10 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node/subscriptions',
         session.provider,
-        autil.channelServerDiscoverer,
+        api.channelServerDiscoverer,
         getNodeSubscriptions);
     app.post('/channels/:channel/:node/subscriptions',
-        autil.bodyReader,
+        api.bodyReader,
         session.provider,
         changeNodeSubscription);
 };
@@ -52,7 +52,7 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
     var iq = pubsub.affiliationsIq(nodeId);
     iq.to = req.channelServer;
-    autil.sendQuery(req, res, iq, callback);
+    api.sendQuery(req, res, iq, callback);
 }
 
 function replyToJSON(reply) {
@@ -124,6 +124,6 @@ function doSubscribeAction(iqFn, req, res, channel, node, callback) {
         
         var iq = iqFn(nodeId, bareJid);
         iq.to = server;
-        autil.sendQuery(req, res, iq, callback);
+        api.sendQuery(req, res, iq, callback);
     });
 }

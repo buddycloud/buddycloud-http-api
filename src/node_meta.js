@@ -18,7 +18,7 @@
 // Handles requests regarding node metadata.
 
 var xml = require('libxmljs');
-var autil = require('./util/api');
+var api = require('./util/api');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
 
@@ -28,12 +28,12 @@ var session = require('./util/session');
 exports.setup = function(app) {
     app.get('/channels/:channel/:node/metadata',
         session.provider,
-        autil.channelServerDiscoverer,
+        api.channelServerDiscoverer,
         getNodeMetadata);
     app.post('/channels/:channel/:node/metadata',
-        autil.bodyReader,
+        api.bodyReader,
         session.provider,
-        autil.channelServerDiscoverer,
+        api.channelServerDiscoverer,
         setNodeMetadata);
 };
 
@@ -52,7 +52,7 @@ function requestNodeMetadata(req, res, channel, node, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
     var iq = pubsub.metadataIq(nodeId);
     iq.to = req.channelServer;
-    autil.sendQuery(req, res, iq, callback);
+    api.sendQuery(req, res, iq, callback);
 }
 
 function replyToJSON(reply) {
@@ -95,7 +95,7 @@ function configureNode(req, res, channel, node, fields, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
     var iq = makeConfigureIq(nodeId, fields);
     iq.to = req.channelServer;
-    autil.sendQuery(req, res, iq, callback);
+    api.sendQuery(req, res, iq, callback);
 }
 
 function makeConfigureIq(node, fields) {
