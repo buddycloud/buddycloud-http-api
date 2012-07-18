@@ -43,7 +43,7 @@ exports.setup = function(app) {
 function getNodeFeed(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
-    
+
     requestNodeItems(req, res, channel, node, function(reply) {
         var feed = generateNodeFeed(channel, node, reply);
         api.sendAtomResponse(req, res, feed.root());
@@ -87,11 +87,8 @@ function populateNodeFeed(feed, replydoc) {
 }
 
 function postToNodeFeed(req, res) {
-    var entry;
-    try {
-        entry = xml.parseXmlString(req.body);
-    } catch (e) {
-        res.send(400);
+    var entry = parseRequestBody(req, res);
+    if (!entry) {
         return;
     }
 
@@ -110,8 +107,21 @@ function postToNodeFeed(req, res) {
     });
 }
 
+function parseRequestBody(req, res) {
+    try {
+        if (req.is('json') || req.body.toString().match(/^\w*{/)) {
+            return atom.fromJSON(JSON.parse(req.body));
+        } else {
+            return xml.parseXmlString(req.body);
+        }
+    } catch (e) {
+        res.send(400);
+        return null;
+    }
+}
+
 function publishNodeItem(req, res, channel, node, entry, callback) {
-    var nodeId = pubsub.channelNodeId(channel, node);    
+    var nodeId = pubsub.channelNodeId(channel, node);
     var iq = pubsub.publishIq(nodeId, entry.toString());
     iq.to = req.channelServer;
     api.sendQuery(req, res, iq, callback);

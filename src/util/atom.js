@@ -17,6 +17,8 @@
 // atom.js:
 // Simplifies working with Atom feeds.
 
+var xml = require('libxmljs');
+
 /** The Atom XML namespace. */
 exports.ns = 'http://www.w3.org/2005/Atom';
 
@@ -87,3 +89,29 @@ function entryToJSON(entry) {
         content: content ? content.text() : null,
     };
 }
+
+/**
+ * Converts an JSON-serialized Atom entry into an Atom XML document.
+ */
+exports.fromJSON = function(entry) {
+    var entrydoc = xml.Document();
+    entrydoc.node('entry').namespace(exports.ns);
+
+    if (entry.id) {
+        entrydoc.root().node('id', entry.id);
+    }
+
+    if (entry.title) {
+        entrydoc.root().node('title', entry.id);
+    }
+
+    if (entry.author) {
+        entrydoc.root().node('author', entry.id);
+    }
+
+    if (entry.content) {
+        entrydoc.root().node('content', entry.content);
+    }
+
+    return entrydoc;
+};
