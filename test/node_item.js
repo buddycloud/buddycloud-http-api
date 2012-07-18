@@ -110,6 +110,23 @@ describe('Node Item', function() {
             }).on('error', done);
         });
 
+        it('should allow retrieval in JSON format', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts/item?id=foo',
+                auth: 'alice@localhost/http:alice',
+                headers: {'Accept': 'application/json'}
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(200);
+
+                var entry = JSON.parse(body);
+                entry.id.should.equal('foo');
+                entry.content.should.equal('bar');
+
+                done();
+            }).on('error', done);
+        });
+
         it('should be 401 if credentials are wrong', function(done) {
             var options = {
                 path: '/channels/alice@localhost/posts/item?id=foo',

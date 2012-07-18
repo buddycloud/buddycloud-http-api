@@ -43,10 +43,10 @@ exports.setup = function(app) {
 function getNodeFeed(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
+    
     requestNodeItems(req, res, channel, node, function(reply) {
         var feed = generateNodeFeed(channel, node, reply);
-        res.contentType('atom');
-        res.send(feed.toString());
+        api.sendAtomResponse(req, res, feed.root());
     });
 }
 

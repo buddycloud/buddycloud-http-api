@@ -50,3 +50,40 @@ function extractTeaser(content) {
         return content.slice(0, 39) + '…';
 }
 
+/**
+ * Serializes an Atom <feed/> or <entry/> element to a JSON form which
+ * contains the most important entry attributes.
+ */
+exports.toJSON = function(element) {
+    if (element.name() == 'feed') {
+        return feedToJSON(element);
+    } else {
+        return entryToJSON(element);
+    }
+};
+
+function feedToJSON(feed) {
+    var json = [];
+
+    var entries = feed.find('a:entry', {a: exports.ns});
+    entries.forEach(function(e) {
+        json.push(entryToJSON(e));
+    });
+
+    return json;
+}
+
+function entryToJSON(entry) {
+    var id = exports.get(entry, 'atom:id');
+    var author = exports.get(entry, 'atom:author');
+    var authorName = author ? exports.get(author, 'atom:name') : author;
+    var updated = exports.get(entry, 'atom:updated');
+    var content = exports.get(entry, 'atom:content');
+
+    return {
+        id: id ? id.text() : null,
+        author: authorName ? authorName.text() : (author ? author.text() : null),
+        updated: updated ? updated.text() : null,
+        content: content ? content.text() : null,
+    };
+}

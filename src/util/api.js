@@ -19,6 +19,7 @@
 
 var xml = require('libxmljs');
 var xmpp = require('node-xmpp');
+var atom = require('./atom');
 var auth = require('./auth');
 var cache = require('./cache');
 var config = require('./config');
@@ -53,6 +54,27 @@ function reportXmppError(req, res, errorStanza) {
             res.send(404);
     }
     res.send(500);
+};
+
+/**
+ * Responds to req with an Atom document in a format
+ * determined by the "Accept" request header (either
+ * XML or JSON). 
+ */
+exports.sendAtomResponse = function(req, res, doc) {
+    var response;
+
+    if (req.accepts('application/atom+xml')) {
+        res.contentType('atom');
+        response = doc.toString();
+    } else if (req.accepts('application/json')) {
+        res.contentType('json');
+        response = atom.toJSON(doc);
+    } else {
+        response = 406;
+    }
+
+    res.send(response);
 };
 
 /**

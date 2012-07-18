@@ -42,14 +42,14 @@ function getNodeItem(req, res) {
 
     var channel = req.params.channel;
     var node = req.params.node;
+
     requestNodeItem(req, res, channel, node, itemId, function(reply) {
         var entry = extractEntry(reply);
         if (!entry) {
             res.send(404);
         } else {
             atom.ensureEntryHasTitle(entry);
-            res.contentType('atom');
-            res.send(entry.toString());
+            api.sendAtomResponse(req, res, entry);
         }
     });
 }

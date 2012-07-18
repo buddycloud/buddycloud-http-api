@@ -308,6 +308,27 @@ describe('Node Feed', function() {
             }).on('error', done);
         });
 
+        it('should allow retrieval in JSON format', function(done) {
+            var options = {
+                path: '/channels/alice@localhost/posts',
+                auth: 'alice@localhost/http:alice',
+                headers: {'Accept': 'application/json'}
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(200);
+
+                var feed = JSON.parse(body);
+                feed[0].id.should.equal('1');
+                feed[0].content.should.equal('one')
+                feed[1].id.should.equal('2');
+                feed[1].content.should.equal('two')
+                feed[2].id.should.equal('3');
+                feed[2].content.should.equal('three')
+
+                done();
+            }).on('error', done);
+        });
+
         it('should allow limiting the number of returned items', function(done) {
             var options = {
                 path: '/channels/alice@localhost/posts?max=2',
