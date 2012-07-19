@@ -81,12 +81,17 @@ function entryToJSON(entry) {
     var authorName = author ? exports.get(author, 'atom:name') : author;
     var updated = exports.get(entry, 'atom:updated');
     var content = exports.get(entry, 'atom:content');
+    var replyTo = entry.get(
+        't:in-reply-to',
+        {t: 'http://purl.org/syndication/thread/1.0'}
+    );
 
     return {
         id: id ? id.text() : null,
         author: authorName ? authorName.text() : (author ? author.text() : null),
         updated: updated ? updated.text() : null,
         content: content ? content.text() : null,
+        replyTo: replyTo ? replyTo.attr('ref').value() : undefined
     };
 }
 
