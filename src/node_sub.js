@@ -57,7 +57,7 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
 
 function replyToJSON(reply) {
     var replydoc = xml.parseXmlString(reply.toString());
-    var entries = replydoc.find('//p:affiliation', {p: pubsub.ns});
+    var entries = replydoc.find('//p:affiliation', {p: pubsub.ownerNS});
 
     var subscriptions = {};
     entries.forEach(function(entry) {
@@ -121,7 +121,7 @@ function doSubscribeAction(iqFn, req, res, channel, node, callback) {
 
         var nodeId = pubsub.channelNodeId(channel, node);
         var bareJid = req.user.split('/', 2)[0];
-        
+
         var iq = iqFn(nodeId, bareJid);
         iq.to = server;
         api.sendQuery(req, res, iq, callback);
