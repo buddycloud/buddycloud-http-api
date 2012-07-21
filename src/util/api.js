@@ -42,13 +42,10 @@ exports.sendQuery = function(req, res, iq, callback) {
 function reportXmppError(req, res, errorStanza) {
     var error = errorStanza.getChild('error');
     if (error) {
-        if (error.getChild('not-authorized'))
-            res.send(401);
-        else if (error.getChild('not-allowed')) {
-            if (req.user)
-                res.send(403);
-            else
-                auth.respondNotAuthorized(res);
+        if (error.getChild('not-authorized') ||
+            error.getChild('not-allowed') ||
+            error.getChild('forbidden')) {
+            res.send(req.user ? 403 : 401);
         }
         else if (error.getChild('item-not-found'))
             res.send(404);
@@ -59,7 +56,7 @@ function reportXmppError(req, res, errorStanza) {
 /**
  * Responds to req with an Atom document in a format
  * determined by the "Accept" request header (either
- * XML or JSON). 
+ * XML or JSON).
  */
 exports.sendAtomResponse = function(req, res, doc) {
     var response;
