@@ -113,7 +113,7 @@ function askEachServer(servers, session, callback) {
             if (isChannelServer)
                 callback(server, null);
             else
-                askEachServer(server, session, callback);
+                askEachServer(servers, session, callback);
         });
     }
 }
