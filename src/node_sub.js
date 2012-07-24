@@ -28,6 +28,9 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
+    app.get('/channels/subscribed',
+        session.provider,
+        getUserSubscriptions);
     app.get('/channels/:channel/:node/subscriptions',
         session.provider,
         api.channelServerDiscoverer,
@@ -38,11 +41,76 @@ exports.setup = function(app) {
         changeNodeSubscription);
 };
 
+function getUserSubscriptions(req, res) {
+    if (!req.user) {
+        api.sendUnauthorized(res);
+        return;
+    }
+
+    var channel = req.params.channel;
+    var node = req.params.node;
+
+    requestUserAffiliations(req, res, channel, node, function(reply) {
+        var body = replyToJSON(reply, 'user');
+        res.contentType('json');
+        res.send(body);
+    });
+}
+
+function requestUserAffiliations(req, res, channel, node, callback) {
+    var home = config.xmppDomain;
+
+    disco.discoverChannelServer(home, req.session, function(server, err) {
+        if (err) {
+            res.send(500);
+            return;
+        }
+
+        var iq = pubsub.userAffiliationsIq();
+        iq.to = server;
+        api.sendQuery(req, res, iq, callback);
+    });
+}
+
+function replyToJSON(reply, target) {
+    var xpath;
+    var ns;
+    var key;
+
+    if (target == 'user') {
+        xpath = '//pubsub:affiliation[starts-with(@node, "/user/")]';
+        ns = pubsub.ns;
+        key = 'node';
+    } if (target == 'node') {
+        xpath = '//pubsub:affiliation[contains(@jid, "@")]';
+        ns = pubsub.ownerNS;
+        key = 'jid';
+    }
+
+    var replydoc = xml.parseXmlString(reply.toString());
+    var entries = replydoc.find(xpath, {pubsub: ns});
+    var subscriptions = {};
+
+    entries.forEach(function(entry) {
+        var keyValue = entry.attr(key).value();
+
+        // Strip the leading "/user/" from node names
+        if (target == 'user') {
+            keyValue = keyValue.slice('/user/'.length);
+        }
+
+        var affiliation = entry.attr('affiliation').value();
+        subscriptions[keyValue] = affiliation;
+    });
+
+    return subscriptions;
+}
+
 function getNodeSubscriptions(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
     requestNodeAffiliations(req, res, channel, node, function(reply) {
-        var body = replyToJSON(reply);
+        var body = replyToJSON(reply, 'node');
         res.contentType('json');
         res.send(body);
     });
@@ -50,25 +118,10 @@ function getNodeSubscriptions(req, res) {
 
 function requestNodeAffiliations(req, res, channel, node, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
-    var iq = pubsub.affiliationsIq(nodeId);
+    var iq = pubsub.nodeAffiliationsIq(nodeId);
     iq.to = req.channelServer;
+    console.log(iq.toString());
     api.sendQuery(req, res, iq, callback);
-}
-
-function replyToJSON(reply) {
-    var replydoc = xml.parseXmlString(reply.toString());
-    var entries = replydoc.find('//p:affiliation', {p: pubsub.ownerNS});
-
-    var subscriptions = {};
-    entries.forEach(function(entry) {
-        var jid = entry.attr('jid').value();
-        if (jid.indexOf('@') >= 0) {
-            var affiliation = entry.attr('affiliation').value();
-            subscriptions[jid] = affiliation;
-        }
-    });
-
-    return subscriptions;
 }
 
 function changeNodeSubscription(req, res) {

@@ -28,6 +28,23 @@ var mockConfig = {
         'eve': 'eve'
     },
     stanzas: {
+        // Get own subscriptions + affiliations
+        '<iq from="alice@localhost/http" type="get">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <affiliations/>\
+           </pubsub>\
+         </iq>':
+        '<iq type="result">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <affiliations>\
+               <affiliation node="/user/alice@localhost/posts" \
+                            affiliation="owner"/>\
+               <affiliation node="/user/public@localhost/posts" \
+                            affiliation="subscriber"/>\
+             </affiliations>\
+           </pubsub>\
+         </iq>',
+
         // Get node subscriptions + affiliations
         '<iq from="alice@localhost/http" type="get">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
@@ -103,6 +120,40 @@ var mockConfig = {
         }
     }
 };
+
+describe('User Subscription List', function() {
+
+    before(function(done) {
+        tutil.startHttpServer(function() {
+            tutil.mockXmppServer(mockConfig, done);
+        });
+    });
+
+    describe('GET', function() {
+
+        it('should return the nodes subscribed to', function(done) {
+            var options = {
+                path: '/channels/subscribed',
+                auth: 'alice@localhost/http:alice'
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(200);
+                var subscribers = JSON.parse(body);
+                subscribers.should.eql({
+                    'alice@localhost/posts': 'owner',
+                    'public@localhost/posts': 'subscriber'
+                });
+                done();
+            }).on('error', done);
+        });
+
+    });
+
+    after(function() {
+        tutil.end();
+    });
+
+});
 
 describe('Node Subscription List', function() {
 

@@ -98,10 +98,20 @@ exports.publishIq = function(nodeId, item) {
 };
 
 /**
+ * Creates a Pub-Sub user <affiliations/> IQ, which retrieves a list of all
+ * nodes that the requesting user subscribed to.
+ */
+exports.userAffiliationsIq = function(user) {
+    return iq({type: 'get'}).
+        c('affiliations').
+        root();
+};
+
+/**
  * Creates a Pub-Sub <affiliations/> IQ, which retrieves a list of all
  * users subscribed to a node and their affiliations (roles).
  */
-exports.affiliationsIq = function(nodeId, item) {
+exports.nodeAffiliationsIq = function(nodeId, item) {
     return iq({type: 'get'}, exports.ownerNS).
         c('affiliations', {node: nodeId}).
         root();
