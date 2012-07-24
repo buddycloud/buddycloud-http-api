@@ -49,12 +49,3 @@ exports.parser = function(req, res, next) {
     req.password = credentials.slice(separatorIdx + 1);
     next();
 };
-
-/**
- * Respond "401 Not Authorized" with the correct "WWW-Authenticate"
- * header set.
- */
-exports.respondNotAuthorized = function(res) {
-    res.header('WWW-Authenticate', 'Basic realm="' + config.xmppDomain + '"');
-    res.send(401);
-};

@@ -27,6 +27,18 @@ var disco = require('./disco');
 var pubsub = require('./disco');
 
 /**
+ * Sends a "401 Unauthorized" response with the correct "WWW-Authenticate"
+ * header set.
+ */
+exports.sendUnauthorized = function(res) {
+    res.header(
+        'WWW-Authenticate',
+        'Basic realm="' + config.xmppDomain + '"'
+    );
+    res.send(401);
+};
+
+/**
  * Like session.sendQuery(), but takes care of any returned XMPP error
  * stanzas and only passes real replies to the callback.
  */

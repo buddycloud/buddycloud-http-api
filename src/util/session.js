@@ -18,7 +18,7 @@
 // Handles session management.
 
 var xmpp = require('node-xmpp');
-var auth = require('./auth');
+var api = require('./api');
 var cache = require('./cache');
 var config = require('./config');
 
@@ -47,7 +47,7 @@ function processSessionId(sessionId, req, res, next) {
     else if (req.user)
         createSession(req, res, next);
     else
-        auth.respondNotAuthorized(res);
+        api.sendUnauthorized(res);
 }
 
 function provideSession(session, req, res, next) {
@@ -75,7 +75,7 @@ function createSession(req, res, next) {
         // is fragile, but this is the only information that node-xmpp
         // gives us.
         if (err == 'XMPP authentication failure')
-            auth.respondNotAuthorized(res);
+            api.sendUnauthorized(res);
         else
            next(err);
     });
