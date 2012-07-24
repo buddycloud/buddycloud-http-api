@@ -57,7 +57,11 @@ function reportXmppError(req, res, errorStanza) {
         if (error.getChild('not-authorized') ||
             error.getChild('not-allowed') ||
             error.getChild('forbidden')) {
-            res.send(req.user ? 403 : 401);
+            if (req.user) {
+                res.send(403);
+            } else {
+                exports.sendUnauthorized(res);
+            }
         }
         else if (error.getChild('item-not-found'))
             res.send(404);
