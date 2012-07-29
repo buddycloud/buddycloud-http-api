@@ -147,6 +147,16 @@ describe('User Subscription List', function() {
             }).on('error', done);
         });
 
+        it('should return 401 if not authenticated', function(done) {
+            var options = {
+                path: '/channels/subscribed',
+            };
+            tutil.get(options, function(res, body) {
+                res.statusCode.should.equal(401);
+                done();
+            }).on('error', done);
+        });
+
     });
 
     after(function() {
