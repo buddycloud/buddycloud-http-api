@@ -140,3 +140,13 @@ function copyIntoBuffer(buffer, chunks) {
         }
     });
 };
+
+/**
+ * Middleware that looks up the buddycloud media server responsible
+ * for the requested resource and stores its HTTP root in req.mediaRoot.
+ */
+exports.mediaServerDiscoverer = function(req, res, next) {
+    // FIXME: This must be replaced with real discovery
+    req.mediaRoot = config.homeMediaRoot;
+    next();
+};

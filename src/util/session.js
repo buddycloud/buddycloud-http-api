@@ -115,6 +115,8 @@ function useAnonymousSession(req, res, next) {
 
 function Session(id, connection) {
     this.id = id;
+    this.jid = connection.jid.toString();
+
     this._connection = connection;
     this._replyHandlers = new cache.Cache();
     this._setupStanzaListener();
@@ -134,6 +136,20 @@ Session.prototype._setupStanzaListener = function() {
 }
 
 /**
+ * Registers a handler for incoming stanzas. Whenever the session receives
+ * a stanza which is not a reply to a stanza sent with sendQuery(), the
+ * callback is called with the stanza as argument.
+ */
+Session.prototype.onStanza = function(handler) {
+    var callback = function(stanza) {
+        if (handler(stanza)) {
+            this._connection.removeListener(callback);
+        }
+    };
+    this._connection.on('stanza', callback);
+};
+
+/**
  * Sends a query to the XMPP server using the session's connection. When a
  * reply is received, 'onreply' is called with the reply stanza as argument.
  */
@@ -146,6 +162,19 @@ Session.prototype.sendQuery = function(iq, onreply) {
     iq.attr('id', queryId);
     this._connection.send(iq);
 };
+
+/**
+ * Sends a reply for a received <iq/>.
+ */
+Session.prototype.replyToQuery = function(iq) {
+    var reply = new xmpp.Iq({
+        type: 'result',
+        from: iq.attrs.to,
+        to: iq.attrs.from,
+        id: iq.attrs.id
+    });
+    this._connection.send(reply);
+}
 
 /**
  * Closes the XMPP connection associated with the session.

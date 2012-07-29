@@ -55,6 +55,7 @@ function crossOriginAllower(req, res, next) {
 function setupResourceHandlers(app) {
     var handlers = [
         require('./src/basic'),
+        require('./src/media'),
         require('./src/node_feed'),
         require('./src/node_item'),
         require('./src/node_meta'),
