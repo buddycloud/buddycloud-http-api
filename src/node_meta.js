@@ -26,11 +26,11 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/channels/:channel/:node/metadata',
+    app.get('/:channel/metadata/:node',
         session.provider,
         api.channelServerDiscoverer,
         getNodeMetadata);
-    app.post('/channels/:channel/:node/metadata',
+    app.post('/:channel/metadata/:node',
         api.bodyReader,
         session.provider,
         api.channelServerDiscoverer,
@@ -40,7 +40,7 @@ exports.setup = function(app) {
 function getNodeMetadata(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
- 
+
     requestNodeMetadata(req, res, channel, node, function(reply) {
         var body = replyToJSON(reply);
         res.contentType('json');

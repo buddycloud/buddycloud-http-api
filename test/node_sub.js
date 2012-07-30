@@ -133,7 +133,7 @@ describe('User Subscription List', function() {
 
         it('should return the nodes subscribed to', function(done) {
             var options = {
-                path: '/channels/subscribed',
+                path: '/subscribed',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -149,7 +149,7 @@ describe('User Subscription List', function() {
 
         it('should return 401 if not authenticated', function(done) {
             var options = {
-                path: '/channels/subscribed',
+                path: '/subscribed',
             };
             tutil.get(options, function(res, body) {
                 res.statusCode.should.equal(401);
@@ -177,7 +177,7 @@ describe('Node Subscription List', function() {
 
         it('should return the node\'s subscribers', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/subscriptions',
+                path: '/alice@localhost/subscribers/posts',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -197,7 +197,7 @@ describe('Node Subscription List', function() {
 
         it('should allow subscription', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/subscriptions',
+                path: '/alice@localhost/subscribers/posts',
                 auth: 'eve@localhost/http:eve',
                 body: JSON.stringify([true])
             };
@@ -205,7 +205,7 @@ describe('Node Subscription List', function() {
                 res.statusCode.should.equal(200);
 
                 var options2 = {
-                    path: '/channels/alice@localhost/posts/subscriptions',
+                    path: '/alice@localhost/subscribers/posts',
                     auth: 'eve@localhost/http:eve'
                 };
                 tutil.get(options2, function(res, body) {
@@ -222,7 +222,7 @@ describe('Node Subscription List', function() {
 
         it('should allow unsubscription', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/subscriptions',
+                path: '/alice@localhost/subscribers/posts',
                 auth: 'eve@localhost/http:eve',
                 body: JSON.stringify([false])
             };
@@ -230,7 +230,7 @@ describe('Node Subscription List', function() {
                 res.statusCode.should.equal(200);
 
                 var options2 = {
-                    path: '/channels/alice@localhost/posts/subscriptions',
+                    path: '/alice@localhost/subscribers/posts',
                     auth: 'eve@localhost/http:eve'
                 };
                 tutil.get(options2, function(res, body) {

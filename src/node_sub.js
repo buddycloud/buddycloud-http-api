@@ -28,14 +28,14 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/channels/subscribed',
+    app.get('/subscribed',
         session.provider,
         getUserSubscriptions);
-    app.get('/channels/:channel/:node/subscriptions',
+    app.get('/:channel/subscribers/:node',
         session.provider,
         api.channelServerDiscoverer,
         getNodeSubscriptions);
-    app.post('/channels/:channel/:node/subscriptions',
+    app.post('/:channel/subscribers/:node',
         api.bodyReader,
         session.provider,
         changeNodeSubscription);

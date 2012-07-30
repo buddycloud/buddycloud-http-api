@@ -29,11 +29,11 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/channels/:channel/:node',
+    app.get('/:channel/content/:node',
         session.provider,
         api.channelServerDiscoverer,
         getNodeFeed);
-    app.post('/channels/:channel/:node',
+    app.post('/:channel/content/:node',
         api.bodyReader,
         session.provider,
         api.channelServerDiscoverer,
@@ -139,5 +139,5 @@ function getPublishedItemId(reply) {
 }
 
 function getNodeItemUri(channel, node, item) {
-    return '/channels/' + channel + '/' + node + '/item?id=' + item;
+    return '/' + [channel, 'content', node, item].join('/');
 }

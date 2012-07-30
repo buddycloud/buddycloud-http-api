@@ -27,21 +27,16 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/channels/:channel/:node/item',
+    app.get('/:channel/content/:node/:item',
         session.provider,
         api.channelServerDiscoverer,
         getNodeItem);
 };
 
 function getNodeItem(req, res) {
-    var itemId = req.query.id;
-    if (!itemId) {
-        req.send(404);
-        return;
-    }
-
     var channel = req.params.channel;
     var node = req.params.node;
+    var itemId = req.params.item;
 
     requestNodeItem(req, res, channel, node, itemId, function(reply) {
         var entry = extractEntry(reply);

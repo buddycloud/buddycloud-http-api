@@ -168,7 +168,7 @@ describe('Node Metadata', function() {
 
         it('should return the metadata as JSON object', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/metadata',
+                path: '/alice@localhost/metadata/posts',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -188,7 +188,7 @@ describe('Node Metadata', function() {
 
         it('should be 404 if the node does not exist', function(done) {
             var options = {
-                path: '/channels/ron@localhost/posts/metadata',
+                path: '/ron@localhost/metadata/posts',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -203,7 +203,7 @@ describe('Node Metadata', function() {
 
         it('should alter the node\'s metadata', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/metadata',
+                path: '/alice@localhost/metadata/posts',
                 auth: 'alice@localhost/http:alice',
                 body: JSON.stringify({
                     'description': 'The posts of Alice (now public!)',
@@ -232,7 +232,7 @@ describe('Node Metadata', function() {
 
         it('should be 404 if the node does not exist', function(done) {
             var options = {
-                path: '/channels/ron@localhost/posts/metadata',
+                path: '/ron@localhost/metadata/posts',
                 auth: 'alice@localhost/http:alice',
                 body: JSON.stringify({'description': 'Dunno'})
             };

@@ -27,7 +27,7 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.all('/media/:channel/:id',
+    app.all('/:channel/media/:id',
         session.provider,
         api.mediaServerDiscoverer,
         getMedia);

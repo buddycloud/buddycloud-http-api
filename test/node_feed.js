@@ -339,7 +339,7 @@ describe('Node Feed', function() {
 
         it('should return items as Atom feed', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -373,7 +373,7 @@ describe('Node Feed', function() {
 
         it('should allow retrieval in JSON format', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'alice@localhost/http:alice',
                 headers: {'Accept': 'application/json'}
             };
@@ -394,7 +394,7 @@ describe('Node Feed', function() {
 
         it('should allow limiting the number of returned items', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts?max=2',
+                path: '/alice@localhost/content/posts?max=2',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -410,7 +410,7 @@ describe('Node Feed', function() {
 
         it('should allow specifying the first returned item', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts?after=1',
+                path: '/alice@localhost/content/posts?after=1',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -426,7 +426,7 @@ describe('Node Feed', function() {
 
         it('should be 401 if credentials are wrong', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'alice@localhost:bob'
             };
             tutil.get(options, function(res, body) {
@@ -437,7 +437,7 @@ describe('Node Feed', function() {
 
         it('should be 403 if user doesn\'t have permissions', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'bob@localhost/http:bob'
             };
             tutil.get(options, function(res, body) {
@@ -448,7 +448,7 @@ describe('Node Feed', function() {
 
         it('should allow anonymous access', function(done) {
             var options = {
-                path: '/channels/public@localhost/posts',
+                path: '/public@localhost/content/posts',
             };
             tutil.get(options, function(res, body) {
                 res.statusCode.should.equal(200);
@@ -462,7 +462,7 @@ describe('Node Feed', function() {
 
         it('should create a new node item', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'alice@localhost/http:alice',
                 body: '<entry xmlns="http://www.w3.org/2005/Atom">\
                          <content>TEST</content>\
@@ -471,10 +471,10 @@ describe('Node Feed', function() {
             tutil.post(options, function(res) {
                 res.statusCode.should.equal(201);
                 res.headers['location'].should.equal(
-                    '/channels/alice@localhost/posts/item?id=newid');
+                    '/alice@localhost/content/posts/newid');
 
                 var options2 = {
-                    path: '/channels/alice@localhost/posts',
+                    path: '/alice@localhost/content/posts',
                     auth: 'alice@localhost/http:alice',
                 };
                 tutil.get(options2, function(res2, body2) {
@@ -493,7 +493,7 @@ describe('Node Feed', function() {
 
         it('should accept entries in JSON format', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'alice@localhost/http:alice',
                 body: JSON.stringify({
                     content: 'JSON TEST'
@@ -502,10 +502,10 @@ describe('Node Feed', function() {
             tutil.post(options, function(res) {
                 res.statusCode.should.equal(201);
                 res.headers['location'].should.equal(
-                    '/channels/alice@localhost/posts/item?id=newid2');
+                    '/alice@localhost/content/posts/newid2');
 
                 var options2 = {
-                    path: '/channels/alice@localhost/posts',
+                    path: '/alice@localhost/content/posts',
                     auth: 'alice@localhost/http:alice',
                 };
                 tutil.get(options2, function(res2, body2) {
@@ -522,7 +522,7 @@ describe('Node Feed', function() {
 
         it('should be 401 on anonymous posting if not allowed', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 body: '<entry xmlns="http://www.w3.org/2005/Atom">\
                          <content>ANONYMOUS TEST</content>\
                        </entry>'
@@ -535,7 +535,7 @@ describe('Node Feed', function() {
 
         it('should be 403 if user is not allowed to post', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts',
+                path: '/alice@localhost/content/posts',
                 auth: 'bob@localhost/http:bob',
                 body: '<entry xmlns="http://www.w3.org/2005/Atom">\
                          <content>ANOTHER TEST</content>\

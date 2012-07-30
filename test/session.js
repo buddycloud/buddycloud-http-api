@@ -78,7 +78,7 @@ describe('Session ID', function() {
 
     it('should be returned on authenicated requests', function(done) {
         var options = {
-            path: '/channels/public@localhost/posts',
+            path: '/public@localhost/content/posts',
             auth: 'alice@localhost:alice'
         };
         tutil.get(options, function(res, body) {
@@ -90,7 +90,7 @@ describe('Session ID', function() {
 
     it('should not be returned on anonymous requests', function(done) {
         var options = {
-            path: '/channels/public@localhost/posts',
+            path: '/public@localhost/content/posts',
         };
         tutil.get(options, function(res) {
             res.statusCode.should.equal(200);
@@ -101,7 +101,7 @@ describe('Session ID', function() {
 
     it('should allow second request without re-authenication', function(done) {
         var options = {
-            path: '/channels/private@localhost/posts',
+            path: '/private@localhost/content/posts',
             auth: 'alice@localhost/http:alice'
         };
         tutil.get(options, function(res) {
@@ -116,7 +116,7 @@ describe('Session ID', function() {
 
     it('should remain the same after the first request', function(done) {
         var options = {
-            path: '/channels/private@localhost/posts',
+            path: '/private@localhost/content/posts',
             auth: 'alice@localhost/http:alice'
         };
         tutil.get(options, function(res) {
@@ -131,12 +131,12 @@ describe('Session ID', function() {
 
     it('should differ between users', function(done) {
         var aliceOptions = {
-            path: '/channels/public@localhost/posts',
+            path: '/public@localhost/content/posts',
             auth: 'alice@localhost:alice'
         };
         tutil.get(aliceOptions, function(res) {
             var bobOptions = {
-                path: '/channels/public@localhost/posts',
+                path: '/public@localhost/content/posts',
                 auth: 'bob@localhost:bob'
             };
             tutil.get(bobOptions, function(res2) {
@@ -151,7 +151,7 @@ describe('Session ID', function() {
    it('should expire', function(done) {
        this.timeout(0);
         var options = {
-            path: '/channels/private@localhost/posts',
+            path: '/private@localhost/content/posts',
             auth: 'alice@localhost/http:alice'
         };
         tutil.get(options, function(res) {

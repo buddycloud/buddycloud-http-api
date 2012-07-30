@@ -93,7 +93,7 @@ describe('Node Item', function() {
 
         it('should return the item as Atom entry', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/item?id=foo',
+                path: '/alice@localhost/content/posts/foo',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
@@ -112,7 +112,7 @@ describe('Node Item', function() {
 
         it('should allow retrieval in JSON format', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/item?id=foo',
+                path: '/alice@localhost/content/posts/foo',
                 auth: 'alice@localhost/http:alice',
                 headers: {'Accept': 'application/json'}
             };
@@ -129,7 +129,7 @@ describe('Node Item', function() {
 
         it('should be 401 if credentials are wrong', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/item?id=foo',
+                path: '/alice@localhost/content/posts/foo',
                 auth: 'alice@localhost:bob'
             };
             tutil.get(options, function(res, body) {
@@ -140,7 +140,7 @@ describe('Node Item', function() {
 
         it('should be 403 if user doesn\'t have permissions', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/item?id=foo',
+                path: '/alice@localhost/content/posts/foo',
                 auth: 'bob@localhost/http:bob'
             };
             tutil.get(options, function(res, body) {
@@ -151,7 +151,7 @@ describe('Node Item', function() {
 
         it('should be 404 if item doesn\'t exist', function(done) {
             var options = {
-                path: '/channels/alice@localhost/posts/item?id=bar',
+                path: '/alice@localhost/content/posts/bar',
                 auth: 'alice@localhost/http:alice'
             };
             tutil.get(options, function(res, body) {
