@@ -109,7 +109,7 @@ function postToNodeFeed(req, res) {
 
 function parseRequestBody(req, res) {
     try {
-        if (req.is('json') || req.body.toString().match(/^\w*{/)) {
+        if (req.is('json') || req.body.toString().match(/^\w*\{/)) {
             return atom.fromJSON(JSON.parse(req.body));
         } else {
             return xml.parseXmlString(req.body);

@@ -38,12 +38,12 @@ exports.channelNodeId = function(channel, name) {
  */
 exports.queryURI = function(host, action, node) {
     return 'xmpp:' + host + '?pubsub;action=' + action + ';node=' + node;
-}
+};
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
     return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns || exports.ns});
-};
+}
 
 /**
  * Creates an Pub-Sub node <query/> IQ to retrieve a node's metadata.
@@ -52,7 +52,7 @@ exports.metadataIq = function(nodeId) {
     return new xmpp.Iq({type: 'get'}).
         c('query', {node: nodeId, xmlns: 'http://jabber.org/protocol/disco#info'}).
         root();
-}
+};
 
 /**
  * Creates a Pub-Sub <items/> IQ that retrieves all items of a node (or

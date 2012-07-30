@@ -43,7 +43,7 @@ exports.discoverChannelServer = function(domain, session, callback) {
 
     // Wrap callback with a caching operation
     var cb = callback;
-    var callback = function(server, err) {
+    callback = function(server, err) {
         if (server) {
             discoverCache.put(domain, server);
         }
@@ -57,7 +57,7 @@ exports.discoverChannelServer = function(domain, session, callback) {
             askAdvertisedServers(domain, session, callback);
         }
     });
-}
+};
 
 function askIfChannelServer(server, session, callback) {
     var iq = discoInfoIq(server);
@@ -105,7 +105,7 @@ function extractJID(jidAttr) {
 }
 
 function askEachServer(servers, session, callback) {
-    if (servers.length == 0) {
+    if (servers.length === 0) {
         callback(null, 404);
     } else {
         var server = servers.shift();

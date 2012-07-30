@@ -67,7 +67,7 @@ function reportXmppError(req, res, errorStanza) {
             res.send(404);
     }
     res.send(500);
-};
+}
 
 /**
  * Responds to req with an Atom document in a format

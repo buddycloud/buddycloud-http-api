@@ -133,7 +133,7 @@ Session.prototype._setupStanzaListener = function() {
             }
         }
     });
-}
+};
 
 /**
  * Registers a handler for incoming stanzas. Whenever the session receives
@@ -174,7 +174,7 @@ Session.prototype.replyToQuery = function(iq) {
         id: iq.attrs.id
     });
     this._connection.send(reply);
-}
+};
 
 /**
  * Closes the XMPP connection associated with the session.
