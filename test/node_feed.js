@@ -41,6 +41,9 @@ var mockConfig = {
                <item id="1">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>1</id>\
+                   <author>\
+                     <name>alice@localhost</name>\
+                   </author>\
                    <content>one</content>\
                    <updated>2012-10-16</updated>\
                  </entry>\
@@ -48,6 +51,9 @@ var mockConfig = {
                <item id="2">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>2</id>\
+                   <author>\
+                     <name>alice@localhost</name>\
+                   </author>\
                    <content>two</content>\
                    <updated>2012-08-21</updated>\
                  </entry>\
@@ -55,6 +61,9 @@ var mockConfig = {
                <item id="3">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>3</id>\
+                   <author>\
+                     <name>ron@localhost</name>\
+                   </author>\
                    <content>three</content>\
                    <updated>2012-03-03</updated>\
                  </entry>\
@@ -78,12 +87,18 @@ var mockConfig = {
                <item id="1">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>1</id>\
+                   <author>\
+                     <name>alice@localhost</name>\
+                   </author>\
                    <content>one</content>\
                  </entry>\
                </item>\
                <item id="2">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>2</id>\
+                   <author>\
+                     <name>alice@localhost</name>\
+                   </author>\
                    <content>two</content>\
                  </entry>\
                </item>\
@@ -111,12 +126,18 @@ var mockConfig = {
                <item id="2">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>2</id>\
+                   <author>\
+                     <name>alice@localhost</name>\
+                   </author>\
                    <content>two</content>\
                  </entry>\
                </item>\
                <item id="3">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>3</id>\
+                   <author>\
+                     <name>ron@localhost</name>\
+                   </author>\
                    <content>three</content>\
                  </entry>\
                </item>\
@@ -154,6 +175,9 @@ var mockConfig = {
                <item id="foo">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>bar</id>\
+                   <author>\
+                     <name>bob@localhost</name>\
+                   </author>\
                    <content>one</content>\
                  </entry>\
                </item>\
@@ -194,6 +218,9 @@ var mockConfig = {
                    <item id="newid">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>newid</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
                        <content>TEST</content>\
                        <updated>2012-10-17</updated>\
                      </entry>\
@@ -201,6 +228,9 @@ var mockConfig = {
                    <item id="1">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>1</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
                        <content>one</content>\
                        <updated>2012-10-16</updated>\
                      </entry>\
@@ -208,6 +238,9 @@ var mockConfig = {
                    <item id="2">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>2</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
                        <content>two</content>\
                        <updated>2012-08-21</updated>\
                      </entry>\
@@ -215,6 +248,9 @@ var mockConfig = {
                    <item id="3">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>3</id>\
+                       <author>\
+                         <name>ron@localhost</name>\
+                       </author>\
                        <content>three</content>\
                        <updated>2012-03-03</updated>\
                      </entry>\
@@ -257,6 +293,9 @@ var mockConfig = {
                    <item id="newid-json">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>newid-json</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
                        <content>JSON TEST</content>\
                        <updated>2012-10-18</updated>\
                      </entry>\
@@ -264,6 +303,9 @@ var mockConfig = {
                    <item id="1">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>1</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
                        <content>one</content>\
                        <updated>2012-10-16</updated>\
                      </entry>\
@@ -271,6 +313,9 @@ var mockConfig = {
                    <item id="2">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>2</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
                        <content>two</content>\
                        <updated>2012-08-21</updated>\
                      </entry>\
@@ -278,6 +323,9 @@ var mockConfig = {
                    <item id="3">\
                      <entry xmlns="http://www.w3.org/2005/Atom">\
                        <id>3</id>\
+                       <author>\
+                         <name>ron@localhost</name>\
+                       </author>\
                        <content>three</content>\
                        <updated>2012-03-03</updated>\
                      </entry>\
@@ -356,14 +404,17 @@ describe('Node Feed', function() {
                 var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
                 var e1 = entries[0];
                 atom.get(e1, 'atom:id').text().should.equal('1');
+                atom.get(e1, 'atom:author/atom:name').text().should.equal('alice@localhost');
                 atom.get(e1, 'atom:content').text().should.equal('one');
                 should.exist(atom.get(e1, 'atom:title'));
                 var e2 = entries[1];
                 atom.get(e2, 'atom:id').text().should.equal('2');
+                atom.get(e2, 'atom:author/atom:name').text().should.equal('alice@localhost');
                 atom.get(e2, 'atom:content').text().should.equal('two');
                 should.exist(atom.get(e2, 'atom:title'));
                 var e3 = entries[2];
                 atom.get(e3, 'atom:id').text().should.equal('3');
+                atom.get(e3, 'atom:author/atom:name').text().should.equal('ron@localhost');
                 atom.get(e3, 'atom:content').text().should.equal('three');
                 should.exist(atom.get(e3, 'atom:title'));
 
@@ -382,10 +433,13 @@ describe('Node Feed', function() {
 
                 var feed = JSON.parse(body);
                 feed[0].id.should.equal('1');
+                feed[0].author.should.equal('alice@localhost');
                 feed[0].content.should.equal('one')
                 feed[1].id.should.equal('2');
+                feed[1].author.should.equal('alice@localhost');
                 feed[1].content.should.equal('two')
                 feed[2].id.should.equal('3');
+                feed[2].author.should.equal('ron@localhost');
                 feed[2].content.should.equal('three')
 
                 done();
@@ -484,6 +538,7 @@ describe('Node Feed', function() {
 
                     var newest = atom.get(feed, '/atom:feed/atom:entry');
                     atom.get(newest, 'atom:id').text().should.equal('newid');
+                    atom.get(newest, 'atom:author/atom:name').text().should.equal('alice@localhost');
                     atom.get(newest, 'atom:content').text().should.equal('TEST');
 
                     done();
@@ -513,6 +568,7 @@ describe('Node Feed', function() {
 
                     var newest = atom.get(feed, '/atom:feed/atom:entry');
                     atom.get(newest, 'atom:id').text().should.equal('newid-json');
+                    atom.get(newest, 'atom:author/atom:name').text().should.equal('alice@localhost');
                     atom.get(newest, 'atom:content').text().should.equal('JSON TEST');
 
                     done();

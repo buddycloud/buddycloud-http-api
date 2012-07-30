@@ -43,6 +43,9 @@ var mockConfig = {
                <item id="foo">\
                  <entry xmlns="http://www.w3.org/2005/Atom">\
                    <id>foo</id>\
+                   <author>\
+                     <name>alice@localhost</name>\
+                   </author>\
                    <content>bar</content>\
                  </entry>\
                </item>\
@@ -103,6 +106,7 @@ describe('Node Item', function() {
                 entry.root().name().should.equal('entry');
                 entry.root().namespace().href().should.equal(atom.ns);
                 atom.get(entry, 'atom:id').text().should.equal('foo');
+                atom.get(entry, 'atom:author/atom:name').text().should.equal('alice@localhost');
                 atom.get(entry, 'atom:content').text().should.equal('bar');
                 should.exist(atom.get(entry, 'atom:title'));
 
