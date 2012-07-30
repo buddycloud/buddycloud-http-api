@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-// node_item.js:
-// Handles requests regarding single node items.
+// content_item.js:
+// Handles requests regarding single node items
+// (/<channel>/content/<node>/<item>).
 
 var xml = require('libxmljs');
 var api = require('./util/api');

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-// node_feed.js:
-// Handles requests regarding node feeds.
+// content_feed.js:
+// Handles requests regarding channel node feeds
+// (/<channel>/content/<node>).
 
 var xmpp = require('node-xmpp');
 var xml = require('libxmljs');

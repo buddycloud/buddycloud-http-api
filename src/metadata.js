@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-// node_sub.js:
-// Handles requests regarding node metadata.
+// metadata.js:
+// Handles requests for getting and setting channel metadata
+// (/<channel>/metadata/<node>).
 
 var xml = require('libxmljs');
 var api = require('./util/api');

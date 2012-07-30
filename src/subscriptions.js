@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-// node_sub.js:
-// Handles requests regarding node subscription lists.
+// subscriptions.js:
+// Handles requests regarding subscription lists
+// (/subscribed, /<channel>/subscribers/<node>).
 
 var xml = require('libxmljs');
 var api = require('./util/api');

@@ -54,12 +54,12 @@ function crossOriginAllower(req, res, next) {
 
 function setupResourceHandlers(app) {
     var handlers = [
-        require('./src/basic'),
+        require('./src/content_feed'),
+        require('./src/content_item'),
         require('./src/media'),
-        require('./src/node_feed'),
-        require('./src/node_item'),
-        require('./src/node_meta'),
-        require('./src/node_sub')
+        require('./src/metadata'),
+        require('./src/root'),
+        require('./src/subscriptions')
     ];
     handlers.forEach(function(h) { h.setup(app); });
 }

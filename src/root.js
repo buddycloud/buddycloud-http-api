@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// basic.js:
-// Handles general API requests.
+// root.js:
+// Handles requests for the API root (/).
 
 var session = require('./util/session');
 

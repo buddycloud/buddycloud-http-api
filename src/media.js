@@ -15,7 +15,8 @@
  */
 
 // media.js:
-// Handles requests for communicationg with buddycloud media servers.
+// Handles requests for communicationg with buddycloud media servers
+// (/<channel>/media, /<channel>/media/<file>).
 
 var crypto = require('crypto');
 var url = require('url');
