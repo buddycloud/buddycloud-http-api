@@ -15,7 +15,7 @@
  */
 
 // content_item.js:
-// Handles requests regarding single node items
+// Handles requests concerning single node items
 // (/<channel>/content/<node>/<item>).
 
 var xml = require('libxmljs');

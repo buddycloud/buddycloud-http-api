@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// test/node_feed.js:
+// test/content_feed.js:
 // Tests node feed related requests.
 
 var should = require('should');

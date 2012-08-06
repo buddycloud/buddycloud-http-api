@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// test/node_items.js:
+// test/content_item.js:
 // Tests requests on node items.
 
 var should = require('should');

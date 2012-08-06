@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// test/node_meta.js:
-// Tests requests concerning node metadata.
+// test/metadata.js:
+// Tests requests related to node metadata.
 
 var should = require('should');
 var tutil = require('./support/testutil');

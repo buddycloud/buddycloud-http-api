@@ -15,7 +15,7 @@
  */
 
 // content_feed.js:
-// Handles requests regarding channel node feeds
+// Handles requests related to channel node feeds
 // (/<channel>/content/<node>).
 
 var xmpp = require('node-xmpp');

@@ -15,7 +15,7 @@
  */
 
 // subscriptions.js:
-// Handles requests regarding subscription lists
+// Handles requests related to subscription lists
 // (/subscribed, /<channel>/subscribers/<node>).
 
 var xml = require('libxmljs');

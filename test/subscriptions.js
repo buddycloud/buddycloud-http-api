@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// test/node_sub.js:
-// Tests requests on node subscription lists.
+// test/subscriptions.js:
+// Tests requests related to subscription lists.
 
 var should = require('should');
 var tutil = require('./support/testutil');
