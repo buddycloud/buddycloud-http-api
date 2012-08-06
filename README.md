@@ -78,6 +78,8 @@ As an example, the following snippet tells the server to listen on port
 
 The following configuration options are supported:
 
+- **debug** (Optional): If true, the API server includes exception traces in
+  "Internal Server Error" responses.
 - **port** (Required): The port on which the server listens for HTTP requests.
 - **xmppDomain** (Required): The XMPP domain to which the server belongs. This
   defines the XMPP server used for authentication and presence.

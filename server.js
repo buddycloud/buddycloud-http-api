@@ -28,10 +28,10 @@ function setupConfig(app) {
         app.use(auth.parser);
         app.use(crossOriginAllower);
         app.use(app.router);
-        app.use(express.errorHandler());
-    });
-    app.configure('development', function() {
-        app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
+        app.use(express.errorHandler({
+            dumpExceptions: config.debug || false,
+            showStack: config.debug || false
+        }));
     });
 }
 
