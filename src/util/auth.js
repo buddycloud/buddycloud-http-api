@@ -47,5 +47,11 @@ exports.parser = function(req, res, next) {
 
     req.user = credentials.slice(0, separatorIdx);
     req.password = credentials.slice(separatorIdx + 1);
+
+    // If the username has no domain part, assume the home domain
+    if (req.user.indexOf('@') < 0) {
+        req.user += '@' + config.xmppDomain;
+    }
+
     next();
 };

@@ -88,6 +88,18 @@ describe('Session ID', function() {
         }).on('error', done);
     });
 
+    it('should also be returned when username is unqualified', function(done) {
+        var options = {
+            path: '/public@localhost/content/posts',
+            auth: 'alice:alice'
+        };
+        tutil.get(options, function(res, body) {
+            res.statusCode.should.equal(200);
+            should.exist(res.headers['x-session-id']);
+            done();
+        }).on('error', done);
+    });
+
     it('should not be returned on anonymous requests', function(done) {
         var options = {
             path: '/public@localhost/content/posts',
