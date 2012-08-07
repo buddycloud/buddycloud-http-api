@@ -260,7 +260,7 @@ var mockConfig = {
              </iq>'
         },
 
-         // Post new item to node
+         // Post new item to node (JSON)
         '<iq from="alice@localhost/http" type="set">\
            <pubsub xmlns="http://jabber.org/protocol/pubsub">\
              <publish node="/user/alice@localhost/posts">\
@@ -297,6 +297,81 @@ var mockConfig = {
                          <name>alice@localhost</name>\
                        </author>\
                        <content>JSON TEST</content>\
+                       <updated>2012-10-18</updated>\
+                     </entry>\
+                   </item>\
+                   <item id="1">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>1</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
+                       <content>one</content>\
+                       <updated>2012-10-16</updated>\
+                     </entry>\
+                   </item>\
+                   <item id="2">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>2</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
+                       <content>two</content>\
+                       <updated>2012-08-21</updated>\
+                     </entry>\
+                   </item>\
+                   <item id="3">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>3</id>\
+                       <author>\
+                         <name>ron@localhost</name>\
+                       </author>\
+                       <content>three</content>\
+                       <updated>2012-03-03</updated>\
+                     </entry>\
+                   </item>\
+                 </items>\
+               </pubsub>\
+             </iq>'
+        },
+
+         // Post new item to node (JSON + Escaping)
+        '<iq from="alice@localhost/http" type="set">\
+           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+             <publish node="/user/alice@localhost/posts">\
+               <item>\
+                 <entry xmlns="http://www.w3.org/2005/Atom">\
+                   <content>ESCAPING &amp; TEST</content>\
+                 </entry>\
+               </item>\
+             </publish>\
+           </pubsub>\
+         </iq>':
+        {
+            '':
+            '<iq type="result">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+                 <publish node="/user/alice@localhost/posts">\
+                   <item id="newid-escaping"/>\
+                 </publish>\
+               </pubsub>\
+             </iq>',
+
+            '<iq from="alice@localhost/http" type="get">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+                 <items node="/user/alice@localhost/posts"/>\
+               </pubsub>\
+             </iq>':
+            '<iq type="result">\
+               <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+                 <items node="/user/alice@localhost/posts">\
+                   <item id="newid-escaping">\
+                     <entry xmlns="http://www.w3.org/2005/Atom">\
+                       <id>newid-json</id>\
+                       <author>\
+                         <name>alice@localhost</name>\
+                       </author>\
+                       <content>ESCAPING &amp; TEST</content>\
                        <updated>2012-10-18</updated>\
                      </entry>\
                    </item>\
@@ -571,6 +646,30 @@ describe('Node Feed', function() {
                     atom.get(newest, 'atom:author/atom:name').text().should.equal('alice@localhost');
                     atom.get(newest, 'atom:content').text().should.equal('JSON TEST');
 
+                    done();
+                }).on('error', done);
+            }).on('error', done);
+        });
+
+        it('should escape "&" in JSON bodies (Issue #6)', function(done) {
+            var options = {
+                path: '/alice@localhost/content/posts',
+                auth: 'alice@localhost/http:alice',
+                body: JSON.stringify({
+                    content: 'ESCAPING & TEST'
+                })
+            };
+            tutil.post(options, function(res) {
+                res.statusCode.should.equal(201);
+
+                var options2 = {
+                    path: '/alice@localhost/content/posts',
+                    auth: 'alice@localhost/http:alice',
+                };
+                tutil.get(options2, function(res2, body2) {
+                    var feed = xml.parseXmlString(body2);
+                    var newest = atom.get(feed, '/atom:feed/atom:entry');
+                    atom.get(newest, 'atom:content').text().should.equal('ESCAPING & TEST');
                     done();
                 }).on('error', done);
             }).on('error', done);

@@ -103,20 +103,24 @@ exports.fromJSON = function(entry) {
     entrydoc.node('entry').namespace(exports.ns);
 
     if (entry.id) {
-        entrydoc.root().node('id', entry.id);
+        entrydoc.root().node('id', escapeText(entry.id));
     }
 
     if (entry.title) {
-        entrydoc.root().node('title', entry.id);
+        entrydoc.root().node('title', escapeText(entry.id));
     }
 
     if (entry.author) {
-        entrydoc.root().node('author', entry.id);
+        entrydoc.root().node('author', escapeText(entry.id));
     }
 
     if (entry.content) {
-        entrydoc.root().node('content', entry.content);
+        entrydoc.root().node('content', escapeText(entry.content));
     }
 
     return entrydoc;
 };
+
+function escapeText(text) {
+    return text.replace('&', '&amp;');
+}
