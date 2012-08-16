@@ -41,6 +41,8 @@ exports.setup = function(app) {
         postToNodeFeed);
 };
 
+//// GET /<channel>/content/<node> /////////////////////////////////////////////
+
 function getNodeFeed(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
@@ -86,6 +88,8 @@ function populateNodeFeed(feed, replydoc) {
         feed.root().addChild(entry.remove());
     });
 }
+
+//// POST /<channel>/content/<node> ////////////////////////////////////////////
 
 function postToNodeFeed(req, res) {
     var entry = parseRequestBody(req, res);

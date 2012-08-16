@@ -34,6 +34,8 @@ exports.setup = function(app) {
         getNodeItem);
 };
 
+//// GET /<channel>/content/<node>/<id> ////////////////////////////////////////
+
 function getNodeItem(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;

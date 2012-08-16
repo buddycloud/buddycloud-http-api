@@ -38,6 +38,8 @@ exports.setup = function(app) {
         setNodeMetadata);
 };
 
+//// GET /<channel>/metadata/<node> ////////////////////////////////////////////
+
 function getNodeMetadata(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
@@ -81,6 +83,8 @@ function getOption(reply, name) {
     var option = reply.get(query, {x: 'jabber:x:data'});
     return option ? option.text() : undefined;
 }
+
+//// POST /<channel>/metadata/<node> ///////////////////////////////////////////
 
 function setNodeMetadata(req, res) {
     var channel = req.params.channel;

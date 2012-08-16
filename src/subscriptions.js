@@ -42,6 +42,8 @@ exports.setup = function(app) {
         changeNodeSubscription);
 };
 
+//// GET /subscribed ///////////////////////////////////////////////////////////
+
 function getUserSubscriptions(req, res) {
     if (!req.user) {
         api.sendUnauthorized(res);
@@ -107,6 +109,8 @@ function replyToJSON(reply, target) {
     return subscriptions;
 }
 
+//// GET /<channel>/subscribers/<node> /////////////////////////////////////////
+
 function getNodeSubscriptions(req, res) {
     var channel = req.params.channel;
     var node = req.params.node;
@@ -124,6 +128,8 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
     console.log(iq.toString());
     api.sendQuery(req, res, iq, callback);
 }
+
+//// POST /<channel>/subscribers/<node> ////////////////////////////////////////
 
 function changeNodeSubscription(req, res) {
     var channel = req.params.channel;
