@@ -35,12 +35,6 @@ exports.setup = function(app) {
 };
 
 function getMedia(req, res) {
-    // The media server doesn't currently understand anonymous requests.
-    if (!req.user) {
-        api.sendUnauthorized(res);
-        return;
-    }
-
     var transactionId = crypto.randomBytes(16).toString('hex');
     req.session.onStanza(confirmRequest(req, transactionId));
 
