@@ -125,7 +125,6 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
     var nodeId = pubsub.channelNodeId(channel, node);
     var iq = pubsub.nodeAffiliationsIq(nodeId);
     iq.to = req.channelServer;
-    console.log(iq.toString());
     api.sendQuery(req, res, iq, callback);
 }
 
