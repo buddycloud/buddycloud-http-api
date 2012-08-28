@@ -25,6 +25,7 @@ var crypto = require('crypto');
 function Cache() {
     this._data = {};
     this._timeouts = {};
+    this.onexpired = function(key, value) {};
 }
 
 /**
@@ -50,7 +51,11 @@ Cache.prototype.put = function(key, value, expirationTime) {
 Cache.prototype._startTimeout = function(key, expirationTime) {
     var self = this;
     setTimeout(function() {
-        delete self._data[key];
+        var value = self._data[key];
+        if (value) {
+            self.onexpired(key, value);
+            delete self._data[key];
+        }
     }, expirationTime * 1000);
 };
 

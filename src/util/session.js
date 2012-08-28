@@ -22,8 +22,11 @@ var api = require('./api');
 var cache = require('./cache');
 var config = require('./config');
 
-var sessionCache = new cache.Cache();
 var anonymousSession;
+var sessionCache = new cache.Cache();
+sessionCache.onexpired = function(_, session) {
+    session.end();
+};
 
 /**
  * Middleware that sets req.session to a Session object matching the
