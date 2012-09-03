@@ -79,6 +79,7 @@ function entryToJSON(entry) {
     var id = exports.get(entry, 'atom:id');
     var author = exports.get(entry, 'atom:author');
     var authorName = author ? exports.get(author, 'atom:name') : author;
+    var published = exports.get(entry, 'atom:published');
     var updated = exports.get(entry, 'atom:updated');
     var content = exports.get(entry, 'atom:content');
     var replyTo = entry.get(
@@ -89,6 +90,7 @@ function entryToJSON(entry) {
     return {
         id: id ? id.text() : null,
         author: authorName ? authorName.text() : (author ? author.text() : null),
+        published: published ? published.text() : null,
         updated: updated ? updated.text() : null,
         content: content ? content.text() : null,
         replyTo: replyTo ? replyTo.attr('ref').value() : undefined
