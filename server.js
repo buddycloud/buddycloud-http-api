@@ -44,7 +44,8 @@ function crossOriginAllower(req, res, next) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Requested-With');
+    res.header('Access-Control-Allow-Headers',
+               'Authorization, Content-Type, X-Requested-With, X-Session-Id');
     res.header('Access-Control-Expose-Headers', 'X-Session-Id');
 
     if (req.method == 'OPTIONS') {
