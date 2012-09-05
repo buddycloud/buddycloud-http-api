@@ -13,11 +13,11 @@
         "url": "git://github.com/buddycloud/buddycloud-http-api.git"
     },
     "dependencies": {
-        "express": "",
-        "libxmljs": "",
-        "ltx": "0.2.0",
-        "node-stringprep": "0.1.4",
-        "node-xmpp": "0.3.2"
+        "express": "2.x",
+        "libxmljs": "0.5.x",
+        "ltx": "0.2.x",
+        "node-stringprep": "0.1.x",
+        "node-xmpp": "0.3.x"
     },
     "devDependencies": {
         "mocha": "1.0.3",
