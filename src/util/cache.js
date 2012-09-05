@@ -22,18 +22,12 @@ var crypto = require('crypto');
 /**
  * An in-memory key-value store with entry expiration.
  */
-function Cache() {
+function Cache(timeoutLength) {
+    this._timeoutLength = timeoutLength;
     this._data = {};
     this._timeouts = {};
     this.onexpired = function(key, value) {};
 }
-
-/**
- * Gets the value stored for the passed key.
- */
-Cache.prototype.get = function(key) {
-    return this._data[key];
-};
 
 /**
  * Adds or overwrites a key-value entry to/in the cache. After
@@ -41,22 +35,34 @@ Cache.prototype.get = function(key) {
  * (If 'expirationTime' is not specified, the entry does not expire.)
  * Readding the same entry restarts the expiration timeout.
  */
-Cache.prototype.put = function(key, value, expirationTime) {
+Cache.prototype.put = function(key, value) {
     this.remove(key);
     this._data[key] = value;
-    if (expirationTime)
-        this._startTimeout(key, expirationTime);
+    this._startTimeout(key);
 };
 
-Cache.prototype._startTimeout = function(key, expirationTime) {
+Cache.prototype._startTimeout = function(key) {
     var self = this;
-    setTimeout(function() {
+    this._timeouts[key] = setTimeout(function() {
         var value = self._data[key];
         if (value) {
             self.onexpired(key, value);
             delete self._data[key];
         }
-    }, expirationTime * 1000);
+    }, this._timeoutLength * 1000);
+};
+
+/**
+ * Gets the value stored for the passed key.
+ */
+Cache.prototype.get = function(key) {
+    this._resetTimeout(key);
+    return this._data[key];
+};
+
+Cache.prototype._resetTimeout = function(key)  {
+    this._removeTimeoutIfExists(key);
+    this._startTimeout(key);
 };
 
 /**

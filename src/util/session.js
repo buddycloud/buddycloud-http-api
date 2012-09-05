@@ -23,7 +23,7 @@ var cache = require('./cache');
 var config = require('./config');
 
 var anonymousSession;
-var sessionCache = new cache.Cache();
+var sessionCache = new cache.Cache(config.sessionExpirationTime);
 sessionCache.onexpired = function(_, session) {
     session.end();
 };
@@ -56,7 +56,7 @@ function processSessionId(sessionId, req, res, next) {
 function provideSession(session, req, res, next) {
     req.session = session;
     if (session.id) {
-        sessionCache.put(session.id, session, config.sessionExpirationTime);
+        sessionCache.put(session.id, session);
         res.header('X-Session-Id', session.id);
     }
     next();

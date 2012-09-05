@@ -180,6 +180,32 @@ describe('Session ID', function() {
         }).on('error', done);
     });
 
+    it('should be renewed on each request', function(done) {
+       this.timeout(0);
+        var options = {
+            path: '/private@localhost/content/posts',
+            auth: 'alice@localhost/http:alice'
+        };
+        tutil.get(options, function(res) {
+            var sessionId = res.headers['x-session-id'];
+            delete options.auth;
+            options.headers = {'x-session-id': sessionId};
+            setTimeout(function() {
+                tutil.get(options, function(res2) {
+                    res2.statusCode.should.equal(200);
+                    res2.headers['x-session-id'].should.equal(sessionId);
+                    setTimeout(function() {
+                        tutil.get(options, function(res3) {
+                            res3.statusCode.should.equal(200);
+                            res3.headers['x-session-id'].should.equal(sessionId);
+                            done();
+                        }).on('error', done);
+                    }, config.sessionExpirationTime * 1000 * 0.75);
+                }).on('error', done);
+            }, config.sessionExpirationTime * 1000 * 0.75);
+        }).on('error', done);
+    });
+
     after(function() {
         tutil.end();
     });

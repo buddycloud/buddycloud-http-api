@@ -23,7 +23,7 @@ var cache = require('./cache');
 
 // Used by discoverChannelNode() to cache the server responsible
 // for a channel domain
-var discoverCache = new cache.Cache();
+var discoverCache = new cache.Cache(2 * 60 * 60);
 
 var DISCO_INFO_NS = 'http://jabber.org/protocol/disco#info';
 var DISCO_ITEMS_NS = 'http://jabber.org/protocol/disco#items';
