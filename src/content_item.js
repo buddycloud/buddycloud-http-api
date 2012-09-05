@@ -28,42 +28,42 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/:channel/content/:node/:item',
-        session.provider,
-        api.channelServerDiscoverer,
-        getNodeItem);
+  app.get('/:channel/content/:node/:item',
+          session.provider,
+          api.channelServerDiscoverer,
+          getNodeItem);
 };
 
 //// GET /<channel>/content/<node>/<id> ////////////////////////////////////////
 
 function getNodeItem(req, res) {
-    var channel = req.params.channel;
-    var node = req.params.node;
-    var itemId = req.params.item;
+  var channel = req.params.channel;
+  var node = req.params.node;
+  var itemId = req.params.item;
 
-    requestNodeItem(req, res, channel, node, itemId, function(reply) {
-        var entry = extractEntry(reply);
-        if (!entry) {
-            res.send(404);
-        } else {
-            atom.ensureEntryHasTitle(entry);
-            api.sendAtomResponse(req, res, entry);
-        }
-    });
+  requestNodeItem(req, res, channel, node, itemId, function(reply) {
+    var entry = extractEntry(reply);
+    if (!entry) {
+      res.send(404);
+    } else {
+      atom.ensureEntryHasTitle(entry);
+      api.sendAtomResponse(req, res, entry);
+    }
+  });
 }
 
 function requestNodeItem(req, res, channel, node, item, callback) {
-    var nodeId = pubsub.channelNodeId(channel, node);
-    var iq = pubsub.singleItemIq(nodeId, item);
-    iq.to = req.channelServer;
-    api.sendQuery(req, res, iq, callback);
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var iq = pubsub.singleItemIq(nodeId, item);
+  iq.to = req.channelServer;
+  api.sendQuery(req, res, iq, callback);
 }
 
 function extractEntry(reply) {
-    var replyDoc = xml.parseXmlString(reply.toString());
-    return replyDoc.get('/iq/p:pubsub/p:items/p:item/a:entry', {
-        p: pubsub.ns,
-        a: atom.ns
-    });
+  var replyDoc = xml.parseXmlString(reply.toString());
+  return replyDoc.get('/iq/p:pubsub/p:items/p:item/a:entry', {
+    p: pubsub.ns,
+    a: atom.ns
+  });
 }
 

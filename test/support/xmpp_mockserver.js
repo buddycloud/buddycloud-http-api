@@ -47,144 +47,149 @@ var stanzasNS = 'urn:ietf:params:xml:ns:xmpp-stanzas';
 var mockConfig;
 
 function setup() {
-    process.on('message', function(message) {
-        mockConfig = {};
-        mockConfig.users = message.users;
+  process.on('message', function(message) {
+    mockConfig = {};
+    mockConfig.users = message.users;
 
-        mockConfig.stanzas = {};
-        addDefaultStanzaRules();
-        addStanzaRules(message.stanzas);
+    mockConfig.stanzas = {};
+    addDefaultStanzaRules();
+    addStanzaRules(message.stanzas);
 
-        process.send(true);
-    });
+    process.send(true);
+  });
 }
 
 function addDefaultStanzaRules() {
-    addStanzaRules({
-        '<iq type="get">\
-           <query xmlns="http://jabber.org/protocol/disco#info" node=""/>\
-         </iq>':
-        '<iq type="result">\
-           <query xmlns="http://jabber.org/protocol/disco#info">\
-             <identity category="pubsub" type="channels"/>\
-           </query>\
-         </iq>'
-     });
+  addStanzaRules({
+    '<iq type="get">\
+       <query xmlns="http://jabber.org/protocol/disco#info" node=""/>\
+     </iq>':
+    '<iq type="result">\
+       <query xmlns="http://jabber.org/protocol/disco#info">\
+         <identity category="pubsub" type="channels"/>\
+       </query>\
+     </iq>'
+  });
 }
 
 function addStanzaRules(rules) {
-    for (var pattern in rules) {
-        if (pattern) {
-            var normalizedPattern = removeInsignificantWhitespace(pattern);
-            var action = rules[pattern];
-            mockConfig.stanzas[normalizedPattern] = action;
-        }
+  for (var pattern in rules) {
+    if (pattern) {
+      var normalizedPattern = removeInsignificantWhitespace(pattern);
+      var action = rules[pattern];
+      mockConfig.stanzas[normalizedPattern] = action;
     }
+  }
 }
 
 function removeInsignificantWhitespace(stanza) {
-    var doc = ltx.parse(stanza.toString().replace(/>\s+</g, '><'));
-    if (typeof stanza != 'string') { // was an already-parsed document
-        return doc;
-    } else {
-        return doc.toString();
-    }
+  var doc = ltx.parse(stanza.toString().replace(/>\s+</g, '><'));
+  if (typeof stanza != 'string') { // was an already-parsed document
+    return doc;
+  } else {
+    return doc.toString();
+  }
 }
 
 function start() {
-    var server = new xmpp.C2SServer({
-        domain: config.xmppHost,
-        port: config.xmppPort
+  var server = new xmpp.C2SServer({
+    domain: config.xmppHost,
+    port: config.xmppPort
+  });
+  server.on('connect', function(client) {
+    client.on('authenticate', function(options, callback) {
+      checkAuth(options.user, options.password, callback);
     });
-    server.on('connect', function(client) {
-        client.on('authenticate', function(options, callback) {
-            checkAuth(options.user, options.password, callback);
-        });
-        client.on('stanza', function(stanza) {
-            handleStanza(client, stanza);
-        });
+    client.on('stanza', function(stanza) {
+      handleStanza(client, stanza);
     });
+  });
 }
 
 function checkAuth(user, password, callback) {
-    if (!user) {
-        // Anonymous login
-        callback();
+  if (!user) {
+    // Anonymous login
+    callback();
+  } else {
+    var correctPassword = mockConfig.users[user];
+    if (correctPassword && password == correctPassword) {
+      callback();
     } else {
-        var correctPassword = mockConfig.users[user];
-        if (correctPassword && password == correctPassword)
-            callback();
-        else
-            callback(new Error('Unauthorized'));
+      callback(new Error('Unauthorized'));
     }
+  }
 }
 
 function handleStanza(client, stanza) {
-    var action = findMatchingRule(stanza);
-    if (!action) {
-        console.error('No rule for handling stanza ' + stanza.toString());
-        replyServiceUnavailable(client, stanza.attrs.id);
-        return;
-    }
+  var action = findMatchingRule(stanza);
+  if (!action) {
+    console.error('No rule for handling stanza ' + stanza.toString());
+    replyServiceUnavailable(client, stanza.attrs.id);
+    return;
+  }
 
-    var reply;
-    if (typeof action == 'object') {
-        addStanzaRules(action);
-        reply = action[''];
-    } else {
-        reply = action;
-    }
+  var reply;
+  if (typeof action == 'object') {
+    addStanzaRules(action);
+    reply = action[''];
+  } else {
+    reply = action;
+  }
 
-    reply = ltx.parse(reply);
-    reply.attrs.id = stanza.attrs.id;
-    client.send(reply);
+  reply = ltx.parse(reply);
+  reply.attrs.id = stanza.attrs.id;
+  client.send(reply);
 }
 
 function replyServiceUnavailable(client, id) {
-    client.send(new xmpp.Iq({id: id, type: 'error'}).
-        c('error', {type: '503'}).
-        c('service-unavailable', {xmlns: stanzasNS}));
+  client.send(new xmpp.Iq({id: id, type: 'error'}).
+              c('error', {type: '503'}).
+              c('service-unavailable', {xmlns: stanzasNS}));
 }
 
 function findMatchingRule(stanza) {
-    stanza = removeInsignificantWhitespace(stanza);
+  stanza = removeInsignificantWhitespace(stanza);
 
-    for (var key in mockConfig.stanzas) {
-        var pattern = ltx.parse(key);
-        pattern.attrs.id = stanza.attrs.id;
+  for (var key in mockConfig.stanzas) {
+    var pattern = ltx.parse(key);
+    pattern.attrs.id = stanza.attrs.id;
 
-        if (elementMatches(pattern, stanza))
-            return mockConfig.stanzas[key];
+    if (elementMatches(pattern, stanza)) {
+      return mockConfig.stanzas[key];
     }
+  }
 
-    return null;
+  return null;
 }
 
 function elementMatches(expected, actual) {
-    if (typeof expected == 'string')
-        return typeof actual == 'string' && expected == actual;
+  if (typeof expected == 'string') {
+    return typeof actual == 'string' && expected == actual;
+  }
+  if (!actual.is(expected.getName(), expected.getNS())) {
+    return false;
+  }
 
-    if (!actual.is(expected.getName(), expected.getNS()))
+  for (var key in expected.attrs) {
+    if (expected.attrs[key]) {
+      if (expected.attrs[key] != actual.attrs[key])
         return false;
-
-    for (var key in expected.attrs) {
-        if (expected.attrs[key]) {
-            if (expected.attrs[key] != actual.attrs[key])
-                return false;
-        } else if (actual.attrs[key]) {
-            return false;
-        }
+    } else if (actual.attrs[key]) {
+      return false;
     }
+  }
 
-    if (expected.children.length != actual.children.length)
-        return false;
+  if (expected.children.length != actual.children.length) {
+    return false;
+  }
 
-    for (var i = 0; i < expected.children.length; i++) {
-        if (!elementMatches(expected.children[i], actual.children[i]))
-            return false;
+  for (var i = 0; i < expected.children.length; i++) {
+    if (!elementMatches(expected.children[i], actual.children[i])) {
+      return false;
     }
+  }
 
-    return true;
+  return true;
 }
 
 setup();

@@ -31,11 +31,11 @@ var pubsub = require('./disco');
  * header set.
  */
 exports.sendUnauthorized = function(res) {
-    res.header(
-        'WWW-Authenticate',
-        'Basic realm="' + config.xmppDomain + '"'
-    );
-    res.send(401);
+  res.header(
+    'WWW-Authenticate',
+    'Basic realm="' + config.xmppDomain + '"'
+  );
+  res.send(401);
 };
 
 /**
@@ -43,30 +43,31 @@ exports.sendUnauthorized = function(res) {
  * stanzas and only passes real replies to the callback.
  */
 exports.sendQuery = function(req, res, iq, callback) {
-    req.session.sendQuery(iq, function(reply) {
-        if (reply.type == 'error')
-            reportXmppError(req, res, reply);
-        else
-            callback(reply);
-    });
+  req.session.sendQuery(iq, function(reply) {
+    if (reply.type == 'error') {
+      reportXmppError(req, res, reply);
+    } else {
+      callback(reply);
+    }
+  });
 };
 
 function reportXmppError(req, res, errorStanza) {
-    var error = errorStanza.getChild('error');
-    if (error) {
-        if (error.getChild('not-authorized') ||
-            error.getChild('not-allowed') ||
-            error.getChild('forbidden')) {
-            if (req.user) {
-                res.send(403);
-            } else {
-                exports.sendUnauthorized(res);
-            }
-        }
-        else if (error.getChild('item-not-found'))
-            res.send(404);
+  var error = errorStanza.getChild('error');
+  if (error) {
+    if (error.getChild('not-authorized') ||
+        error.getChild('not-allowed') ||
+        error.getChild('forbidden')) {
+      if (req.user) {
+        res.send(403);
+      } else {
+        exports.sendUnauthorized(res);
+      }
+    } else if (error.getChild('item-not-found')) {
+      res.send(404);
     }
-    res.send(500);
+  }
+  res.send(500);
 }
 
 /**
@@ -75,19 +76,19 @@ function reportXmppError(req, res, errorStanza) {
  * XML or JSON).
  */
 exports.sendAtomResponse = function(req, res, doc) {
-    var response;
+  var response;
 
-    if (req.accepts('application/atom+xml')) {
-        res.contentType('atom');
-        response = doc.toString();
-    } else if (req.accepts('application/json')) {
-        res.contentType('json');
-        response = atom.toJSON(doc);
-    } else {
-        response = 406;
-    }
+  if (req.accepts('application/atom+xml')) {
+    res.contentType('atom');
+    response = doc.toString();
+  } else if (req.accepts('application/json')) {
+    res.contentType('json');
+    response = atom.toJSON(doc);
+  } else {
+    response = 406;
+  }
 
-    res.send(response);
+  res.send(response);
 };
 
 /**
@@ -95,27 +96,27 @@ exports.sendAtomResponse = function(req, res, doc) {
  * in req.body.
  */
 exports.bodyReader = function(req, res, next) {
-    var chunks = [];
-    var size = 0;
+  var chunks = [];
+  var size = 0;
 
-    req.on('data', function(data) {
-        chunks.push(data);
-        size += data.length;
-    });
+  req.on('data', function(data) {
+    chunks.push(data);
+    size += data.length;
+  });
 
-    req.on('end', function(data) {
-        req.body = new Buffer(size);
-        copyIntoBuffer(req.body, chunks);
-        next();
-    });
+  req.on('end', function(data) {
+    req.body = new Buffer(size);
+    copyIntoBuffer(req.body, chunks);
+    next();
+  });
 };
 
 function copyIntoBuffer(buffer, chunks) {
-    var offset = 0;
-    chunks.forEach(function(chunk) {
-        chunk.copy(buffer, offset);
-        offset += chunk.length;
-    });
+  var offset = 0;
+  chunks.forEach(function(chunk) {
+    chunk.copy(buffer, offset);
+    offset += chunk.length;
+  });
 }
 
 /**
@@ -127,18 +128,18 @@ function copyIntoBuffer(buffer, chunks) {
  *
  * This is assumed to run after session.provider().
  */
- exports.channelServerDiscoverer = function(req, res, next) {
-    var channel = req.params.channel;
-    var domain = channel.slice(channel.lastIndexOf('@') + 1);
+exports.channelServerDiscoverer = function(req, res, next) {
+  var channel = req.params.channel;
+  var domain = channel.slice(channel.lastIndexOf('@') + 1);
 
-    disco.discoverChannelServer(domain, req.session, function(server, err) {
-        if (err) {
-            res.send(err);
-        } else {
-            req.channelServer = server;
-            next();
-        }
-    });
+  disco.discoverChannelServer(domain, req.session, function(server, err) {
+    if (err) {
+      res.send(err);
+    } else {
+      req.channelServer = server;
+      next();
+    }
+  });
 };
 
 /**
@@ -146,7 +147,7 @@ function copyIntoBuffer(buffer, chunks) {
  * for the requested resource and stores its HTTP root in req.mediaRoot.
  */
 exports.mediaServerDiscoverer = function(req, res, next) {
-    // FIXME: This must be replaced with real discovery
-    req.mediaRoot = config.homeMediaRoot;
-    next();
+  // FIXME: This must be replaced with real discovery
+  req.mediaRoot = config.homeMediaRoot;
+  next();
 };

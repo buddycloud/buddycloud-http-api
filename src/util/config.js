@@ -26,9 +26,10 @@ exports.sessionExpirationTime = 600; // 10min
 exports.discoveryExpirationTime = 43200; // 12h
 
 function loadProfile(name) {
-    var profile = config[name] || {};
-    for (var key in profile)
-        exports[key] = profile[key];
+  var profile = config[name] || {};
+  for (var key in profile) {
+    exports[key] = profile[key];
+  }
 }
 
 loadProfile('_');

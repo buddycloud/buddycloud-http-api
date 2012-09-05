@@ -27,10 +27,11 @@ exports.ns = 'http://www.w3.org/2005/Atom';
  * prefix to the Atom namespace.
  */
 exports.get = function(element, query, namespaces) {
-    if (!namespaces)
-        namespaces = {};
-    namespaces.atom = exports.ns;
-    return element.get(query, namespaces);
+  if (!namespaces) {
+    namespaces = {};
+  }
+  namespaces.atom = exports.ns;
+  return element.get(query, namespaces);
 };
 
 /**
@@ -38,18 +39,19 @@ exports.get = function(element, query, namespaces) {
  * constructs one from the entry's content.
  */
 exports.ensureEntryHasTitle = function(entry) {
-    var content = exports.get(entry, 'atom:content/text()');
-    if (content) {
-        var teaser = extractTeaser(content.toString());
-        entry.node('title', teaser).namespace(exports.ns);
-    }
+  var content = exports.get(entry, 'atom:content/text()');
+  if (content) {
+    var teaser = extractTeaser(content.toString());
+    entry.node('title', teaser).namespace(exports.ns);
+  }
 };
 
 function extractTeaser(content) {
-    if (content.length < 40)
-        return content;
-    else
-        return content.slice(0, 39) + '…';
+  if (content.length < 40) {
+    return content;
+  } else {
+    return content.slice(0, 39) + '…';
+  }
 }
 
 /**
@@ -57,72 +59,72 @@ function extractTeaser(content) {
  * contains the most important entry attributes.
  */
 exports.toJSON = function(element) {
-    if (element.name() == 'feed') {
-        return feedToJSON(element);
-    } else {
-        return entryToJSON(element);
-    }
+  if (element.name() == 'feed') {
+    return feedToJSON(element);
+  } else {
+    return entryToJSON(element);
+  }
 };
 
 function feedToJSON(feed) {
-    var json = [];
+  var json = [];
 
-    var entries = feed.find('a:entry', {a: exports.ns});
-    entries.forEach(function(e) {
-        json.push(entryToJSON(e));
-    });
+  var entries = feed.find('a:entry', {a: exports.ns});
+  entries.forEach(function(e) {
+    json.push(entryToJSON(e));
+  });
 
-    return json;
+  return json;
 }
 
 function entryToJSON(entry) {
-    var id = exports.get(entry, 'atom:id');
-    var author = exports.get(entry, 'atom:author');
-    var authorName = author ? exports.get(author, 'atom:name') : author;
-    var published = exports.get(entry, 'atom:published');
-    var updated = exports.get(entry, 'atom:updated');
-    var content = exports.get(entry, 'atom:content');
-    var replyTo = entry.get(
-        't:in-reply-to',
-        {t: 'http://purl.org/syndication/thread/1.0'}
-    );
+  var id = exports.get(entry, 'atom:id');
+  var author = exports.get(entry, 'atom:author');
+  var authorName = author ? exports.get(author, 'atom:name') : author;
+  var published = exports.get(entry, 'atom:published');
+  var updated = exports.get(entry, 'atom:updated');
+  var content = exports.get(entry, 'atom:content');
+  var replyTo = entry.get(
+    't:in-reply-to',
+    {t: 'http://purl.org/syndication/thread/1.0'}
+  );
 
-    return {
-        id: id ? id.text() : null,
-        author: authorName ? authorName.text() : (author ? author.text() : null),
-        published: published ? published.text() : null,
-        updated: updated ? updated.text() : null,
-        content: content ? content.text() : null,
-        replyTo: replyTo ? replyTo.attr('ref').value() : undefined
-    };
+  return {
+    id: id ? id.text() : null,
+    author: authorName ? authorName.text() : (author ? author.text() : null),
+    published: published ? published.text() : null,
+    updated: updated ? updated.text() : null,
+    content: content ? content.text() : null,
+    replyTo: replyTo ? replyTo.attr('ref').value() : undefined
+  };
 }
 
 /**
  * Converts an JSON-serialized Atom entry into an Atom XML document.
  */
 exports.fromJSON = function(entry) {
-    var entrydoc = xml.Document();
-    entrydoc.node('entry').namespace(exports.ns);
+  var entrydoc = xml.Document();
+  entrydoc.node('entry').namespace(exports.ns);
 
-    if (entry.id) {
-        entrydoc.root().node('id', escapeText(entry.id));
-    }
+  if (entry.id) {
+    entrydoc.root().node('id', escapeText(entry.id));
+  }
 
-    if (entry.title) {
-        entrydoc.root().node('title', escapeText(entry.id));
-    }
+  if (entry.title) {
+    entrydoc.root().node('title', escapeText(entry.id));
+  }
 
-    if (entry.author) {
-        entrydoc.root().node('author', escapeText(entry.id));
-    }
+  if (entry.author) {
+    entrydoc.root().node('author', escapeText(entry.id));
+  }
 
-    if (entry.content) {
-        entrydoc.root().node('content', escapeText(entry.content));
-    }
+  if (entry.content) {
+    entrydoc.root().node('content', escapeText(entry.content));
+  }
 
-    return entrydoc;
+  return entrydoc;
 };
 
 function escapeText(text) {
-    return text.replace('&', '&amp;');
+  return text.replace('&', '&amp;');
 }

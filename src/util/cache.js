@@ -23,10 +23,10 @@ var crypto = require('crypto');
  * An in-memory key-value store with entry expiration.
  */
 function Cache(timeoutLength) {
-    this._timeoutLength = timeoutLength;
-    this._data = {};
-    this._timeouts = {};
-    this.onexpired = function(key, value) {};
+  this._timeoutLength = timeoutLength;
+  this._data = {};
+  this._timeouts = {};
+  this.onexpired = function(key, value) {};
 }
 
 /**
@@ -36,60 +36,61 @@ function Cache(timeoutLength) {
  * Readding the same entry restarts the expiration timeout.
  */
 Cache.prototype.put = function(key, value) {
-    this.remove(key);
-    this._data[key] = value;
-    this._startTimeout(key);
+  this.remove(key);
+  this._data[key] = value;
+  this._startTimeout(key);
 };
 
 Cache.prototype._startTimeout = function(key) {
-    var self = this;
-    this._timeouts[key] = setTimeout(function() {
-        var value = self._data[key];
-        if (value) {
-            self.onexpired(key, value);
-            delete self._data[key];
-        }
-    }, this._timeoutLength * 1000);
+  var self = this;
+  this._timeouts[key] = setTimeout(function() {
+    var value = self._data[key];
+    if (value) {
+      self.onexpired(key, value);
+      delete self._data[key];
+    }
+  }, this._timeoutLength * 1000);
 };
 
 /**
  * Gets the value stored for the passed key.
  */
 Cache.prototype.get = function(key) {
-    this._resetTimeout(key);
-    return this._data[key];
+  this._resetTimeout(key);
+  return this._data[key];
 };
 
 Cache.prototype._resetTimeout = function(key)  {
-    this._removeTimeoutIfExists(key);
-    this._startTimeout(key);
+  this._removeTimeoutIfExists(key);
+  this._startTimeout(key);
 };
 
 /**
  * Removes the entry with the specified key from the cache.
  */
 Cache.prototype.remove = function(key) {
-    this._removeTimeoutIfExists(key);
-    delete this._data[key];
+  this._removeTimeoutIfExists(key);
+  delete this._data[key];
 };
 
 Cache.prototype._removeTimeoutIfExists = function(key) {
-    var timeout = this._timeouts[key];
-    if (timeout) {
-        clearTimeout(timeout);
-        delete this._timeouts[key];
-    }
+  var timeout = this._timeouts[key];
+  if (timeout) {
+    clearTimeout(timeout);
+    delete this._timeouts[key];
+  }
 };
 
 /**
  * Generates a random, currently unused key that can be used for put().
  */
 Cache.prototype.generateKey = function() {
-    while (true) {
-        var key = crypto.randomBytes(16).toString('hex');
-        if (!(key in this._data))
-            return key;
+  while (true) {
+    var key = crypto.randomBytes(16).toString('hex');
+    if (!(key in this._data)) {
+      return key;
     }
+  }
 };
 
 exports.Cache = Cache;

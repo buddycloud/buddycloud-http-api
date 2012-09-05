@@ -35,97 +35,98 @@ var DISCO_ITEMS_NS = 'http://jabber.org/protocol/disco#items';
  * channel server was found and 500 otherwise.
  */
 exports.discoverChannelServer = function(domain, session, callback) {
-    var server = discoverCache.get(domain);
+  var server = discoverCache.get(domain);
+  if (server) {
+    callback(server, null);
+    return;
+  }
+
+  // Wrap callback with a caching operation
+  var cb = callback;
+  callback = function(server, err) {
     if (server) {
-        callback(server, null);
-        return;
+      discoverCache.put(domain, server);
     }
+    cb(server, err);
+  };
 
-    // Wrap callback with a caching operation
-    var cb = callback;
-    callback = function(server, err) {
-        if (server) {
-            discoverCache.put(domain, server);
-        }
-        cb(server, err);
-    };
-
-    askIfChannelServer(domain, session, function(isChannelServer) {
-        if (isChannelServer) {
-            callback(domain, null);
-        } else {
-            askAdvertisedServers(domain, session, callback);
-        }
-    });
+  askIfChannelServer(domain, session, function(isChannelServer) {
+    if (isChannelServer) {
+      callback(domain, null);
+    } else {
+      askAdvertisedServers(domain, session, callback);
+    }
+  });
 };
 
 function askIfChannelServer(server, session, callback) {
-    var iq = discoInfoIq(server);
+  var iq = discoInfoIq(server);
 
-    session.sendQuery(iq, function(reply) {
-        if (reply.type == 'error') {
-            callback(false);
-            return;
-        }
+  session.sendQuery(iq, function(reply) {
+    if (reply.type == 'error') {
+      callback(false);
+      return;
+    }
 
-        var replydoc = xml.parseXmlString(reply.toString());
-        var channelServerId = replydoc.find(
-            '//disco:identity[@category="pubsub"][@type=\"channels"]',
-            {disco: DISCO_INFO_NS}
-        );
+    var replydoc = xml.parseXmlString(reply.toString());
+    var channelServerId = replydoc.find(
+      '//disco:identity[@category="pubsub"][@type=\"channels"]',
+      {disco: DISCO_INFO_NS}
+    );
 
-        callback(channelServerId.length > 0 ? server : null);
-    });
+    callback(channelServerId.length > 0 ? server : null);
+  });
 }
 
 function askAdvertisedServers(server, session, callback) {
-    var iq = discoItemsIq(server);
+  var iq = discoItemsIq(server);
 
-    session.sendQuery(iq, function(reply) {
-        if (reply.type == 'error') {
-            callback(null, 404);
-            return;
-        }
+  session.sendQuery(iq, function(reply) {
+    if (reply.type == 'error') {
+      callback(null, 404);
+      return;
+    }
 
-        var replydoc = xml.parseXmlString(reply.toString());
-        var servers = replydoc.
-            find('//disco:item/@jid', {disco: DISCO_ITEMS_NS}).
-            map(extractJID);
+    var replydoc = xml.parseXmlString(reply.toString());
+    var servers = replydoc.
+      find('//disco:item/@jid', {disco: DISCO_ITEMS_NS}).
+      map(extractJID);
 
-        askEachServer(servers, session, callback);
-    });
+    askEachServer(servers, session, callback);
+  });
 }
 
 function extractJID(jidAttr) {
-    if (typeof(jidAttr.text) == 'function') {
-        return jidAttr.text();
-    }
-    jid = /jid\=\"(.*)\"/.exec(jidAttr);
-    return jid[1];
+  if (typeof(jidAttr.text) == 'function') {
+    return jidAttr.text();
+  }
+  jid = /jid\=\"(.*)\"/.exec(jidAttr);
+  return jid[1];
 }
 
 function askEachServer(servers, session, callback) {
-    if (servers.length === 0) {
-        callback(null, 404);
-    } else {
-        var server = servers.shift();
-        askIfChannelServer(server, session, function(isChannelServer) {
-            if (isChannelServer)
-                callback(server, null);
-            else
-                askEachServer(servers, session, callback);
-        });
-    }
+  if (servers.length === 0) {
+    callback(null, 404);
+  } else {
+    var server = servers.shift();
+    askIfChannelServer(server, session, function(isChannelServer) {
+      if (isChannelServer) {
+        callback(server, null);
+      } else {
+        askEachServer(servers, session, callback);
+      }
+    });
+  }
 }
 
 function discoInfoIq(server, callback) {
-    return new xmpp.Iq({to: server, type: 'get'}).
-        c('query', {xmlns: DISCO_INFO_NS}).
-        root();
+  return new xmpp.Iq({to: server, type: 'get'}).
+    c('query', {xmlns: DISCO_INFO_NS}).
+    root();
 }
 
 function discoItemsIq(server, callback) {
-    return new xmpp.Iq({to: server, type: 'get'}).
-        c('query', {xmlns: DISCO_ITEMS_NS}).
-        root();
+  return new xmpp.Iq({to: server, type: 'get'}).
+    c('query', {xmlns: DISCO_ITEMS_NS}).
+    root();
 }

@@ -30,20 +30,20 @@ var mockserver;
  * Starts the HTTP API server and calls 'callback' when it is ready.
  */
 exports.startHttpServer = function(callback) {
-    httpserver = spawn(process.execPath, ['server.js']);
+  httpserver = spawn(process.execPath, ['server.js']);
 
-    // Wait until server is ready (and begins printing to stdout)
-    httpserver.stdout.on('data', function() {
-        if (callback) {
-            callback();
-            callback = null;
-        }
-    });
+  // Wait until server is ready (and begins printing to stdout)
+  httpserver.stdout.on('data', function() {
+    if (callback) {
+      callback();
+      callback = null;
+    }
+  });
 
-    // Echo the server's error output
-    httpserver.stderr.on('data', function(data) {
-        console.error(data.toString());
-    });
+  // Echo the server's error output
+  httpserver.stderr.on('data', function(data) {
+    console.error(data.toString());
+  });
 };
 
 /**
@@ -52,14 +52,14 @@ exports.startHttpServer = function(callback) {
  * format.
  */
 exports.mockXmppServer = function(serverConfig, callback) {
-    var options = {env: process.env};
-    mockserver = fork('test/support/xmpp_mockserver.js', [], options);
-    mockserver.send(serverConfig);
+  var options = {env: process.env};
+  mockserver = fork('test/support/xmpp_mockserver.js', [], options);
+  mockserver.send(serverConfig);
 
-    // Wait until the mock server says it's ready
-    mockserver.on('message', function() {
-        callback();
-    });
+  // Wait until the mock server says it's ready
+  mockserver.on('message', function() {
+    callback();
+  });
 }
 
 /**
@@ -67,41 +67,41 @@ exports.mockXmppServer = function(serverConfig, callback) {
  * in from the server configuration.
  */
 exports.get = function(options, callback) {
-    options.host = 'localhost';
-    options.port = config.port;
-    return http.get(options, function(response) {
-        readBody(response, function(body) {
-            callback(response, body);
-        });
+  options.host = 'localhost';
+  options.port = config.port;
+  return http.get(options, function(response) {
+    readBody(response, function(body) {
+      callback(response, body);
     });
+  });
 };
 
 function readBody(response, callback) {
-    var chunks = [];
-    var size = 0;
+  var chunks = [];
+  var size = 0;
 
-    response.on('data', function(data) {
-        chunks.push(data);
-        size += data.length;
-    });
+  response.on('data', function(data) {
+    chunks.push(data);
+    size += data.length;
+  });
 
-    response.on('end', function() {
-        var body = new Buffer(size);
-        copyIntoBuffer(body, chunks);
-        callback(body);
-    });
+  response.on('end', function() {
+    var body = new Buffer(size);
+    copyIntoBuffer(body, chunks);
+    callback(body);
+  });
 
-    response.on('close', function() {
-        callback(null);
-    });
+  response.on('close', function() {
+    callback(null);
+  });
 }
 
 function copyIntoBuffer(buffer, chunks) {
-    var offset = 0;
-    chunks.forEach(function(chunk) {
-        chunk.copy(buffer, offset);
-        offset += chunk.length;
-    });
+  var offset = 0;
+  chunks.forEach(function(chunk) {
+    chunk.copy(buffer, offset);
+    offset += chunk.length;
+  });
 }
 
 /**
@@ -109,26 +109,26 @@ function copyIntoBuffer(buffer, chunks) {
  * in from the server configuration.
  */
 exports.post = function(options, callback) {
-    options.method = 'POST';
-    options.host = 'localhost';
-    options.port = config.port;
+  options.method = 'POST';
+  options.host = 'localhost';
+  options.port = config.port;
 
-    var req = http.request(options, function(response) {
-        readBody(response, function(body) {
-            callback(response, body);
-        });
+  var req = http.request(options, function(response) {
+    readBody(response, function(body) {
+      callback(response, body);
     });
-    req.write(options.body);
-    req.end();
-    return req;
+  });
+  req.write(options.body);
+  req.end();
+  return req;
 };
 
 /**
  * Stops all started serves.
  */
 exports.end = function() {
-    if (httpserver) httpserver.kill();
-    if (mockserver) mockserver.kill();
+  if (httpserver) { httpserver.kill(); }
+  if (mockserver) { mockserver.kill(); }
 };
 
 // Make sure the servers are killed on exit

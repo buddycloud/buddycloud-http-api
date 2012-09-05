@@ -27,102 +27,102 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.get('/:channel/metadata/:node',
-        session.provider,
-        api.channelServerDiscoverer,
-        getNodeMetadata);
-    app.post('/:channel/metadata/:node',
-        api.bodyReader,
-        session.provider,
-        api.channelServerDiscoverer,
-        setNodeMetadata);
+  app.get('/:channel/metadata/:node',
+          session.provider,
+          api.channelServerDiscoverer,
+          getNodeMetadata);
+  app.post('/:channel/metadata/:node',
+           api.bodyReader,
+           session.provider,
+           api.channelServerDiscoverer,
+           setNodeMetadata);
 };
 
 //// GET /<channel>/metadata/<node> ////////////////////////////////////////////
 
 function getNodeMetadata(req, res) {
-    var channel = req.params.channel;
-    var node = req.params.node;
+  var channel = req.params.channel;
+  var node = req.params.node;
 
-    requestNodeMetadata(req, res, channel, node, function(reply) {
-        var body = replyToJSON(reply);
-        res.contentType('json');
-        res.send(body);
-    });
+  requestNodeMetadata(req, res, channel, node, function(reply) {
+    var body = replyToJSON(reply);
+    res.contentType('json');
+    res.send(body);
+  });
 }
 
 function requestNodeMetadata(req, res, channel, node, callback) {
-    var nodeId = pubsub.channelNodeId(channel, node);
-    var iq = pubsub.metadataIq(nodeId);
-    iq.to = req.channelServer;
-    api.sendQuery(req, res, iq, callback);
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var iq = pubsub.metadataIq(nodeId);
+  iq.to = req.channelServer;
+  api.sendQuery(req, res, iq, callback);
 }
 
 function replyToJSON(reply) {
-    var replydoc = xml.parseXmlString(reply.toString());
+  var replydoc = xml.parseXmlString(reply.toString());
 
-    var title = getOption(replydoc, 'pubsub#title');
-    var description = getOption(replydoc, 'pubsub#description');
-    var accessModel = getOption(replydoc, 'pubsub#access_model');
-    var creationDate = getOption(replydoc, 'pubsub#creation_date');
-    var type = getOption(replydoc, 'buddycloud#channel_type');
-    var affiliation = getOption(replydoc, 'buddycloud#default_affiliation');
+  var title = getOption(replydoc, 'pubsub#title');
+  var description = getOption(replydoc, 'pubsub#description');
+  var accessModel = getOption(replydoc, 'pubsub#access_model');
+  var creationDate = getOption(replydoc, 'pubsub#creation_date');
+  var type = getOption(replydoc, 'buddycloud#channel_type');
+  var affiliation = getOption(replydoc, 'buddycloud#default_affiliation');
 
-    return {
-        title: title,
-        description: description,
-        access_model: accessModel,
-        creation_date: creationDate,
-        channel_type: type,
-        default_affiliation: affiliation
-    };
+  return {
+    title: title,
+    description: description,
+    access_model: accessModel,
+    creation_date: creationDate,
+    channel_type: type,
+    default_affiliation: affiliation
+  };
 }
 
 function getOption(reply, name) {
-    var query = '//x:field[@var="' + name + '"]/x:value';
-    var option = reply.get(query, {x: 'jabber:x:data'});
-    return option ? option.text() : undefined;
+  var query = '//x:field[@var="' + name + '"]/x:value';
+  var option = reply.get(query, {x: 'jabber:x:data'});
+  return option ? option.text() : undefined;
 }
 
 //// POST /<channel>/metadata/<node> ///////////////////////////////////////////
 
 function setNodeMetadata(req, res) {
-    var channel = req.params.channel;
-    var node = req.params.node;
-    var fields = JSON.parse(req.body);
+  var channel = req.params.channel;
+  var node = req.params.node;
+  var fields = JSON.parse(req.body);
 
-    configureNode(req, res, channel, node, fields, function() {
-        res.send(200);
-    });
+  configureNode(req, res, channel, node, fields, function() {
+    res.send(200);
+  });
 }
 
 function configureNode(req, res, channel, node, fields, callback) {
-    var nodeId = pubsub.channelNodeId(channel, node);
-    var iq = makeConfigureIq(nodeId, fields);
-    iq.to = req.channelServer;
-    api.sendQuery(req, res, iq, callback);
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var iq = makeConfigureIq(nodeId, fields);
+  iq.to = req.channelServer;
+  api.sendQuery(req, res, iq, callback);
 }
 
 function makeConfigureIq(node, fields) {
-    var pfields = {};
+  var pfields = {};
 
-    for (var field in fields) {
-        var pfield = pubsubFieldName(field);
-        if (!pfield) {
-            continue;
-        } else {
-            pfields[pfield] = fields[field];
-        }
+  for (var field in fields) {
+    var pfield = pubsubFieldName(field);
+    if (!pfield) {
+      continue;
+    } else {
+      pfields[pfield] = fields[field];
     }
+  }
 
-    return pubsub.configureIq(node, pfields);
+  return pubsub.configureIq(node, pfields);
 }
 
 function pubsubFieldName(field) {
-    switch (field) {
-        case 'title':        return 'pubsub#title';
-        case 'description':  return 'pubsub#description';
-        case 'access_model': return 'pubsub#access_model';
-        default:             return null;
-    }
+  switch (field) {
+  case 'title':        return 'pubsub#title';
+  case 'description':  return 'pubsub#description';
+  case 'access_model': return 'pubsub#access_model';
+  default:             return null;
+  }
 }

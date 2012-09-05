@@ -3,27 +3,27 @@
 
 // Default settings (apply to all profiles)
 exports._ = {
-    port: 3000,
+  port: 3000,
 };
 
 // Production settings (used by default)
 exports.production = {
-    xmppDomain: 'buddycloud.org',
-    xmppAnonymousDomain: 'anon.buddycloud.org',
-    homeMediaRoot: 'https://api.buddycloud.org/mediaserver'
+  xmppDomain: 'buddycloud.org',
+  xmppAnonymousDomain: 'anon.buddycloud.org',
+  homeMediaRoot: 'https://api.buddycloud.org/mediaserver'
 };
 
 // Development settings (useful for local debugging)
 exports.development = {
-    xmppDomain: 'localhost',
-    xmppHost: 'localhost',
-    xmppPort: '5222',
+  xmppDomain: 'localhost',
+  xmppHost: 'localhost',
+  xmppPort: '5222',
 };
 
 // Testing settings (used by the unit tests)
 exports.testing = {
-    xmppDomain: 'localhost',
-    xmppHost: 'localhost',
-    xmppPort: '5888',
-    sessionExpirationTime: 1
+  xmppDomain: 'localhost',
+  xmppHost: 'localhost',
+  xmppPort: '5888',
+  sessionExpirationTime: 1
 };

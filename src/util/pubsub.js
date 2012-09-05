@@ -29,7 +29,7 @@ exports.ownerNS = 'http://jabber.org/protocol/pubsub#owner';
  * Returns the Pub-Sub node ID for the specified buddycloud channel node.
  */
 exports.channelNodeId = function(channel, name) {
-    return '/user/' + channel + '/' + name;
+  return '/user/' + channel + '/' + name;
 };
 
 /**
@@ -37,21 +37,21 @@ exports.channelNodeId = function(channel, name) {
  * (See secion 16.1 of XEP-0060.)
  */
 exports.queryURI = function(host, action, node) {
-    return 'xmpp:' + host + '?pubsub;action=' + action + ';node=' + node;
+  return 'xmpp:' + host + '?pubsub;action=' + action + ';node=' + node;
 };
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
-    return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns || exports.ns});
+  return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns || exports.ns});
 }
 
 /**
  * Creates an Pub-Sub node <query/> IQ to retrieve a node's metadata.
  */
 exports.metadataIq = function(nodeId) {
-    return new xmpp.Iq({type: 'get'}).
-        c('query', {node: nodeId, xmlns: 'http://jabber.org/protocol/disco#info'}).
-        root();
+  return new xmpp.Iq({type: 'get'}).
+    c('query', {node: nodeId, xmlns: 'http://jabber.org/protocol/disco#info'}).
+    root();
 };
 
 /**
@@ -60,41 +60,43 @@ exports.metadataIq = function(nodeId) {
  * ones).
  */
 exports.itemsIq = function(nodeId, max, after) {
-    var itemsNode = iq({type: 'get'}).c('items', {node: nodeId});
-    if (max || after) {
-        itemsNode.attr('max_items', max); // for XEP-0060 compatibility
-        addRSM(itemsNode.up(), max, after);
-    }
-    return itemsNode.root();
+  var itemsNode = iq({type: 'get'}).c('items', {node: nodeId});
+  if (max || after) {
+    itemsNode.attr('max_items', max); // for XEP-0060 compatibility
+    addRSM(itemsNode.up(), max, after);
+  }
+  return itemsNode.root();
 };
 
 function addRSM(parent, max, after) {
-    var setElem = parent.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
-    if (max)
-        setElem.c('max').t(max);
-    if (after)
-        setElem.c('after').t(after);
+  var setElem = parent.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
+  if (max) {
+    setElem.c('max').t(max);
+  }
+  if (after) {
+    setElem.c('after').t(after);
+  }
 }
 
 /**
  * Creates a Pub-Sub <items/> IQ that retrieves a single item from a node.
  */
 exports.singleItemIq = function(nodeId, itemId) {
-    return exports.itemsIq(nodeId).
-        getChild('pubsub').
-        getChild('items').
-        c('item', {id: itemId}).
-        root();
+  return exports.itemsIq(nodeId).
+    getChild('pubsub').
+    getChild('items').
+    c('item', {id: itemId}).
+    root();
 };
 
 /**
  * Creates a Pub-Sub <publish/> IQ, which posts an item to a node.
  */
 exports.publishIq = function(nodeId, item) {
-    return iq({type: 'set'}).c('publish', {node: nodeId}).
-        c('item').
-        cnode(ltx.parse(item)).
-        root();
+  return iq({type: 'set'}).c('publish', {node: nodeId}).
+    c('item').
+    cnode(ltx.parse(item)).
+    root();
 };
 
 /**
@@ -102,9 +104,9 @@ exports.publishIq = function(nodeId, item) {
  * nodes that the requesting user subscribed to.
  */
 exports.userAffiliationsIq = function(user) {
-    return iq({type: 'get'}).
-        c('affiliations').
-        root();
+  return iq({type: 'get'}).
+    c('affiliations').
+    root();
 };
 
 /**
@@ -112,47 +114,47 @@ exports.userAffiliationsIq = function(user) {
  * users subscribed to a node and their affiliations (roles).
  */
 exports.nodeAffiliationsIq = function(nodeId, item) {
-    return iq({type: 'get'}, exports.ownerNS).
-        c('affiliations', {node: nodeId}).
-        root();
+  return iq({type: 'get'}, exports.ownerNS).
+    c('affiliations', {node: nodeId}).
+    root();
 };
 
 /**
  * Creates a Pub-Sub <subscribe/> IQ, which subscribes to a node.
  */
 exports.subscribeIq = function(nodeId, jid) {
-    return iq({type: 'set'}).
-        c('subscribe', {node: nodeId, jid: jid}).
-        root();
+  return iq({type: 'set'}).
+    c('subscribe', {node: nodeId, jid: jid}).
+    root();
 };
 
 /**
  * Creates a Pub-Sub <unsubscribe/> IQ, which unsubscribes from a node.
  */
 exports.unsubscribeIq = function(nodeId, jid) {
-    return iq({type: 'set'}).
-        c('unsubscribe', {node: nodeId, jid: jid}).
-        root();
+  return iq({type: 'set'}).
+    c('unsubscribe', {node: nodeId, jid: jid}).
+    root();
 };
 
 /**
  * Creates a Pub-Sub <configure/> IQ which sets a node's configuration.
  */
 exports.configureIq = function(nodeId, fields) {
-    var form = iq({type: 'set'}, exports.ownerNS).
-        c('configure', {node: nodeId}).
-        c('x', {xmlns: 'jabber:x:data', type: 'submit'});
+  var form = iq({type: 'set'}, exports.ownerNS).
+    c('configure', {node: nodeId}).
+    c('x', {xmlns: 'jabber:x:data', type: 'submit'});
 
-    addFormField(form, 'FORM_TYPE', 'hidden',
-        'http://jabber.org/protocol/pubsub#node_config');
+  addFormField(form, 'FORM_TYPE', 'hidden',
+               'http://jabber.org/protocol/pubsub#node_config');
 
-    for (var field in fields) {
-        addFormField(form, field, 'text-single', fields[field]);
-    }
+  for (var field in fields) {
+    addFormField(form, field, 'text-single', fields[field]);
+  }
 
-    return form.root();
+  return form.root();
 };
 
 function addFormField(form, name, type, value) {
-    form.c('field', {'var': name, 'type': type}).c('value').t(value);
+  form.c('field', {'var': name, 'type': type}).c('value').t(value);
 }

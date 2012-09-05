@@ -24,34 +24,34 @@ var config = require('./config');
  * the read credentials into req.user and req.password.
  */
 exports.parser = function(req, res, next) {
-    var auth = req.header('Authorization');
-    if (!auth) {
-        next();
-        return;
-    }
-
-    var match = auth.match(/Basic\s+([A-Za-z0-9\+\/]+=*)\s*/);
-    if (!match) {
-        next(new Error('Bad Request'));
-        return;
-    }
-
-    var buf = new Buffer(match[1], 'base64');
-    var credentials = buf.toString('utf8');
-
-    var separatorIdx = credentials.indexOf(':');
-    if (separatorIdx < 0) {
-        next(new Error('Bad Request'));
-        return;
-    }
-
-    req.user = credentials.slice(0, separatorIdx);
-    req.password = credentials.slice(separatorIdx + 1);
-
-    // If the username has no domain part, assume the home domain
-    if (req.user.indexOf('@') < 0) {
-        req.user += '@' + config.xmppDomain;
-    }
-
+  var auth = req.header('Authorization');
+  if (!auth) {
     next();
+    return;
+  }
+
+  var match = auth.match(/Basic\s+([A-Za-z0-9\+\/]+=*)\s*/);
+  if (!match) {
+    next(new Error('Bad Request'));
+    return;
+  }
+
+  var buf = new Buffer(match[1], 'base64');
+  var credentials = buf.toString('utf8');
+
+  var separatorIdx = credentials.indexOf(':');
+  if (separatorIdx < 0) {
+    next(new Error('Bad Request'));
+    return;
+  }
+
+  req.user = credentials.slice(0, separatorIdx);
+  req.password = credentials.slice(separatorIdx + 1);
+
+  // If the username has no domain part, assume the home domain
+  if (req.user.indexOf('@') < 0) {
+    req.user += '@' + config.xmppDomain;
+  }
+
+  next();
 };

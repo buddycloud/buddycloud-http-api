@@ -28,57 +28,57 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    app.all('/:channel/media/:id',
-        session.provider,
-        api.mediaServerDiscoverer,
-        getMedia);
+  app.all('/:channel/media/:id',
+          session.provider,
+          api.mediaServerDiscoverer,
+          getMedia);
 };
 
 function getMedia(req, res) {
-    var transactionId = crypto.randomBytes(16).toString('hex');
-    req.session.onStanza(confirmRequest(req, transactionId));
+  var transactionId = crypto.randomBytes(16).toString('hex');
+  req.session.onStanza(confirmRequest(req, transactionId));
 
-    var auth = generateAuth(req, transactionId);
-    res.header('Location', generateMediaUrl(req, auth, transactionId));
-    res.send(302);
+  var auth = generateAuth(req, transactionId);
+  res.header('Location', generateMediaUrl(req, auth, transactionId));
+  res.send(302);
 }
 
 function generateAuth(req, transactionId) {
-    var buf = new Buffer(req.session.jid + ':' + transactionId);
-    return base64url(buf);
+  var buf = new Buffer(req.session.jid + ':' + transactionId);
+  return base64url(buf);
 }
 
 function base64url(buf) {
-    return buf.toString('base64').replace('+', '-').replace('/', '_');
+  return buf.toString('base64').replace('+', '-').replace('/', '_');
 }
 
 function generateMediaUrl(req, auth, transactionId) {
-    var mediaUrl = url.parse(req.mediaRoot);
+  var mediaUrl = url.parse(req.mediaRoot);
 
-    var path = [
-        'media',
-        req.params.channel,
-        req.params.id
-    ].join('/');
-    mediaUrl.pathname += '/' + path;
+  var path = [
+    'media',
+    req.params.channel,
+    req.params.id
+  ].join('/');
+  mediaUrl.pathname += '/' + path;
 
-    var query = { auth: auth };
-    if (req.query.maxwidth) {
-        query.maxwidth = req.query.maxwidth;
-    }
-    if (req.query.maxheight) {
-        query.maxheight = req.query.maxheight;
-    }
-    mediaUrl.query = query;
+  var query = { auth: auth };
+  if (req.query.maxwidth) {
+    query.maxwidth = req.query.maxwidth;
+  }
+  if (req.query.maxheight) {
+    query.maxheight = req.query.maxheight;
+  }
+  mediaUrl.query = query;
 
-    return url.format(mediaUrl);
+  return url.format(mediaUrl);
 }
 
 function confirmRequest(req, transactionId) {
-    return function(stanza) {
-        var confirmEl = stanza.getChild('confirm');
-        if (confirmEl && confirmEl.attrs.id == transactionId) {
-            req.session.replyToQuery(stanza);
-        }
-    };
+  return function(stanza) {
+    var confirmEl = stanza.getChild('confirm');
+    if (confirmEl && confirmEl.attrs.id == transactionId) {
+      req.session.replyToQuery(stanza);
+    }
+  };
 }

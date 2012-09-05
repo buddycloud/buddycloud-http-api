@@ -24,151 +24,151 @@ var tutil = require('./support/testutil');
 
 // See xmpp_mockserver.js
 var mockConfig = {
-    users: {
-        'alice': 'alice',
-        'bob': 'bob'
-    },
-    stanzas: {
-        // Get node item
-        '<iq from="alice@localhost/http" type="get">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-             <items node="/user/alice@localhost/posts">\
-               <item id="foo"/>\
-             </items>\
-           </pubsub>\
-         </iq>':
-        '<iq type="result">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-             <items node="/user/alice@localhost/posts">\
-               <item id="foo">\
-                 <entry xmlns="http://www.w3.org/2005/Atom">\
-                   <id>foo</id>\
-                   <author>\
-                     <name>alice@localhost</name>\
-                   </author>\
-                   <content>bar</content>\
-                 </entry>\
-               </item>\
-             </items>\
-           </pubsub>\
-         </iq>',
+  users: {
+    'alice': 'alice',
+    'bob': 'bob'
+  },
+  stanzas: {
+    // Get node item
+    '<iq from="alice@localhost/http" type="get">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <items node="/user/alice@localhost/posts">\
+           <item id="foo"/>\
+         </items>\
+       </pubsub>\
+     </iq>':
+    '<iq type="result">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <items node="/user/alice@localhost/posts">\
+           <item id="foo">\
+             <entry xmlns="http://www.w3.org/2005/Atom">\
+               <id>foo</id>\
+               <author>\
+                 <name>alice@localhost</name>\
+               </author>\
+               <content>bar</content>\
+             </entry>\
+           </item>\
+         </items>\
+       </pubsub>\
+     </iq>',
 
-        // Get node item without permission
-        '<iq from="bob@localhost/http" type="get">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-             <items node="/user/alice@localhost/posts">\
-               <item id="foo"/>\
-             </items>\
-           </pubsub>\
-         </iq>':
-        '<iq type="error">\
-           <error type="cancel">\
-             <not-allowed xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
-             <closed-node xmlns="http://jabber.org/protocol/pubsub#errors"/>\
-           </error>\
-         </iq>',
+    // Get node item without permission
+    '<iq from="bob@localhost/http" type="get">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <items node="/user/alice@localhost/posts">\
+           <item id="foo"/>\
+         </items>\
+       </pubsub>\
+     </iq>':
+    '<iq type="error">\
+       <error type="cancel">\
+         <not-allowed xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
+         <closed-node xmlns="http://jabber.org/protocol/pubsub#errors"/>\
+       </error>\
+     </iq>',
 
-        // Get node item that doesn't exist
-        '<iq from="alice@localhost/http" type="get">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-             <items node="/user/alice@localhost/posts">\
-               <item id="bar"/>\
-             </items>\
-           </pubsub>\
-         </iq>':
-        '<iq type="result">\
-           <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-             <items node="/user/alice@localhost/posts"/>\
-           </pubsub>\
-         </iq>'
-    }
+    // Get node item that doesn't exist
+    '<iq from="alice@localhost/http" type="get">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <items node="/user/alice@localhost/posts">\
+           <item id="bar"/>\
+         </items>\
+       </pubsub>\
+     </iq>':
+    '<iq type="result">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <items node="/user/alice@localhost/posts"/>\
+       </pubsub>\
+     </iq>'
+  }
 };
 
 describe('Node Item', function() {
 
-    before(function(done) {
-        tutil.startHttpServer(function() {
-            tutil.mockXmppServer(mockConfig, done);
-        });
+  before(function(done) {
+    tutil.startHttpServer(function() {
+      tutil.mockXmppServer(mockConfig, done);
+    });
+  });
+
+  describe('GET', function() {
+
+    it('should return the item as Atom entry', function(done) {
+      var options = {
+        path: '/alice@localhost/content/posts/foo',
+        auth: 'alice@localhost/http:alice'
+      };
+      tutil.get(options, function(res, body) {
+        res.statusCode.should.equal(200);
+        var entry = xml.parseXmlString(body);
+
+        entry.root().name().should.equal('entry');
+        entry.root().namespace().href().should.equal(atom.ns);
+        atom.get(entry, 'atom:id').text().should.equal('foo');
+        atom.get(entry, 'atom:author/atom:name').text().should.equal('alice@localhost');
+        atom.get(entry, 'atom:content').text().should.equal('bar');
+        should.exist(atom.get(entry, 'atom:title'));
+
+        done();
+      }).on('error', done);
     });
 
-    describe('GET', function() {
+    it('should allow retrieval in JSON format', function(done) {
+      var options = {
+        path: '/alice@localhost/content/posts/foo',
+        auth: 'alice@localhost/http:alice',
+        headers: {'Accept': 'application/json'}
+      };
+      tutil.get(options, function(res, body) {
+        res.statusCode.should.equal(200);
 
-        it('should return the item as Atom entry', function(done) {
-            var options = {
-                path: '/alice@localhost/content/posts/foo',
-                auth: 'alice@localhost/http:alice'
-            };
-            tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(200);
-                var entry = xml.parseXmlString(body);
+        var entry = JSON.parse(body);
+        entry.id.should.equal('foo');
+        entry.content.should.equal('bar');
 
-                entry.root().name().should.equal('entry');
-                entry.root().namespace().href().should.equal(atom.ns);
-                atom.get(entry, 'atom:id').text().should.equal('foo');
-                atom.get(entry, 'atom:author/atom:name').text().should.equal('alice@localhost');
-                atom.get(entry, 'atom:content').text().should.equal('bar');
-                should.exist(atom.get(entry, 'atom:title'));
-
-                done();
-            }).on('error', done);
-        });
-
-        it('should allow retrieval in JSON format', function(done) {
-            var options = {
-                path: '/alice@localhost/content/posts/foo',
-                auth: 'alice@localhost/http:alice',
-                headers: {'Accept': 'application/json'}
-            };
-            tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(200);
-
-                var entry = JSON.parse(body);
-                entry.id.should.equal('foo');
-                entry.content.should.equal('bar');
-
-                done();
-            }).on('error', done);
-        });
-
-        it('should be 401 if credentials are wrong', function(done) {
-            var options = {
-                path: '/alice@localhost/content/posts/foo',
-                auth: 'alice@localhost:bob'
-            };
-            tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(401);
-                done();
-            }).on('error', done);
-        });
-
-        it('should be 403 if user doesn\'t have permissions', function(done) {
-            var options = {
-                path: '/alice@localhost/content/posts/foo',
-                auth: 'bob@localhost/http:bob'
-            };
-            tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(403);
-                done();
-            }).on('error', done);
-        });
-
-        it('should be 404 if item doesn\'t exist', function(done) {
-            var options = {
-                path: '/alice@localhost/content/posts/bar',
-                auth: 'alice@localhost/http:alice'
-            };
-            tutil.get(options, function(res, body) {
-                res.statusCode.should.equal(404);
-                done();
-            }).on('error', done);
-        });
-
+        done();
+      }).on('error', done);
     });
 
-    after(function() {
-        tutil.end();
+    it('should be 401 if credentials are wrong', function(done) {
+      var options = {
+        path: '/alice@localhost/content/posts/foo',
+        auth: 'alice@localhost:bob'
+      };
+      tutil.get(options, function(res, body) {
+        res.statusCode.should.equal(401);
+        done();
+      }).on('error', done);
     });
+
+    it('should be 403 if user doesn\'t have permissions', function(done) {
+      var options = {
+        path: '/alice@localhost/content/posts/foo',
+        auth: 'bob@localhost/http:bob'
+      };
+      tutil.get(options, function(res, body) {
+        res.statusCode.should.equal(403);
+        done();
+      }).on('error', done);
+    });
+
+    it('should be 404 if item doesn\'t exist', function(done) {
+      var options = {
+        path: '/alice@localhost/content/posts/bar',
+        auth: 'alice@localhost/http:alice'
+      };
+      tutil.get(options, function(res, body) {
+        res.statusCode.should.equal(404);
+        done();
+      }).on('error', done);
+    });
+
+  });
+
+  after(function() {
+    tutil.end();
+  });
 
 });
 

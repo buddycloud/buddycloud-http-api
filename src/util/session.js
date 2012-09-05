@@ -25,7 +25,7 @@ var config = require('./config');
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
 sessionCache.onexpired = function(_, session) {
-    session.end();
+  session.end();
 };
 
 /**
@@ -34,108 +34,112 @@ sessionCache.onexpired = function(_, session) {
  * It is assumed to run afer auth.parser().
  */
 exports.provider = function(req, res, next) {
-    var sessionId = req.header('X-Session-Id');
-    if (sessionId)
-        processSessionId(sessionId, req, res, next);
-    else if (req.user)
-        createSession(req, res, next);
-    else
-        useAnonymousSession(req, res, next);
+  var sessionId = req.header('X-Session-Id');
+  if (sessionId) {
+    processSessionId(sessionId, req, res, next);
+  } else if (req.user) {
+    createSession(req, res, next);
+  } else {
+    useAnonymousSession(req, res, next);
+  }
 };
 
 function processSessionId(sessionId, req, res, next) {
-    var session = sessionCache.get(sessionId);
-    if (session)
-        provideSession(session, req, res, next);
-    else if (req.user)
-        createSession(req, res, next);
-    else
-        api.sendUnauthorized(res);
+  var session = sessionCache.get(sessionId);
+  if (session) {
+    provideSession(session, req, res, next);
+  } else if (req.user) {
+    createSession(req, res, next);
+  } else {
+    api.sendUnauthorized(res);
+  }
 }
 
 function provideSession(session, req, res, next) {
-    req.session = session;
-    if (session.id) {
-        sessionCache.put(session.id, session);
-        res.header('X-Session-Id', session.id);
-    }
-    next();
+  req.session = session;
+  if (session.id) {
+    sessionCache.put(session.id, session);
+    res.header('X-Session-Id', session.id);
+  }
+  next();
 }
 
 function createSession(req, res, next) {
-    var options = xmppConnectionOptions(req);
-    var client = new xmpp.Client(options);
-    var session;
+  var options = xmppConnectionOptions(req);
+  var client = new xmpp.Client(options);
+  var session;
 
-    client.on('online', function() {
-        var sessionId = req.user ? sessionCache.generateKey() : null;
-        session = new Session(sessionId, client);
-        provideSession(session, req, res, next);
-    });
+  client.on('online', function() {
+    var sessionId = req.user ? sessionCache.generateKey() : null;
+    session = new Session(sessionId, client);
+    provideSession(session, req, res, next);
+  });
 
-    client.on('error', function(err) {
-        // FIXME: Checking the error type bassed on the error message
-        // is fragile, but this is the only information that node-xmpp
-        // gives us.
-        if (err == 'XMPP authentication failure')
-            api.sendUnauthorized(res);
-        else
-           next(err);
-    });
+  client.on('error', function(err) {
+    // FIXME: Checking the error type bassed on the error message
+    // is fragile, but this is the only information that node-xmpp
+    // gives us.
+    if (err == 'XMPP authentication failure') {
+      api.sendUnauthorized(res);
+    } else {
+      next(err);
+    }
+  });
 }
 
 function xmppConnectionOptions(req) {
-    if (req.user) {
-        return {
-            jid: req.user,
-            password: req.password,
-            host: config.xmppHost,
-            port: config.xmppPort
-        };
-    } else {
-        var domain = config.xmppAnonymousDomain || config.xmppDomain;
-        var host = config.xmppAnonymousHost || config.xmppHost;
-        var port = config.xmppAnonymousPort ||config.xmppPort;
-        return {
-            jid: '@' + domain,
-            host: host,
-            port: port
-        };
-    }
+  if (req.user) {
+    return {
+      jid: req.user,
+      password: req.password,
+      host: config.xmppHost,
+      port: config.xmppPort
+    };
+  } else {
+    var domain = config.xmppAnonymousDomain || config.xmppDomain;
+    var host = config.xmppAnonymousHost || config.xmppHost;
+    var port = config.xmppAnonymousPort ||config.xmppPort;
+    return {
+      jid: '@' + domain,
+      host: host,
+      port: port
+    };
+  }
 }
 
 function useAnonymousSession(req, res, next) {
-    if (anonymousSession)
-        provideSession(anonymousSession, req, res, next);
-    else
-        createSession(req, res, function(err) {
-            if (!err)
-                anonymousSession = req.session;
-            next(err);
-        });
+  if (anonymousSession) {
+    provideSession(anonymousSession, req, res, next);
+  } else {
+    createSession(req, res, function(err) {
+      if (!err)
+        anonymousSession = req.session;
+      next(err);
+    });
+  }
 }
 
 
 function Session(id, connection) {
-    this.id = id;
-    this.jid = connection.jid.toString();
+  this.id = id;
+  this.jid = connection.jid.toString();
 
-    this._connection = connection;
-    this._replyHandlers = new cache.Cache();
-    this._setupStanzaListener();
+  this._connection = connection;
+  this._replyHandlers = new cache.Cache();
+  this._setupStanzaListener();
 }
 
 Session.prototype._setupStanzaListener = function() {
-    var self = this;
-    this._connection.on('stanza', function(stanza) {
-        if (stanza.attrs.id) {
-            var handler = self._replyHandlers.get(stanza.attrs.id);
-            if (handler) {
-                self._replyHandlers.remove(stanza.attrs.id);
-                handler(stanza);
-            }
-        }
-    });
+  var self = this;
+  this._connection.on('stanza', function(stanza) {
+    if (stanza.attrs.id) {
+      var handler = self._replyHandlers.get(stanza.attrs.id);
+      if (handler) {
+        self._replyHandlers.remove(stanza.attrs.id);
+        handler(stanza);
+      }
+    }
+  });
 };
 
 /**
@@ -144,12 +148,12 @@ Session.prototype._setupStanzaListener = function() {
  * callback is called with the stanza as argument.
  */
 Session.prototype.onStanza = function(handler) {
-    var callback = function(stanza) {
-        if (handler(stanza)) {
-            this._connection.removeListener(callback);
-        }
-    };
-    this._connection.on('stanza', callback);
+  var callback = function(stanza) {
+    if (handler(stanza)) {
+      this._connection.removeListener(callback);
+    }
+  };
+  this._connection.on('stanza', callback);
 };
 
 /**
@@ -157,32 +161,32 @@ Session.prototype.onStanza = function(handler) {
  * reply is received, 'onreply' is called with the reply stanza as argument.
  */
 Session.prototype.sendQuery = function(iq, onreply) {
-    var queryId = this._replyHandlers.generateKey();
-    this._replyHandlers.put(queryId, onreply);
+  var queryId = this._replyHandlers.generateKey();
+  this._replyHandlers.put(queryId, onreply);
 
-    iq = iq.root();
-    iq.attr('from', this._connection.jid.toString());
-    iq.attr('id', queryId);
-    this._connection.send(iq);
+  iq = iq.root();
+  iq.attr('from', this._connection.jid.toString());
+  iq.attr('id', queryId);
+  this._connection.send(iq);
 };
 
 /**
  * Sends a reply for a received <iq/>.
  */
 Session.prototype.replyToQuery = function(iq) {
-    var reply = new xmpp.Iq({
-        type: 'result',
-        from: iq.attrs.to,
-        to: iq.attrs.from,
-        id: iq.attrs.id
-    });
-    this._connection.send(reply);
+  var reply = new xmpp.Iq({
+    type: 'result',
+    from: iq.attrs.to,
+    to: iq.attrs.from,
+    id: iq.attrs.id
+  });
+  this._connection.send(reply);
 };
 
 /**
  * Closes the XMPP connection associated with the session.
  */
 Session.prototype.end = function() {
-    this._connection.end();
+  this._connection.end();
 };
 

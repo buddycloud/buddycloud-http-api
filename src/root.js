@@ -23,10 +23,10 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-    // Reply to requests for the API root with a "No Content" response.
-    // This is useful for e.g. verifying user credentials or establishing
-    // sessions before making concrete requests.
-    app.get('/', session.provider, function(req, res) {
-        res.send(204);
-    });
+  // Reply to requests for the API root with a "No Content" response.
+  // This is useful for e.g. verifying user credentials or establishing
+  // sessions before making concrete requests.
+  app.get('/', session.provider, function(req, res) {
+    res.send(204);
+  });
 };
