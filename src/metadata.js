@@ -29,12 +29,10 @@ var session = require('./util/session');
 exports.setup = function(app) {
   app.get('/:channel/metadata/:node',
           session.provider,
-          api.channelServerDiscoverer,
           getNodeMetadata);
   app.post('/:channel/metadata/:node',
            api.bodyReader,
            session.provider,
-           api.channelServerDiscoverer,
            setNodeMetadata);
 };
 
@@ -54,7 +52,6 @@ function getNodeMetadata(req, res) {
 function requestNodeMetadata(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.metadataIq(nodeId);
-  iq.to = req.channelServer;
   api.sendQuery(req, res, iq, callback);
 }
 
@@ -99,7 +96,6 @@ function setNodeMetadata(req, res) {
 function configureNode(req, res, channel, node, fields, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = makeConfigureIq(nodeId, fields);
-  iq.to = req.channelServer;
   api.sendQuery(req, res, iq, callback);
 }
 

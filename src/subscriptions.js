@@ -21,7 +21,6 @@
 var xml = require('libxmljs');
 var api = require('./util/api');
 var config = require('./util/config');
-var disco = require('./util/disco');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
 
@@ -34,7 +33,6 @@ exports.setup = function(app) {
           getUserSubscriptions);
   app.get('/:channel/subscribers/:node',
           session.provider,
-          api.channelServerDiscoverer,
           getNodeSubscriptions);
   app.post('/:channel/subscribers/:node',
            api.bodyReader,
@@ -61,18 +59,8 @@ function getUserSubscriptions(req, res) {
 }
 
 function requestUserAffiliations(req, res, channel, node, callback) {
-  var home = config.xmppDomain;
-
-  disco.discoverChannelServer(home, req.session, function(server, err) {
-    if (err) {
-      res.send(500);
-      return;
-    }
-
-    var iq = pubsub.userAffiliationsIq();
-    iq.to = server;
-    api.sendQuery(req, res, iq, callback);
-  });
+  var iq = pubsub.userAffiliationsIq();
+  api.sendQuery(req, res, iq, callback);
 }
 
 function replyToJSON(reply, target) {
@@ -124,7 +112,6 @@ function getNodeSubscriptions(req, res) {
 function requestNodeAffiliations(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.nodeAffiliationsIq(nodeId);
-  iq.to = req.channelServer;
   api.sendQuery(req, res, iq, callback);
 }
 
@@ -183,7 +170,6 @@ function doSubscribeAction(iqFn, req, res, channel, node, callback) {
     var bareJid = req.user.split('/', 2)[0];
 
     var iq = iqFn(nodeId, bareJid);
-    iq.to = server;
     api.sendQuery(req, res, iq, callback);
   });
 }

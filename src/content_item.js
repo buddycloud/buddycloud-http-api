@@ -30,7 +30,6 @@ var session = require('./util/session');
 exports.setup = function(app) {
   app.get('/:channel/content/:node/:item',
           session.provider,
-          api.channelServerDiscoverer,
           getNodeItem);
 };
 
@@ -55,7 +54,6 @@ function getNodeItem(req, res) {
 function requestNodeItem(req, res, channel, node, item, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.singleItemIq(nodeId, item);
-  iq.to = req.channelServer;
   api.sendQuery(req, res, iq, callback);
 }
 

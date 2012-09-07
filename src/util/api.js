@@ -23,8 +23,6 @@ var atom = require('./atom');
 var auth = require('./auth');
 var cache = require('./cache');
 var config = require('./config');
-var disco = require('./disco');
-var pubsub = require('./disco');
 
 /**
  * Sends a "401 Unauthorized" response with the correct "WWW-Authenticate"
@@ -118,29 +116,6 @@ function copyIntoBuffer(buffer, chunks) {
     offset += chunk.length;
   });
 }
-
-/**
- * Middleware that uses discoverChannelServer() from "util/buddycloud"
- * to look up the requested channel's home server name. It is assumed
- * that the request handler's URL pattern has a ":channel" placeholder.
- * On success, the middleware sets req.channelServer to the discovered
- * server's hostname.
- *
- * This is assumed to run after session.provider().
- */
-exports.channelServerDiscoverer = function(req, res, next) {
-  var channel = req.params.channel;
-  var domain = channel.slice(channel.lastIndexOf('@') + 1);
-
-  disco.discoverChannelServer(domain, req.session, function(server, err) {
-    if (err) {
-      res.send(err);
-    } else {
-      req.channelServer = server;
-      next();
-    }
-  });
-};
 
 /**
  * Middleware that looks up the buddycloud media server responsible

@@ -123,9 +123,8 @@ function useAnonymousSession(req, res, next) {
 function Session(id, connection) {
   this.id = id;
   this.jid = connection.jid.toString();
-
   this._connection = connection;
-  this._replyHandlers = new cache.Cache();
+  this._replyHandlers = new cache.Cache(config.requestExpirationTime);
   this._setupStanzaListener();
 }
 

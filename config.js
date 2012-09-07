@@ -10,13 +10,15 @@ exports._ = {
 exports.production = {
   xmppDomain: 'buddycloud.org',
   xmppAnonymousDomain: 'anon.buddycloud.org',
-  homeMediaRoot: 'https://api.buddycloud.org/mediaserver'
+  channelDomain: 'channels.buddycloud.org',
+  homeMediaRoot: 'https://api.buddycloud.org/media'
 };
 
 // Development settings (useful for local debugging)
 exports.development = {
   xmppDomain: 'localhost',
   xmppHost: 'localhost',
+  channelDomain: 'localhost',
   xmppPort: '5222',
 };
 

@@ -32,12 +32,10 @@ var session = require('./util/session');
 exports.setup = function(app) {
   app.get('/:channel/content/:node',
           session.provider,
-          api.channelServerDiscoverer,
           getNodeFeed);
   app.post('/:channel/content/:node',
            api.bodyReader,
            session.provider,
-           api.channelServerDiscoverer,
            postToNodeFeed);
 };
 
@@ -56,7 +54,6 @@ function getNodeFeed(req, res) {
 function requestNodeItems(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.itemsIq(nodeId, req.query.max, req.query.after);
-  iq.to = req.channelServer;
   api.sendQuery(req, res, iq, callback);
 }
 
@@ -129,7 +126,6 @@ function parseRequestBody(req, res) {
 function publishNodeItem(req, res, channel, node, entry, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.publishIq(nodeId, entry.toString());
-  iq.to = req.channelServer;
   api.sendQuery(req, res, iq, callback);
 }
 
