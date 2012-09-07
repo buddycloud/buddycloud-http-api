@@ -56,7 +56,6 @@ function generateMediaUrl(req, auth, transactionId) {
   var mediaUrl = url.parse(req.mediaRoot);
 
   var path = [
-    'media',
     req.params.channel,
     req.params.id
   ].join('/');
