@@ -165,6 +165,7 @@ Session.prototype.sendQuery = function(iq, onreply) {
 
   iq = iq.root();
   iq.attr('from', this._connection.jid.toString());
+  iq.attr('to', config.channelDomain);
   iq.attr('id', queryId);
   this._connection.send(iq);
 };
