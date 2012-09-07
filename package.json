@@ -1,29 +1,30 @@
 {
-    "name": "buddycloud-http-api",
-    "version": "0.0.1",
-    "author": "Denis Washington <denisw@online.de>",
-    "description": "Access buddycloud via HTTP",
-    "license": "Apache 2.0",
-    "scripts": {
-        "start": "node ./server.js",
-        "test": "NODE_ENV=testing ./node_modules/.bin/mocha -r should -R spec"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/buddycloud/buddycloud-http-api.git"
-    },
-    "dependencies": {
-        "express": "2.x",
-        "libxmljs": "0.5.x",
-        "ltx": "0.2.x",
-        "node-stringprep": "0.1.x",
-        "node-xmpp": "0.3.x"
-    },
-    "devDependencies": {
-        "mocha": "1.0.3",
-        "should": "0.6.3"
-    },
-    "engine": {
-        "node": ">=0.6"
-    }
+  "name": "buddycloud-http-api",
+  "version": "0.0.1",
+  "author": "Denis Washington <denisw@online.de>",
+  "description": "Access buddycloud via HTTP",
+  "license": "Apache 2.0",
+  "scripts": {
+    "start": "node ./server.js",
+    "test": "NODE_ENV=testing ./node_modules/.bin/mocha -r should -R spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/buddycloud/buddycloud-http-api.git"
+  },
+  "dependencies": {
+    "connect": "2.4.x",
+    "express": "2.x",
+    "libxmljs": "0.5.x",
+    "ltx": "0.2.x",
+    "node-stringprep": "0.1.x",
+    "node-xmpp": "0.3.x"
+  },
+  "devDependencies": {
+    "mocha": "1.0.3",
+    "should": "0.6.3"
+  },
+  "engine": {
+    "node": ">=0.6"
+  }
 }
