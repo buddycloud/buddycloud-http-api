@@ -42,14 +42,14 @@ The API is described in detail at https://buddycloud.org/wiki/Buddycloud_HTTP_AP
 Configuration
 -------------
 
-You can configure the HTTP API server by editing `config.js` in the server's
-root direcroty. This file is made up of multiple "profile" definitions of
-the form
+You can configure the HTTP API server by copying `config.js.example` to
+`config.js` in the server's root directory and editing it as needed. The
+file is made up of multiple "profile" definitions of the form
 
     exports.profileName = {
-        option1: value1,
-        option2: value2,
-        …
+      option1: value1,
+      option2: value2,
+      …
     };
 
 Each profile specifies a different configuration. For exmaple, the `testing`
@@ -68,12 +68,12 @@ As an example, the following snippet tells the server to listen on port
 3000 by default, but to use 3001 for the `testing` profile:
 
     exports._ = {
-        port: 3000
+      port: 3000
     };
 
     exports.testing = {
-        post: 3001,
-        …
+      post: 3001,
+      …
     }
 
 The following configuration options are supported:
@@ -93,6 +93,9 @@ The following configuration options are supported:
   *xmppAnonymousDomain*.
 - **xmppAnonymousPort** (Optional): Like *xmppPort*, but for
   *xmppAnonymousDomain*.
+- **xmppDomain** (Required): The channel server's component domain.
+- **requestExpirationTime** (Optional): Number of seconds to wait for
+  the response to an XMPP request. The default is 60.
 - **sessionExpirationTime** (Optional): Number of seconds before a proxied
   XMPP session expires. By default, this is 600 (10 minutes).
 - **https** (Optional): If true, the server communicates exclusively via
