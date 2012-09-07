@@ -125,8 +125,19 @@ function Session(id, connection) {
   this.jid = connection.jid.toString();
   this._connection = connection;
   this._replyHandlers = new cache.Cache(config.requestExpirationTime);
+  this._setupExpirationHandler();
   this._setupStanzaListener();
 }
+
+Session.prototype._setupExpirationHandler = function() {
+  this._replyHandlers.onexpired = function(_, handler) {
+    var error = new xmpp.Iq({'type': 'error'}).
+      c('error', {'type': 'cancel'}).
+      c('service-unavailable').
+      root();
+    handler(error);
+  };
+};
 
 Session.prototype._setupStanzaListener = function() {
   var self = this;
