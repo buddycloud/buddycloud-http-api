@@ -25,7 +25,7 @@ var xmpp = require('node-xmpp');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.post('/:account',
+  app.post('/account',
            connect.json(),
            registerAccount);
 };

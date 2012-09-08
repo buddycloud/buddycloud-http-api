@@ -18,6 +18,7 @@
 // Handles requests related to subscription lists
 // (/subscribed, /<channel>/subscribers/<node>).
 
+var connect = require('connect');
 var xml = require('libxmljs');
 var api = require('./util/api');
 var config = require('./util/config');
@@ -31,13 +32,13 @@ exports.setup = function(app) {
   app.get('/subscribed',
           session.provider,
           getUserSubscriptions);
+  app.post('/subscribed',
+           connect.json(),
+           session.provider,
+           changeUserSubscriptions);
   app.get('/:channel/subscribers/:node',
           session.provider,
           getNodeSubscriptions);
-  app.post('/:channel/subscribers/:node',
-           api.bodyReader,
-           session.provider,
-           changeNodeSubscription);
 };
 
 //// GET /subscribed ///////////////////////////////////////////////////////////
@@ -97,6 +98,51 @@ function replyToJSON(reply, target) {
   return subscriptions;
 }
 
+//// POST /subscribed //////////////////////////////////////////////////////////
+
+function changeUserSubscriptions(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  var command = extractSubscriptionCommand(req.body);
+  if (!command) {
+    res.send(400);
+  }
+  command.request(req, res, command.channel, command.node, function() {
+    res.send(200);
+  });
+}
+
+function extractSubscriptionCommand(body) {
+  try {
+    var key = Object.getOwnPropertyNames(body)[0];
+    var channelAndNode = key.split('/', 2);
+    var affiliation = body[key];
+    return {
+      channel: channelAndNode[0],
+      node: channelAndNode[1],
+      request: (affiliation == 'none') ? unsubscribe : subscribe
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function subscribe(req, res, channel, node, callback) {
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var bareJid = req.user.split('/', 2)[0];
+  var iq = pubsub.subscribeIq(nodeId, bareJid);
+  api.sendQuery(req, res, iq, callback);
+}
+
+function unsubscribe(req, res, channel, node, callback) {
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var bareJid = req.user.split('/', 2)[0];
+  var iq = pubsub.unsubscribeIq(nodeId, bareJid);
+  api.sendQuery(req, res, iq, callback);
+}
+
 //// GET /<channel>/subscribers/<node> /////////////////////////////////////////
 
 function getNodeSubscriptions(req, res) {
@@ -113,63 +159,4 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.nodeAffiliationsIq(nodeId);
   api.sendQuery(req, res, iq, callback);
-}
-
-//// POST /<channel>/subscribers/<node> ////////////////////////////////////////
-
-function changeNodeSubscription(req, res) {
-  var channel = req.params.channel;
-  var node = req.params.node;
-  var body;
-  var action;
-
-  try {
-    body = JSON.parse(req.body);
-    action = chooseSubscriptionAction(body);
-  } catch (e) {
-    res.send(400);
-    return;
-  }
-
-  action(req, res, channel, node, function(reply) {
-    res.send(200);
-  });
-}
-
-function chooseSubscriptionAction(body) {
-  if (body instanceof Array && body.length == 1) {
-    if (body[0] === true) {
-      return subscribeToNode;
-    } else if (body[0] === false) {
-      return unsubscribeFromNode;
-    }
-  }
-  throw new Error();
-}
-
-function subscribeToNode(req, res, channel, node, callback) {
-  doSubscribeAction(pubsub.subscribeIq, req, res, channel, node, callback);
-}
-
-function unsubscribeFromNode(req, res, channel, node, callback) {
-  doSubscribeAction(pubsub.unsubscribeIq, req, res, channel, node, callback);
-}
-
-function doSubscribeAction(iqFn, req, res, channel, node, callback) {
-  // As we use the buddycloud inbox feature, all subscription requests
-  // go to the home buddycloud server.
-  var home = config.xmppDomain;
-
-  disco.discoverChannelServer(home, req.session, function(server, err) {
-    if (err) {
-      res.send(500);
-      return;
-    }
-
-    var nodeId = pubsub.channelNodeId(channel, node);
-    var bareJid = req.user.split('/', 2)[0];
-
-    var iq = iqFn(nodeId, bareJid);
-    api.sendQuery(req, res, iq, callback);
-  });
 }

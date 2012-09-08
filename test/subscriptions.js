@@ -159,6 +159,65 @@ describe('User Subscription List', function() {
 
   });
 
+  describe('POST', function() {
+
+    it('should allow subscription', function(done) {
+      var options = {
+        path: '/subscribed',
+        auth: 'eve@localhost/http:eve',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          'alice@localhost/posts': 'publisher'
+        })
+      };
+      tutil.post(options, function(res) {
+        res.statusCode.should.equal(200);
+
+        var options2 = {
+          path: '/alice@localhost/subscribers/posts',
+          auth: 'eve@localhost/http:eve'
+        };
+        tutil.get(options2, function(res, body) {
+          res.statusCode.should.equal(200);
+          JSON.parse(body).should.eql({
+            'alice@localhost': 'owner',
+            'bob@localhost': 'subscriber',
+            'eve@localhost': 'subscriber'
+          });
+          done();
+        }).on('error', done);
+      }).on('error', done);
+    });
+
+    it('should allow unsubscription', function(done) {
+      var options = {
+        path: '/subscribed',
+        auth: 'eve@localhost/http:eve',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          'alice@localhost/posts': 'none'
+        })
+      };
+      tutil.post(options, function(res) {
+        res.statusCode.should.equal(200);
+
+        var options2 = {
+          path: '/alice@localhost/subscribers/posts',
+          auth: 'eve@localhost/http:eve'
+        };
+        tutil.get(options2, function(res, body) {
+          res.statusCode.should.equal(200);
+          JSON.parse(body).should.eql({
+            'alice@localhost': 'owner',
+            'bob@localhost': 'subscriber',
+          });
+          done();
+        }).on('error', done);
+      }).on('error', done);
+    });
+
+  });
+
   after(function() {
     tutil.end();
   });
@@ -188,59 +247,6 @@ describe('Node Subscription List', function() {
           'bob@localhost': 'subscriber'
         });
         done();
-      }).on('error', done);
-    });
-
-  });
-
-  describe('POST', function() {
-
-    it('should allow subscription', function(done) {
-      var options = {
-        path: '/alice@localhost/subscribers/posts',
-        auth: 'eve@localhost/http:eve',
-        body: JSON.stringify([true])
-      };
-      tutil.post(options, function(res) {
-        res.statusCode.should.equal(200);
-
-        var options2 = {
-          path: '/alice@localhost/subscribers/posts',
-          auth: 'eve@localhost/http:eve'
-        };
-        tutil.get(options2, function(res, body) {
-          res.statusCode.should.equal(200);
-          JSON.parse(body).should.eql({
-            'alice@localhost': 'owner',
-            'bob@localhost': 'subscriber',
-            'eve@localhost': 'subscriber'
-          });
-          done();
-        }).on('error', done);
-      }).on('error', done);
-    });
-
-    it('should allow unsubscription', function(done) {
-      var options = {
-        path: '/alice@localhost/subscribers/posts',
-        auth: 'eve@localhost/http:eve',
-        body: JSON.stringify([false])
-      };
-      tutil.post(options, function(res) {
-        res.statusCode.should.equal(200);
-
-        var options2 = {
-          path: '/alice@localhost/subscribers/posts',
-          auth: 'eve@localhost/http:eve'
-        };
-        tutil.get(options2, function(res, body) {
-          res.statusCode.should.equal(200);
-          JSON.parse(body).should.eql({
-            'alice@localhost': 'owner',
-            'bob@localhost': 'subscriber',
-          });
-          done();
-        }).on('error', done);
       }).on('error', done);
     });
 
