@@ -24,7 +24,7 @@ var session = require('./src/util/session');
 
 function setupConfig(app) {
   app.configure(function() {
-    app.use(express.logger({immediate: true}));
+    app.use(express.logger());
     app.use(auth.parser);
     app.use(crossOriginAllower);
     app.use(app.router);
