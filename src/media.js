@@ -28,13 +28,17 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
+  app.all('/:channel/media',
+          session.provider,
+          api.mediaServerDiscoverer,
+          redirectToMediaServer);
   app.all('/:channel/media/:id',
           session.provider,
           api.mediaServerDiscoverer,
-          getMedia);
+          redirectToMediaServer);
 };
 
-function getMedia(req, res) {
+function redirectToMediaServer(req, res) {
   var transactionId = crypto.randomBytes(16).toString('hex');
   req.session.onStanza(confirmRequest(req, transactionId));
 
@@ -57,7 +61,7 @@ function generateMediaUrl(req, auth, transactionId) {
 
   var path = [
     req.params.channel,
-    req.params.id
+    req.params.id || ''
   ].join('/');
   mediaUrl.pathname += '/' + path;
 
