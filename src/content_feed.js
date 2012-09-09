@@ -20,6 +20,7 @@
 
 var xmpp = require('node-xmpp');
 var xml = require('libxmljs');
+var iso8601 = require('iso8601');
 var api = require('./util/api');
 var atom = require('./util/atom');
 var config = require('./util/config');
@@ -33,6 +34,9 @@ exports.setup = function(app) {
   app.get('/:channel/content/:node',
           session.provider,
           getNodeFeed);
+  app.get('/:channel/next/:node',
+          session.provider,
+          getNodeFeedNext);
   app.post('/:channel/content/:node',
            api.bodyReader,
            session.provider,
@@ -45,10 +49,106 @@ function getNodeFeed(req, res) {
   var channel = req.params.channel;
   var node = req.params.node;
 
-  requestNodeItems(req, res, channel, node, function(reply) {
-    var feed = generateNodeFeed(channel, node, reply);
-    api.sendAtomResponse(req, res, feed.root());
-  });
+  req.session.subscribe(pubsub.channelNodeId(channel, node),
+    function(sub) {
+      requestNodeItems(req, res, channel, node, function(reply) {
+        if (sub.items === undefined) {
+          sub.items = [];
+          sub.from = reply.attr('from');
+          var entry = getLatestEntry(reply);
+          if (entry) {
+            sub.prevId = {};
+            sub.prevId.id = entry.get('a:id', { a: atom.ns }).text();
+            var timestr = entry.get('a:updated', { a: atom.ns }).text();
+            sub.prevId.time = Math.floor(iso8601.toDate(timestr).getTime() / 1000) * 1000;
+            console.log("since_post=" + sub.prevId.id + "&since_time=" + iso8601.fromDate(new Date(sub.prevId.time)));
+          } else {
+            sub.prevId = null;
+          }
+          sub.lastPublishedId = null;
+        }
+
+        var feed = generateNodeFeed(channel, node, reply);
+        api.sendAtomResponse(req, res, feed.root());
+      });
+    },
+    function(errstr) {
+      res.send(500);
+    }
+  );
+}
+
+function makeChannelName(s) {
+  return s.replace(/\//g, ".");
+}
+
+function getNodeFeedNext(req, res) {
+  var channel = req.params.channel;
+  var node = req.params.node;
+
+  var nodeId = pubsub.channelNodeId(channel, node);
+
+  req.session.subscribe(nodeId,
+    function(sub) {
+      var prevId = null;
+      if (req.query.since_post && req.query.since_time) {
+        var since_post = req.query.since_post;
+        var since_time = Math.floor(iso8601.toDate(req.query.since_time).getTime() / 1000) * 1000;
+        console.log("since_post=" + since_post + "&since_time=" + iso8601.fromDate(new Date(since_time)) + " (" + since_time + ")");
+        var start = null;
+        if (sub.items !== undefined) {
+          for (var i = sub.items.length - 1; i >= 0; --i) {
+            var si = sub.items[i];
+            if (si.id.id == since_post && si.id.time == since_time) {
+              start = i + 1;
+              prevId = si.id.id + '_' + si.id.time;
+              console.log("found in cache at pos=" + i);
+              break;
+            }
+          }
+          if (start === null) {
+            console.log("checking against " + sub.prevId.id + " " + sub.prevId.time);
+            if (sub.prevId && sub.prevId.id == since_post && sub.prevId.time == since_time) {
+              start = 0;
+              prevId = sub.prevId.id + '_' + sub.prevId.time;
+              console.log("found as initial cursor");
+            }
+          }
+        }
+
+        if (start === null) {
+          res.send(404);
+          return;
+        }
+
+        if (start < sub.items.length) {
+          var entries = [];
+          for (var i = start; i < sub.items.length; ++i) {
+            entries.push(sub.items[i].entry);
+          }
+          var feed = api.generateNodeFeedFromEntries(channel, node, sub.from, entries);
+          api.sendAtomResponse(req, res, feed.root());
+          return;
+        }
+
+        // if we get here, then start == sub.items.length
+      }
+
+      // if we get here, then it means since params were not provided, or
+      //   the request was since the last known item
+
+      if (config.fanoutRealm) {
+        var foChannel = makeChannelName(req.session.jid + '_' + nodeId);
+        api.sendHoldResponse(req, res, foChannel, prevId);
+      } else {
+        var feed = api.generateNodeFeedFromEntries(channel, node, sub.from, []);
+        api.sendAtomResponse(req, res, feed.root());
+      }
+    },
+    function(errstr) {
+      res.send(500);
+    }
+  );
 }
 
 function requestNodeItems(req, res, channel, node, callback) {
@@ -74,6 +174,19 @@ function generateNodeFeed(channel, node, reply) {
 
   populateNodeFeed(feed, replydoc);
   return feed;
+}
+
+function getLatestEntry(reply) {
+  var replydoc = xml.parseXmlString(reply.toString());
+  var entries = replydoc.find('/iq/p:pubsub/p:items/p:item/a:entry', {
+    p: pubsub.ns,
+    a: atom.ns
+  });
+  if (entries.length > 0) {
+    return entries[0];
+  } else {
+    return null;
+  }
 }
 
 function populateNodeFeed(feed, replydoc) {
