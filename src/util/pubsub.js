@@ -122,10 +122,17 @@ exports.nodeAffiliationsIq = function(nodeId, item) {
 /**
  * Creates a Pub-Sub <subscribe/> IQ, which subscribes to a node.
  */
-exports.subscribeIq = function(nodeId, jid) {
-  return iq({type: 'set'}).
-    c('subscribe', {node: nodeId, jid: jid}).
-    root();
+exports.subscribeIq = function(nodeId, jid, isTemp) {
+  var query = iq({type: 'set'});
+  query.c('subscribe', {node: nodeId, jid: jid});
+  if (isTemp) {
+    var form = query.c('options').
+    c('x', {xmlns: 'jabber:x:data', type: 'submit'});
+    addFormField(form, 'FORM_TYPE', 'hidden',
+                 'http://jabber.org/protocol/pubsub#node_config');
+    addFormField(form, 'pubsub#expire', 'text-single', 'presence');
+  }
+  return query.root();
 };
 
 /**

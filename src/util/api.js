@@ -23,6 +23,7 @@ var atom = require('./atom');
 var auth = require('./auth');
 var cache = require('./cache');
 var config = require('./config');
+var pubsub = require('./pubsub');
 
 /**
  * Sends a "401 Unauthorized" response with the correct "WWW-Authenticate"
@@ -89,6 +90,45 @@ exports.sendAtomResponse = function(req, res, doc) {
   res.send(response);
 };
 
+// suffixes -json or -atom to the channel name
+exports.sendHoldResponse = function(req, res, channel, prevId) {
+  var contentType;
+  var body;
+  if (req.accepts('application/atom+xml')) {
+    channel = channel + '-atom';
+    contentType = 'application/atom+xml';
+    body = '<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom"/>\n';
+  } else if (req.accepts('application/json')) {
+    channel = channel + '-json';
+    contentType = 'application/json';
+    body = '[]';
+  } else {
+    res.send(406);
+    return;
+  }
+
+  var c = {};
+  c['name'] = channel;
+  if (prevId) {
+    c['prev-id'] = prevId;
+  }
+
+  var hold = {};
+  hold['mode'] = 'response';
+  hold['channels'] = [c];
+
+  var response = {};
+  response['headers'] = { 'Content-Type': contentType };
+  response['body'] = body;
+
+  var instruct = {};
+  instruct['hold'] = hold;
+  instruct['response'] = response;
+
+  console.log("sending hold for channel " + channel);
+  res.send(instruct, { 'Content-Type': 'application/fo-instruct' });
+};
+
 /**
  * Middleware that reads the request body into a Buffer which is stored
  * in req.body.
@@ -126,3 +166,19 @@ exports.mediaServerDiscoverer = function(req, res, next) {
   req.mediaRoot = config.homeMediaRoot;
   next();
 };
+
+exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
+  var feed = xml.Document();
+  feed.node('feed').namespace(atom.ns);
+  feed.root().node('title', channel + ' ' + node);
+
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var queryURI = pubsub.queryURI(from, 'retrieve', nodeId);
+  feed.root().node('id', queryURI);
+
+  entries.forEach(function(entry) {
+    atom.ensureEntryHasTitle(entry);
+    feed.root().addChild(entry.remove());
+  });
+  return feed;
+}
