@@ -35,11 +35,12 @@ exports.get = function(element, query, namespaces) {
   return element.get(query, namespaces);
 };
 
-/**
- * Checks if an Atom entry has a <title> element and, if it hasn't,
- * constructs one from the entry's content.
- */
-exports.ensureEntryHasTitle = function(entry) {
+exports.normalizeEntry = function(entry) {
+  ensureEntryHasTitle(entry);
+  ensureEntryHasAuthorName(entry);
+};
+
+function ensureEntryHasTitle(entry) {
   var content = exports.get(entry, 'atom:content/text()');
   if (content) {
     var teaser = extractTeaser(content.toString());
@@ -52,6 +53,20 @@ function extractTeaser(content) {
     return content;
   } else {
     return content.slice(0, 39) + '…';
+  }
+}
+
+function ensureEntryHasAuthorName(entry) {
+  var author = exports.get(entry, 'atom:author');
+  var authorName = exports.get(entry, 'atom:author/atom:name');
+  if (author && !authorName) {
+    var name;
+    if (author.text().indexOf('acct:') == 0) {
+      name = author.text().split(':', 2)[1];
+    } else {
+      name = author.text();
+    }
+    author.node('name', name).namespace(exports.ns);
   }
 }
 

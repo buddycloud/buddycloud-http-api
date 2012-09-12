@@ -45,7 +45,7 @@ function getNodeItem(req, res) {
     if (!entry) {
       res.send(404);
     } else {
-      atom.ensureEntryHasTitle(entry);
+      atom.normalizeEntry(entry);
       api.sendAtomResponse(req, res, entry);
     }
   });

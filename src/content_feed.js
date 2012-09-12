@@ -195,7 +195,7 @@ function populateNodeFeed(feed, replydoc) {
     a: atom.ns
   });
   entries.forEach(function(entry) {
-    atom.ensureEntryHasTitle(entry);
+    atom.normalizeEntry(entry);
     feed.root().addChild(entry.remove());
   });
 }
