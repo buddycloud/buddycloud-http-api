@@ -21,6 +21,7 @@ var xml = require('libxmljs');
 
 /** The Atom XML namespace. */
 exports.ns = 'http://www.w3.org/2005/Atom';
+exports.threadNS = 'http://purl.org/syndication/thread/1.0';
 
 /**
  * Like libxmljs.Element.get(), but automatically binds the 'atom:'
@@ -120,6 +121,13 @@ exports.fromJSON = function(entry) {
 
   if (entry.content) {
     entrydoc.root().node('content', escapeText(entry.content));
+  }
+
+  if (entry.replyTo) {
+    entrydoc.root().
+      node('in-reply-to').
+      attr('ref', entry.replyTo).
+      namespace(exports.threadNS);
   }
 
   return entrydoc;
