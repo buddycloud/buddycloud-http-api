@@ -44,7 +44,7 @@ function redirectToMediaServer(req, res) {
 
   var auth = generateAuth(req, transactionId);
   res.header('Location', generateMediaUrl(req, auth, transactionId));
-  res.send(302);
+  res.send(307);
 }
 
 function generateAuth(req, transactionId) {
