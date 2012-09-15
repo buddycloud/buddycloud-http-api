@@ -19,6 +19,8 @@
 // (/<channel>/media, /<channel>/media/<file>).
 
 var crypto = require('crypto');
+var http = require('http');
+var https = require('https');
 var url = require('url');
 var xmpp = require('node-xmpp');
 var api = require('./util/api');
@@ -28,26 +30,48 @@ var session = require('./util/session');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.all('/:channel/media',
+  app.post('/:channel/media',
+           session.provider,
+           api.mediaServerDiscoverer,
+           proxyToMediaServer);
+  app.get('/:channel/media/:id',
           session.provider,
           api.mediaServerDiscoverer,
-          redirectToMediaServer);
-  app.all('/:channel/media/:id',
+          proxyToMediaServer);
+  app.put('/:channel/media/:id',
+          api.bodyReader,
           session.provider,
           api.mediaServerDiscoverer,
-          redirectToMediaServer);
+          proxyToMediaServer);
 };
 
-function redirectToMediaServer(req, res) {
-  var transactionId = crypto.randomBytes(16).toString('hex');
-  req.session.onStanza(confirmRequest(req, transactionId));
-
-  var auth = generateAuth(req, transactionId);
-  res.header('Location', generateMediaUrl(req, auth, transactionId));
-  res.send(307);
+function proxyToMediaServer(req, res, next) {
+  var transactionId = req.user ? generateTransactionId() : null;
+  var mediaUrl = getMediaUrl(req, transactionId);
+  forwardRequest(req, res, mediaUrl);
+  if (transactionId) {
+    listenForConfirmationRequest(req.session, transactionId);
+  }
 }
 
-function generateAuth(req, transactionId) {
+function generateTransactionId() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+function getMediaUrl(req, transactionId) {
+  var mediaUrl = url.parse(req.mediaRoot);
+  mediaUrl.pathname += '/' + req.params.channel;
+  if (req.params.id) {
+    mediaUrl.pathname += '/' + req.params.id;
+  }
+  mediaUrl.query = req.query || {};
+  if (transactionId) {
+    mediaUrl.query['auth'] = generateAuthToken(req, transactionId);
+  }
+  return url.format(mediaUrl);
+}
+
+function generateAuthToken(req, transactionId) {
   var buf = new Buffer(req.session.jid + ':' + transactionId);
   return base64url(buf);
 }
@@ -56,32 +80,45 @@ function base64url(buf) {
   return buf.toString('base64').replace('+', '-').replace('/', '_');
 }
 
-function generateMediaUrl(req, auth, transactionId) {
-  var mediaUrl = url.parse(req.mediaRoot);
+function forwardRequest(req, res, mediaUrl) {
+  mediaUrl = url.parse(mediaUrl);
+  req.headers['host'] = mediaUrl.host;
 
-  var path = [
-    req.params.channel,
-    req.params.id || ''
-  ].join('/');
-  mediaUrl.pathname += '/' + path;
+  var request = (mediaUrl.protocol == 'https:') ? https.request : http.request;
+  var mediaReq = request({
+    method: req.method,
+    host: mediaUrl.host,
+    path: mediaUrl.path,
+    headers: req.headers,
+  }, function(mediaRes) {
+    res.statusCode = mediaRes.statusCode;
+    res.headers = mediaRes.headers;
+    mediaRes.on('data', function(data) {
+      res.write(data);
+    });
+    mediaRes.on('end', function(data) {
+      res.end();
+    });
+    mediaRes.on('close', function(data) {
+      res.send(500);
+    });
+  });
 
-  var query = { auth: auth };
-  if (req.query.maxwidth) {
-    query.maxwidth = req.query.maxwidth;
+  mediaReq.on('error', function(err) {
+    res.send(500);
+  });
+
+  if (req.body) {
+    mediaReq.write(req.body);
   }
-  if (req.query.maxheight) {
-    query.maxheight = req.query.maxheight;
-  }
-  mediaUrl.query = query;
-
-  return url.format(mediaUrl);
+  mediaReq.end();
 }
 
-function confirmRequest(req, transactionId) {
-  return function(stanza) {
+function listenForConfirmationRequest(session, transactionId) {
+  session.onStanza(function(stanza) {
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
-      req.session.replyToQuery(stanza);
+      session.replyToQuery(stanza);
     }
-  };
+  });
 }
