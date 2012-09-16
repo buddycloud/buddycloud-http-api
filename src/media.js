@@ -31,6 +31,7 @@ var session = require('./util/session');
  */
 exports.setup = function(app) {
   app.post('/:channel/media',
+           api.bodyReader,
            session.provider,
            api.mediaServerDiscoverer,
            proxyToMediaServer);
