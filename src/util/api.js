@@ -147,6 +147,10 @@ exports.bodyReader = function(req, res, next) {
     copyIntoBuffer(req.body, chunks);
     next();
   });
+
+  req.on('close', function() {
+    res.send('Unexpected end of stream', 500);
+  });
 };
 
 function copyIntoBuffer(buffer, chunks) {

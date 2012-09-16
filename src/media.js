@@ -61,7 +61,8 @@ function generateTransactionId() {
 
 function getMediaUrl(req, transactionId) {
   var mediaUrl = url.parse(req.mediaRoot);
-  mediaUrl.pathname += '/' + req.params.channel;
+  ensureTrailingSlash(mediaUrl);
+  mediaUrl.pathname += req.params.channel;
   if (req.params.id) {
     mediaUrl.pathname += '/' + req.params.id;
   }
@@ -70,6 +71,12 @@ function getMediaUrl(req, transactionId) {
     mediaUrl.query['auth'] = generateAuthToken(req, transactionId);
   }
   return url.format(mediaUrl);
+}
+
+function ensureTrailingSlash(mediaUrl) {
+  if (mediaUrl.pathname.charAt(mediaUrl.pathname.length - 1) != '/') {
+    mediaUrl.pathname += '/';
+  }
 }
 
 function generateAuthToken(req, transactionId) {
@@ -87,8 +94,9 @@ function forwardRequest(req, res, mediaUrl) {
 
   var request = (mediaUrl.protocol == 'https:') ? https.request : http.request;
   var mediaReq = request({
-    method: req.method,
     host: mediaUrl.host,
+    port: mediaUrl.port,
+    method: req.method,
     path: mediaUrl.path,
     headers: req.headers,
   }, function(mediaRes) {
@@ -106,7 +114,7 @@ function forwardRequest(req, res, mediaUrl) {
   });
 
   mediaReq.on('error', function(err) {
-    res.send(500);
+    res.send(err, 500);
   });
 
   if (req.body) {
