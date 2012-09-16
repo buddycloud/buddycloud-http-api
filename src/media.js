@@ -94,7 +94,7 @@ function forwardRequest(req, res, mediaUrl) {
 
   var request = (mediaUrl.protocol == 'https:') ? https.request : http.request;
   var mediaReq = request({
-    host: mediaUrl.host,
+    host: mediaUrl.hostname,
     port: mediaUrl.port,
     method: req.method,
     path: mediaUrl.path,
