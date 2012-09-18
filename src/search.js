@@ -18,7 +18,7 @@
 // Handles search-related requests (/search).
 
 var config = require('./util/config');
-var doSearch = require('./util/do_search');
+var searchUtils = require('./util/do_search');
 var session = require('./util/session');
 
 /**
@@ -83,6 +83,6 @@ function channelToJson(item) {
 }
 
 function requestSearchResult(req, res, type, q, max, index, callback) {
-  var searchIq = doSearch.search(type, q, max, index);
+  var searchIq = searchUtils.search(type, q, max, index);
   api.sendQuery(req, res, searchIq, callback);
 }
