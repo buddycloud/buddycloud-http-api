@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// pusher.js:
-// Creates XMPP queries for the pusher component.
+// do_search.js:
+// Creates XMPP queries for the search component.
 
 var xmpp = require('node-xmpp');
 var xml = require('libxmljs');
@@ -24,6 +24,8 @@ var config = require('./config');
 var metadataNs = 'http://buddycloud.com/channel_directory/metadata_query';
 var contentNs = 'http://buddycloud.com/channel_directory/content_query';
 var entryNs = 'http://www.w3.org/2005/Atom';
+var thrNs = 'http://purl.org/syndication/thread/1.0';
+var rsmNs = 'http://jabber.org/protocol/rsm';
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
@@ -41,7 +43,7 @@ exports.search = function(type, q, max, index) {
   queryNode.c('search').t(q);
   
   if (max || index) {
-    var rsm = queryNode.c('rsm', {xmlns: 'http://jabber.org/protocol/rsm'});
+    var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
     if (max) {
       rsm.c('max').t(max);
     }
@@ -66,8 +68,8 @@ function channelToJson(item) {
   var jid = item.attr('jid');
   var description = item.attr('description');
   var creationDate = item.attr('created');
-  var title = item.get('//item:title', {item: metadataNs});
-  var channelType = item.get('//item:channel_type', {item: metadataNs});
+  var title = item.get('query:title', {query: metadataNs});
+  var channelType = item.get('query:channel_type', {query: metadataNs});
   
   jsonItem = {
     jid : jid ? jid.value() : null,
@@ -84,13 +86,13 @@ function postToJson(item) {
   var entry = item.child(0);
   
   var id = item.attr('id');
-  var author = entry.get("//entry:author", {entry: entryNs});
-  var content = entry.get("//entry:content", {entry: entryNs});
-  var updated = entry.get("//entry:updated", {entry: entryNs});
-  var published = entry.get("//entry:published", {entry: entryNs});
-  var parentFullid = entry.get("//entry:parent_fullid", {entry: entryNs});
-  var parentSimpleid = entry.get("//entry:parent_simpleid", {entry: entryNs});
-  var inReplyTo = entry.get("//entry:in-reply-to", {entry: entryNs});
+  var author = entry.get("entry:author", {entry: entryNs});
+  var content = entry.get("entry:content", {entry: entryNs});
+  var updated = entry.get("entry:updated", {entry: entryNs});
+  var published = entry.get("entry:published", {entry: entryNs});
+  var parentFullid = entry.get("entry:parent_fullid", {entry: entryNs});
+  var parentSimpleid = entry.get("entry:parent_simpleid", {entry: entryNs});
+  var inReplyTo = entry.get("thr:in-reply-to", {thr: thrNs});
   
   jsonItem = {
     id : id ? id.value() : null,
@@ -100,7 +102,7 @@ function postToJson(item) {
     published : published ? published.text() : null,
     parent_fullid : parentFullid ? parentFullid.text() : null,
     parent_simpleid : parentSimpleid ? parentSimpleid.text() : null,
-    in_reply_to : inReplyTo ? inReplyTo.attr('ref').value() : null
+    in_reply_to : inReplyTo ? (inReplyTo.attr('ref') ? inReplyTo.attr('ref').value() : null) : null
   };
   
   return jsonItem;
@@ -113,4 +115,11 @@ exports.postsToJSON = function(reply) {
     jsonItems.push(postToJson(e));
   });
   return jsonItems;
+}
+
+exports.rsmToJSON = function(reply) {
+  var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
+  var index = rsmSet.get('set:first', {set: rsmNs}).attr('index').value();
+  var count = rsmSet.get('set:count', {set: rsmNs}).text();
+  return {index: index, count: count};
 }

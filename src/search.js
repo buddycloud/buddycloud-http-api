@@ -48,12 +48,14 @@ function doSearch(req, res) {
   }
   
   requestSearchResult(req, res, type, q, max, index, function(reply) {
-    var body = null;
+    var items = null;
     if (type == 'metadata') {
-      body = searchUtils.channelsToJSON(reply);
+      items = searchUtils.channelsToJSON(reply);
     } else if (type == 'content') {
-      body = searchUtils.postsToJSON(reply);
+      items = searchUtils.postsToJSON(reply);
     }
+    var rsm = searchUtils.rsmToJSON(reply);
+    var body = {items: items, rsm: rsm};
     res.contentType('json');
     res.send(body);
   });
