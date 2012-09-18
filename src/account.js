@@ -50,25 +50,31 @@ function registerAccount(req, res) {
     register: true
   });
   client.on('online', function() {
-    var signupIq = pusher.signup(client.jid.toString(), email);
-    sendToPusher(client, signupIq, function() {
-      client.end();
-      res.send(200);
-    });
+    if (config.pusherComponent) {
+      var signupIq = pusher.signup(client.jid.toString(), email);
+      sendToPusher(client, signupIq, function() {
+        registrationSucessful(client, res);
+      });
+    } else {
+      registrationSucessful(client, res);
+    }
   });
   client.on('error', function(err) {
     res.send(503);
   });
 }
 
+function registrationSucessful(client, res) {
+  client.end();
+  res.send(200);
+}
+
 function sendToPusher(client, signupIq, callback) {
   iqId = crypto.randomBytes(16).toString('hex');
-  
   iq = signupIq.root();
   iq.attr('from', client.jid.toString());
   iq.attr('to', config.pusherComponent);
   iq.attr('id', iqId);
-  
   console.log("OUT xmpp: " + iq);
   client.on('stanza', function(stanza) {
     if (stanza.attrs.id == iqId) {
