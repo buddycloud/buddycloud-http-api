@@ -63,6 +63,7 @@ function setupResourceHandlers(app) {
     require('./src/media'),
     require('./src/metadata'),
     require('./src/root'),
+    require('./src/search'),
     require('./src/subscriptions')
   ];
   handlers.forEach(function(h) { h.setup(app); });
