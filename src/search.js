@@ -1,0 +1,88 @@
+/*
+ * Copyright 2012 buddycloud
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// search.js:
+// Handles search-related requests (/search).
+
+var config = require('./util/config');
+var doSearch = require('./util/do_search');
+var session = require('./util/session');
+
+/**
+ * Registers resource URL handlers.
+ */
+exports.setup = function(app) {
+  app.get('/search',
+           session.provider,
+           doSearch);
+};
+
+//// GET /search /////////////////////////////////////////////////////////////
+
+function doSearch(req, res) {
+  var type = req.params.type;
+  var q = req.params.q;
+  var max = req.params.max;
+  var index = req.params.index;
+
+  if (!type || !q) {
+    res.send(400);
+    return;
+  }
+  
+  requestSearchResult(req, res, type, q, max, index, function(reply) {
+    var body = null;
+    if (type == 'metadata') {
+      body = channelsToJSON(reply);
+    } else if (type == 'content') {
+      body = postsToJSON(reply);
+    }
+    res.contentType('json');
+    res.send(body);
+  })
+}
+
+function channelsToJSON(reply) {
+  var items = reply.get('query').find('items');
+  var jsonItems = [];
+  items.forEach(function(e){
+    jsonItems.push(channelToJson(e));
+  });
+  return jsonItems;
+}
+
+function channelToJson(item) {
+  var jid = item.get('jid');
+  var title = item.get('title');
+  var description = item.get('description');
+  var creationDate = item.get('creation-date');
+  var channelType = item.get('channel-type');
+  
+  jsonItem = {
+    jid : jid ? jid.text() : null,
+    title : title ? title.text() : null,
+    description : description ? description.text() : null,
+    creationDate : creationDate ? creationDate.text() : null,
+    channelType : channelType ? channelType.text() : null    
+  };
+  
+  return jsonItem;
+}
+
+function requestSearchResult(req, res, type, q, max, index, callback) {
+  var searchIq = doSearch.search(type, q, max, index);
+  api.sendQuery(req, res, searchIq, callback);
+}

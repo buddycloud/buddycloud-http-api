@@ -43,13 +43,29 @@ exports.sendUnauthorized = function(res) {
  */
 exports.sendQuery = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
-    if (reply.type == 'error') {
-      reportXmppError(req, res, reply);
-    } else {
-      callback(reply);
-    }
-  });
+    checkError(reply, req, res, iq, callback);
+  }, config.channelDomain);
 };
+
+exports.sendQueryToSearch = function(req, res, iq, callback) {
+  req.session.sendQuery(iq, function(reply) {
+    checkError(reply, req, res, iq, callback);
+  }, config.searchComponent);
+};
+
+exports.sendQueryToPusher = function(req, res, iq, callback) {
+  req.session.sendQuery(iq, function(reply) {
+    checkError(reply, req, res, iq, callback);
+  }, config.pusherComponent);
+};
+
+function checkError(reply, req, res, iq, callback) {
+	if (reply.type == 'error') {
+		reportXmppError(req, res, reply);
+	} else {
+		callback(reply);
+	}
+}
 
 function reportXmppError(req, res, errorStanza) {
   var error = errorStanza.getChild('error');
