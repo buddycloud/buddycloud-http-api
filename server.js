@@ -62,6 +62,7 @@ function setupResourceHandlers(app) {
     require('./src/content_item'),
     require('./src/media'),
     require('./src/metadata'),
+    require('./src/notifications'),
     require('./src/root'),
     require('./src/search'),
     require('./src/subscriptions')
