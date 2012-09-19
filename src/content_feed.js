@@ -48,34 +48,10 @@ exports.setup = function(app) {
 function getNodeFeed(req, res) {
   var channel = req.params.channel;
   var node = req.params.node;
-
-  req.session.subscribe(pubsub.channelNodeId(channel, node),
-    function(sub) {
-      requestNodeItems(req, res, channel, node, function(reply) {
-        if (sub.items === undefined) {
-          sub.items = [];
-          sub.from = reply.attr('from');
-          var entry = getLatestEntry(reply);
-          if (entry) {
-            sub.prevId = {};
-            sub.prevId.id = entry.get('a:id', { a: atom.ns }).text();
-            var timestr = entry.get('a:updated', { a: atom.ns }).text();
-            sub.prevId.time = Math.floor(iso8601.toDate(timestr).getTime() / 1000) * 1000;
-            console.log("since_post=" + sub.prevId.id + "&since_time=" + iso8601.fromDate(new Date(sub.prevId.time)));
-          } else {
-            sub.prevId = null;
-          }
-          sub.lastPublishedId = null;
-        }
-
-        var feed = generateNodeFeed(channel, node, reply);
-        api.sendAtomResponse(req, res, feed.root());
-      });
-    },
-    function(errstr) {
-      res.send(500);
-    }
-  );
+  requestNodeItems(req, res, channel, node, function(reply) {
+    var feed = generateNodeFeed(channel, node, reply);
+    api.sendAtomResponse(req, res, feed.root());
+  });
 }
 
 function makeChannelName(s) {
