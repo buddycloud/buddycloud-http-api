@@ -269,13 +269,15 @@ Session.prototype.onStanza = function(handler) {
  * Sends a query to the XMPP server using the session's connection. When a
  * reply is received, 'onreply' is called with the reply stanza as argument.
  */
-Session.prototype.sendQuery = function(iq, onreply) {
+Session.prototype.sendQuery = function(iq, onreply, to) {
   var queryId = this._replyHandlers.generateKey();
   this._replyHandlers.put(queryId, onreply);
 
+  to = typeof to !== 'undefined' ? to : config.channelDomain;
+
   iq = iq.root();
   iq.attr('from', this._connection.jid.toString());
-  iq.attr('to', config.channelDomain);
+  iq.attr('to', to);
   iq.attr('id', queryId);
   console.log("OUT xmpp: " + iq);
   this._connection.send(iq);
