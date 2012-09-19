@@ -90,7 +90,7 @@ function reportXmppError(req, res, errorStanza) {
  * determined by the "Accept" request header (either
  * XML or JSON).
  */
-exports.sendAtomResponse = function(req, res, doc) {
+exports.sendAtomResponse = function(req, res, doc, statusCode) {
   var response;
 
   if (req.accepts('application/atom+xml')) {
@@ -98,12 +98,12 @@ exports.sendAtomResponse = function(req, res, doc) {
     response = doc.toString();
   } else if (req.accepts('application/json')) {
     res.contentType('json');
-    response = atom.toJSON(doc);
+    response = JSON.stringify(atom.toJSON(doc));
   } else {
-    response = 406;
+    statusCode = 406;
   }
 
-  res.send(response);
+  res.send(response, statusCode || 200);
 };
 
 // suffixes -json or -atom to the channel name

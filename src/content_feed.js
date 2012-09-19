@@ -195,7 +195,7 @@ function postToNodeFeed(req, res) {
     }
     var itemUri = getNodeItemUri(channel, node, itemId);
     res.header('Location', itemUri);
-    res.send(201);
+    sendPostAsResponse(req, res, itemId, entry);
   });
 }
 
@@ -231,4 +231,12 @@ function getPublishedItemId(reply) {
 
 function getNodeItemUri(channel, node, item) {
   return '/' + [channel, 'content', node, item].join('/');
+}
+
+function sendPostAsResponse(req, res, itemId, entry) {
+  entry = atom.toJSON(entry.root());
+  entry.id = itemId;
+  entry.author = req.user.split('/', 2)[0];;
+  req.headers['accept'] = req.headers['content-type'];
+  api.sendAtomResponse(req, res, atom.fromJSON(entry).root(), 201);
 }

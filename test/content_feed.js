@@ -276,7 +276,7 @@ var mockConfig = {
       '<iq type="result">\
          <pubsub xmlns="http://jabber.org/protocol/pubsub">\
            <publish node="/user/alice@localhost/posts">\
-             <item id="newid2"/>\
+             <item id="newid-json"/>\
            </publish>\
          </pubsub>\
        </iq>',
@@ -624,14 +624,21 @@ describe('Node Feed', function() {
       var options = {
         path: '/alice@localhost/content/posts',
         auth: 'alice@localhost/http:alice',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           content: 'JSON TEST'
         })
       };
-      tutil.post(options, function(res) {
+      tutil.post(options, function(res, body) {
         res.statusCode.should.equal(201);
         res.headers['location'].should.equal(
-          '/alice@localhost/content/posts/newid2');
+          '/alice@localhost/content/posts/newid-json');
+
+        body = JSON.parse(body);
+        console.log(body);
+        body.id.should.equal('newid-json');
+        body.author.should.equal('alice@localhost');
+        body.content.should.equal('JSON TEST');
 
         var options2 = {
           path: '/alice@localhost/content/posts',

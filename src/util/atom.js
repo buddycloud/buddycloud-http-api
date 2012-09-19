@@ -123,19 +123,27 @@ exports.fromJSON = function(entry) {
   entrydoc.node('entry').namespace(exports.ns);
 
   if (entry.id) {
-    entrydoc.root().node('id', escapeText(entry.id));
+    entrydoc.root().
+      node('id', escapeText(entry.id)).
+      namespace(exports.ns);
   }
 
   if (entry.title) {
-    entrydoc.root().node('title', escapeText(entry.id));
+    entrydoc.root().
+      node('title', escapeText(entry.id)).
+      namespace(exports.ns);
   }
 
   if (entry.author) {
-    entrydoc.root().node('author', escapeText(entry.id));
+    entrydoc.root().
+      node('author', escapeText(entry.author)).
+      namespace(exports.ns);
   }
 
   if (entry.content) {
-    entrydoc.root().node('content', escapeText(entry.content));
+    entrydoc.root().
+      node('content', escapeText(entry.content)).
+      namespace(exports.ns);
   }
 
   if (entry.replyTo) {
