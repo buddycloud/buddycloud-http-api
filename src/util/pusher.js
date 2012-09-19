@@ -18,6 +18,7 @@
 // Creates XMPP queries for the pusher component.
 
 var xmpp = require('node-xmpp');
+var xml = require('libxmljs');
 var signupNs = 'http://buddycloud.com/pusher/signup';
 var settingsNs = "http://buddycloud.com/pusher/notification-settings";
 

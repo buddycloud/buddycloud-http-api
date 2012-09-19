@@ -29,6 +29,7 @@ exports.setup = function(app) {
           session.provider,
           getSettings);
   app.post('/notifications',
+           api.bodyReader,
            session.provider,
            updateSettings);
 };
@@ -61,17 +62,9 @@ function updateSettings(req, res) {
     return;
   }
   
-  var settings = {
-    email: req.body.email, 
-    postAfterMe: req.body.postafterme,
-    postMentionedMe: req.body.postmentionedme,
-    postOnMyChannel: req.body.postonmychannel,
-    postOnSubscribedChannel: req.body.postonsubscribedchannel,
-    followMyChannel: req.body.followmychannel,
-    followRequest: req.body.followrequest
-  };
+  var fields = JSON.parse(req.body);
   
-  requestSettingsUpdate(req, res, settings, function(reply) {
+  requestSettingsUpdate(req, res, fields, function(reply) {
     var body = pusher.settingsToJSON(reply);
     res.contentType('json');
     res.send(body);
