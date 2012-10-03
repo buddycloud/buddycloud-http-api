@@ -130,6 +130,7 @@ function Session(id, connection) {
   this.id = id;
   this.jid = connection.jid.toString();
   this._connection = connection;
+  this._presenceCount = 0;
   this._replyHandlers = new cache.Cache(config.requestExpirationTime);
   this._subs = new cache.Cache(config.sessionExpirationTime);
   this._subsPresences = {}; // refcounts
@@ -257,12 +258,36 @@ Session.prototype._setupStanzaListener = function() {
  * callback is called with the stanza as argument.
  */
 Session.prototype.onStanza = function(handler) {
-  var callback = function(stanza) {
-    if (handler(stanza)) {
-      this._connection.removeListener(callback);
-    }
-  };
-  this._connection.on('stanza', callback);
+  var self = this;
+  this._connection.once('stanza', function(stanza) {
+    var wait = function() { self.onStanza(handler); };
+    handler(stanza, wait);
+  });
+};
+
+Session.prototype.sendPresenceOnline = function() {
+  if (this._presenceCount == 0) {
+    this._sendPresence(undefined);
+    this._sendPresence(undefined, config.channelDomain);
+  } else {
+    this._presenceCount++;
+  }
+};
+
+Session.prototype.sendPresenceOffline = function() {
+  if (this._presenceCount > 0) {
+    this._sendPresence('unavailable');
+    this._sendPresence('unavailable', config.channelDomain);
+    this._presenceCount--;
+  }
+};
+
+Session.prototype._sendPresence = function(type, to) {
+  this._connection.send(new xmpp.Presence({
+    from: this._connection.jid.bare().toString(),
+    to: to,
+    type: type
+  }));
 };
 
 /**

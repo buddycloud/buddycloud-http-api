@@ -124,10 +124,12 @@ function forwardRequest(req, res, mediaUrl) {
 }
 
 function listenForConfirmationRequest(session, transactionId) {
-  session.onStanza(function(stanza) {
+  session.onStanza(function(stanza, wait) {
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
       session.replyToQuery(stanza);
+    } else {
+      wait();
     }
   });
 }

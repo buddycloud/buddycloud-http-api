@@ -95,6 +95,7 @@ function feedToJSON(feed) {
 
 function entryToJSON(entry) {
   var id = exports.get(entry, 'atom:id');
+  var sourceId = exports.get(entry, 'atom:source/atom:id');
   var author = exports.get(entry, 'atom:author');
   var authorName = author ? exports.get(author, 'atom:name') : author;
   var published = exports.get(entry, 'atom:published');
@@ -107,6 +108,7 @@ function entryToJSON(entry) {
 
   return {
     id: id ? id.text() : null,
+    source: sourceId ? sourceId.text().match(/node=\/user\/(.*)$/)[1] : undefined,
     author: authorName ? authorName.text() : (author ? author.text() : null),
     published: published ? published.text() : null,
     updated: updated ? updated.text() : null,

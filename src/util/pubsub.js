@@ -23,6 +23,7 @@ var config = require('./config');
 
 /** The XMPP Pub-Sub XML namespaces. */
 exports.ns = 'http://jabber.org/protocol/pubsub';
+exports.eventNS = 'http://jabber.org/protocol/pubsub#event';
 exports.ownerNS = 'http://jabber.org/protocol/pubsub#owner';
 
 /**
