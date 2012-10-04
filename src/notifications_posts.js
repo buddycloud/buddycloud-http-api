@@ -51,7 +51,10 @@ function listenForNextItem(req, res, next) {
 function isPubSubItemMessage(stanza) {
   if (stanza.attrs.from == config.channelDomain) {
     var eventEl = stanza.getChild('event', pubsub.eventNS);
-    return eventEl && eventEl.getChild('items');
+    var itemsEl = eventEl ? eventEl.getChild('items') : null;
+    var itemEl = itemsEl ? itemsEl.getChild('item') : null;
+    var entryEl = itemEl ? itemEl.getChild('entry', atom.ns) : null;
+    return !!entryEl;
   } else {
     return false;
   }
