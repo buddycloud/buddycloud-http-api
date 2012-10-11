@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// notification.js:
-// Handles requests related to notification settings (/notifications).
+// user_settings.js:
+// Handles requests related to user notification settings (/user_settings).
 
 var session = require('./util/session');
 var pusher = require('./util/pusher');
@@ -25,16 +25,16 @@ var api = require('./util/api');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.get('/notifications',
+  app.get('/user_settings',
           session.provider,
           getSettings);
-  app.post('/notifications',
+  app.post('/user_settings',
            api.bodyReader,
            session.provider,
            updateSettings);
 };
 
-//// GET /notifications /////////////////////////////////////////////////////////////
+//// GET /user_settings /////////////////////////////////////////////////////////////
 
 function getSettings(req, res) {
   if (!req.user) {
@@ -54,7 +54,7 @@ function requestSettings(req, res, callback) {
   api.sendQueryToPusher(req, res, getSettingsIq, callback);
 }
 
-////POST /notifications /////////////////////////////////////////////////////////////
+////POST /user_settings /////////////////////////////////////////////////////////////
 
 function updateSettings(req, res) {
   if (!req.user) {
