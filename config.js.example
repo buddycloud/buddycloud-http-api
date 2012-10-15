@@ -1,35 +1,21 @@
-// config.js:
-// HTTP API server configuration. See README.md for details.
-
-// Default settings (apply to all profiles)
+// buddycloud-http-api-server config file
+ 
+// This port should match your web server reverse proxy setting
 exports._ = {
-  port: 3000,
+  port: 9123,
 };
-
-// Production settings (used by default)
+ 
+// Production settings
 exports.production = {
-  xmppDomain: 'buddycloud.org',
-  xmppAnonymousDomain: 'anon.buddycloud.org',
-  channelDomain: 'channels.buddycloud.org',
-  pusherComponent: 'pusher.buddycloud.org',
-  searchComponent: 'search.buddycloud.org',
-  homeMediaRoot: 'https://api.buddycloud.org/media'
-};
-
-// Development settings (useful for local debugging)
-exports.development = {
-  xmppDomain: 'localhost',
-  xmppHost: 'localhost',
-  channelDomain: 'localhost',
-  pusherComponent: 'pusher.localhost',
-  searchComponent: 'search.localhost',
-  xmppPort: '5222',
-};
-
-// Testing settings (used by the unit tests)
-exports.testing = {
-  xmppDomain: 'localhost',
-  xmppHost: 'localhost',
-  xmppPort: '5888',
-  sessionExpirationTime: 1
+  debug: true,
+  xmppDomain: 'example.com',
+  xmppAnonymousDomain: 'anon.example.com',
+  channelDomain: 'buddycloud.example.com',
+  pusherComponent: 'pusher.example.com',
+  // you probably want to use the buddycloud search service
+  searchComponent: 'search.buddycloud.com',
+  homeMediaRoot: 'http://localhost:60080',
+  // if using Fanout.io's API CDN, edit below
+  fanoutRealm: 'example.com',
+  fanoutKey: 'your-secret-key'
 };

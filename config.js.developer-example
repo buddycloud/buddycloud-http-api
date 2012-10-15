@@ -1,0 +1,35 @@
+// config.js:
+// HTTP API server configuration. See README.md for details.
+
+// Default settings (apply to all profiles)
+exports._ = {
+  port: 3000,
+};
+
+// Production settings (used by default)
+exports.production = {
+  xmppDomain: 'buddycloud.org',
+  xmppAnonymousDomain: 'anon.buddycloud.org',
+  channelDomain: 'channels.buddycloud.org',
+  pusherComponent: 'pusher.buddycloud.org',
+  searchComponent: 'search.buddycloud.org',
+  homeMediaRoot: 'https://api.buddycloud.org/media'
+};
+
+// Development settings (useful for local debugging)
+exports.development = {
+  xmppDomain: 'localhost',
+  xmppHost: 'localhost',
+  channelDomain: 'localhost',
+  pusherComponent: 'pusher.localhost',
+  searchComponent: 'search.localhost',
+  xmppPort: '5222',
+};
+
+// Testing settings (used by the unit tests)
+exports.testing = {
+  xmppDomain: 'localhost',
+  xmppHost: 'localhost',
+  xmppPort: '5888',
+  sessionExpirationTime: 1
+};
