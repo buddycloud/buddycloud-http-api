@@ -35,7 +35,7 @@ function iq(attrs, ns) {
   return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
 }
 
-exports.mostActive = function(type, max, index) {
+exports.mostActive = function(max, index) {
   var queryNode = iq({type: 'get'}, mostActiveNs);
   
   if (max || index) {
@@ -51,7 +51,7 @@ exports.mostActive = function(type, max, index) {
   return queryNode.root();
 };
 
-exports.recommend = function(type, userJid, max, index) {
+exports.recommend = function(userJid, max, index) {
   var queryNode = iq({type: 'get'}, recommendationNs);
   queryNode.c('user-jid').t(userJid);
   

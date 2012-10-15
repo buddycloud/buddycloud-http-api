@@ -46,7 +46,7 @@ function getRecommendations(req, res) {
     return;
   }
   
-  requestRecommendations(req, res, type, user, max, index, function(reply) {
+  requestRecommendations(req, res, user, max, index, function(reply) {
     var items = searchUtils.channelsToJSON(reply);
     var rsm = searchUtils.rsmToJSON(reply);
     var body = {items: items, rsm: rsm};
@@ -55,7 +55,7 @@ function getRecommendations(req, res) {
   });
 }
 
-function requestRecommendations(req, res, type, user, max, index, callback) {
-  var searchIq = searchUtils.recommend(type, user, max, index);
+function requestRecommendations(req, res, user, max, index, callback) {
+  var searchIq = searchUtils.recommend(user, max, index);
   api.sendQueryToSearch(req, res, searchIq, callback);
 }

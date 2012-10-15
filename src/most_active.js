@@ -39,12 +39,7 @@ function getMostActive(req, res) {
   var max = params.max;
   var index = params.index;
 
-  if (!user) {
-    res.send(400);
-    return;
-  }
-  
-  requestMostActive(req, res, type, max, index, function(reply) {
+  requestMostActive(req, res, max, index, function(reply) {
     var items = searchUtils.channelsToJSON(reply);
     var rsm = searchUtils.rsmToJSON(reply);
     var body = {items: items, rsm: rsm};
@@ -53,7 +48,7 @@ function getMostActive(req, res) {
   });
 }
 
-function requestMostActive(req, res, type, max, index, callback) {
-  var searchIq = searchUtils.mostActive(type, max, index);
+function requestMostActive(req, res, max, index, callback) {
+  var searchIq = searchUtils.mostActive(max, index);
   api.sendQueryToSearch(req, res, searchIq, callback);
 }
