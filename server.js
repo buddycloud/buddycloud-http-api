@@ -66,7 +66,9 @@ function setupResourceHandlers(app) {
     require('./src/notifications_posts'),
     require('./src/root'),
     require('./src/search'),
-    require('./src/subscriptions')
+    require('./src/subscriptions'),
+    require('./src/recommendations'),
+    require('./src/most_active')
   ];
   handlers.forEach(function(h) { h.setup(app); });
 }
