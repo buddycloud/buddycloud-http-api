@@ -24,7 +24,7 @@ var config = require('./config');
 var metadataNs = 'http://buddycloud.com/channel_directory/metadata_query';
 var contentNs = 'http://buddycloud.com/channel_directory/content_query';
 var recommendationNs = 'http://buddycloud.com/channel_directory/recommendation_query';
-var mostActiveNs = 'http://buddycloud.com/channel_directory/most_active;
+var mostActiveNs = 'http://buddycloud.com/channel_directory/most_active';
 
 var entryNs = 'http://www.w3.org/2005/Atom';
 var thrNs = 'http://purl.org/syndication/thread/1.0';
