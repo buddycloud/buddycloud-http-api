@@ -23,6 +23,9 @@ var config = require('./config');
 
 var metadataNs = 'http://buddycloud.com/channel_directory/metadata_query';
 var contentNs = 'http://buddycloud.com/channel_directory/content_query';
+var recommendationNs = 'http://buddycloud.com/channel_directory/recommendation_query';
+var mostActiveNs = 'http://buddycloud.com/channel_directory/most_active';
+
 var entryNs = 'http://www.w3.org/2005/Atom';
 var thrNs = 'http://purl.org/syndication/thread/1.0';
 var rsmNs = 'http://jabber.org/protocol/rsm';
@@ -31,6 +34,39 @@ var rsmNs = 'http://jabber.org/protocol/rsm';
 function iq(attrs, ns) {
   return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
 }
+
+exports.mostActive = function(max, index) {
+  var queryNode = iq({type: 'get'}, mostActiveNs);
+  
+  if (max || index) {
+    var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
+    if (max) {
+      rsm.c('max').t(max);
+    }
+    if (index) {
+      rsm.c('index').t(index);
+    }
+  }
+  
+  return queryNode.root();
+};
+
+exports.recommend = function(userJid, max, index) {
+  var queryNode = iq({type: 'get'}, recommendationNs);
+  queryNode.c('user-jid').t(userJid);
+  
+  if (max || index) {
+    var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
+    if (max) {
+      rsm.c('max').t(max);
+    }
+    if (index) {
+      rsm.c('index').t(index);
+    }
+  }
+  
+  return queryNode.root();
+};
 
 exports.search = function(type, q, max, index) {
   var ns = null;
