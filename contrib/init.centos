@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# wrapper script to start buddycloud-http-api (works in Centos 5)
+#
+
+PREFIX=$HOME
+PROG_NAME=buddycloud-http-api
+PROG_DIR=$PREFIX/lib/node_modules/$PROG_NAME
+PID_PATH=$PREFIX/var/run/${PROG_NAME}.pid
+LOG_FILE=$PREFIX/var/log/${PROG_NAME}.log
+PROG_OPTS=""
+PROG='buddycloud HTTP API'
+
+export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
+export PATH=$PREFIX/bin/:$PATH
+
+start() {
+	# Check that networking is up. (This line may only work in CentOS / RedHat / Fedora based distros). The rest is pretty generic.
+	[ "$NETWORKING" = "no" ] && exit 1
+	
+    echo -n "Starting $PROG: "
+    cd $PROG_DIR
+	nohup node server.js $PROG_OPTS < /dev/null >$LOG_FILE 2>&1 &
+	RETVAL=$?
+	echo $! > $PID_PATH
+	return $RETVAL
+}
+	
+stop() {
+    echo -n "Shutting down $PROG: "
+	kill `cat $PID_PATH`
+	RETVAL=$?
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+        ;;
+  stop)
+	stop
+        ;;
+  restart|reload)
+	stop
+	start
+	RETVAL=$?
+	;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|status}"
+        RETVAL=3
+esac
+
+if [ $RETVAL==0 ] ; then 
+    echo OK
+else
+    echo FAILED
+fi
+exit $RETVAL
