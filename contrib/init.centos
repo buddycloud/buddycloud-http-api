@@ -15,8 +15,8 @@ export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
 export PATH=$PREFIX/bin/:$PATH
 
 start() {
-	# Check that networking is up. (This line may only work in CentOS / RedHat / Fedora based distros). The rest is pretty generic.
-	[ "$NETWORKING" = "no" ] && exit 1
+    # Check that networking is up. (This line may only work in CentOS / RedHat / Fedora based distros). The rest is pretty generic.
+    [ "$NETWORKING" = "no" ] && exit 1
 	
     echo -n "Starting $PROG: "
     cd $PROG_DIR
