@@ -47,25 +47,37 @@ stop() {
 
 # See how we were called.
 case "$1" in
-  start)
-	start
+    start)
+	    start
         ;;
-  stop)
-	stop
+    stop)
+	    stop
         ;;
-  restart|reload)
-	stop
-	start
-	RETVAL=$?
-	;;
-  *)
+    status)
+        echo -n "Status for $PROG: "
+        if ps `cat $PID_PATH` > /dev/null 2>&1 ; then
+            echo "RUNNING"
+        else
+            echo "STOPPED"
+        fi
+        RETVAL=-1
+        ;;
+    restart|reload)
+	    stop
+	    start
+	    RETVAL=$?
+	    ;;
+    *)
         echo $"Usage: $0 {start|stop|restart|status}"
-        RETVAL=3
+        RETVAL=-1
 esac
 
-if [ $RETVAL==0 ] ; then 
-    echo OK
-else
-    echo FAILED
+if [ "$RETVAL" != "-1" ]; then
+    if [ "$RETVAL" == "0" ] ; then 
+        echo OK
+    else
+        echo FAILED
+    fi
+    exit $RETVAL
 fi
-exit $RETVAL
+exit 0
