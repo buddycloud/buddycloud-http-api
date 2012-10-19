@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# wrapper script to start buddycloud-http-api (works in Centos 5)
+# wrapper script to start buddycloud-http-api
 # usage: buddycloud-http-api.init.centos start|stop|restart|status
 #
 # This file should work as an old style init script for the
@@ -11,10 +11,12 @@
 # To install, copy it to a suitable location (possibly with
 # a shorter name), and set the variable declarations below
 # to something sensible for your system.
+# It has been tested under CentOS 5, but should work OK in other linux
+# distros.
 
-PREFIX=$HOME
+PREFIX=/opt
 PROG_NAME=buddycloud-http-api
-PROG_DIR=$PREFIX/lib/node_modules/$PROG_NAME
+PROG_DIR=$PREFIX/$PROG_NAME
 PID_PATH=$PREFIX/var/run/${PROG_NAME}.pid
 LOG_FILE=$PREFIX/var/log/${PROG_NAME}.log
 PROG_OPTS=""
