@@ -1,0 +1,12 @@
+Some scripts to help keep your buddycloud instance running smoothly.
+
+Daily log rotation
+==================
+copy ./logrotate.d/buddycloud-http-api.conf to /etc/logrotate.d/ 
+
+
+Starting buddycloud
+===================
+copy ./init/buddycloud-http-api.conf to /etc/init
+
+
