@@ -95,7 +95,7 @@ exports.channelsToJSON = function(reply, ns) {
   var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: ns});
   var jsonItems = [];
   items.forEach(function(e){
-    jsonItems.push(channelToJson(e));
+    jsonItems.push(channelToJson(e, ns));
   });
   return jsonItems;
 }
