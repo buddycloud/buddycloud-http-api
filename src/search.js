@@ -23,6 +23,8 @@ var session = require('./util/session');
 var api = require('./util/api');
 var url = require('url');
 
+var metadataNs = 'http://buddycloud.com/channel_directory/metadata_query';
+
 /**
  * Registers resource URL handlers.
  */
@@ -50,7 +52,7 @@ function doSearch(req, res) {
   requestSearchResult(req, res, type, q, max, index, function(reply) {
     var items = null;
     if (type == 'metadata') {
-      items = searchUtils.channelsToJSON(reply);
+      items = searchUtils.channelsToJSON(reply, metadataNs);
     } else if (type == 'content') {
       items = searchUtils.postsToJSON(reply);
     }

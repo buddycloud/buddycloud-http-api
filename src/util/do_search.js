@@ -91,8 +91,8 @@ exports.search = function(type, q, max, index) {
   return queryNode.root();
 };
 
-exports.channelsToJSON = function(reply) {
-  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: metadataNs});
+exports.channelsToJSON = function(reply, ns) {
+  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: ns});
   var jsonItems = [];
   items.forEach(function(e){
     jsonItems.push(channelToJson(e));
@@ -100,12 +100,12 @@ exports.channelsToJSON = function(reply) {
   return jsonItems;
 }
 
-function channelToJson(item) {
+function channelToJson(item, ns) {
   var jid = item.attr('jid');
   var description = item.attr('description');
   var creationDate = item.attr('created');
-  var title = item.get('query:title', {query: metadataNs});
-  var channelType = item.get('query:channel_type', {query: metadataNs});
+  var title = item.get('query:title', {query: ns});
+  var channelType = item.get('query:channel_type', {query: ns});
   
   jsonItem = {
     jid : jid ? jid.value() : null,
