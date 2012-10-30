@@ -23,6 +23,8 @@ var session = require('./util/session');
 var api = require('./util/api');
 var url = require('url');
 
+var mostActiveNs = 'http://buddycloud.com/channel_directory/most_active';
+
 /**
  * Registers resource URL handlers.
  */
@@ -40,7 +42,7 @@ function getMostActive(req, res) {
   var index = params.index;
 
   requestMostActive(req, res, max, index, function(reply) {
-    var items = searchUtils.channelsToJSON(reply);
+    var items = searchUtils.channelsToJSON(reply, mostActiveNs);
     var rsm = searchUtils.rsmToJSON(reply);
     var body = {items: items, rsm: rsm};
     res.contentType('json');

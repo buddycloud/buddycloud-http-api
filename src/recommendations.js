@@ -23,6 +23,8 @@ var session = require('./util/session');
 var api = require('./util/api');
 var url = require('url');
 
+var recommendationNs = 'http://buddycloud.com/channel_directory/recommendation_query';
+
 /**
  * Registers resource URL handlers.
  */
@@ -47,7 +49,7 @@ function getRecommendations(req, res) {
   }
   
   requestRecommendations(req, res, user, max, index, function(reply) {
-    var items = searchUtils.channelsToJSON(reply);
+    var items = searchUtils.channelsToJSON(reply, recommendationNs);
     var rsm = searchUtils.rsmToJSON(reply);
     var body = {items: items, rsm: rsm};
     res.contentType('json');
