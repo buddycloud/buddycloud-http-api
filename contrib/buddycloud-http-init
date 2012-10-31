@@ -1,0 +1,85 @@
+#!/bin/bash
+#
+# wrapper script to start buddycloud-http-api
+# usage: buddycloud-http-api.init.centos start|stop|restart|status
+#
+# This file should work as an old style init script for the
+# buddycloud http api if you copy it to /etc/init.d. (But
+# has not been tested this way).
+# You can also use it for starting the server manually in
+# the background as above.
+# To install, copy it to a suitable location (possibly with
+# a shorter name), and set the variable declarations below
+# to something sensible for your system.
+# It has been tested under CentOS 5, but should work OK in other linux
+# distros.
+
+PREFIX=/opt
+PROG_NAME=buddycloud-http-api
+PROG_DIR=$PREFIX/$PROG_NAME
+PID_PATH=$PREFIX/var/run/${PROG_NAME}.pid
+LOG_FILE=$PREFIX/var/log/${PROG_NAME}.log
+PROG_OPTS=""
+PROG='buddycloud HTTP API'
+
+export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
+export PATH=$PREFIX/bin/:$PATH
+
+start() {
+    # Check that networking is up. 
+    # (This line will only work in CentOS / RedHat / Fedora
+    # based distros but should have no effect otherwise).
+    # The rest is pretty generic.
+    [ "$NETWORKING" = "no" ] && exit 1
+	
+    echo -n "Starting $PROG: "
+    cd $PROG_DIR
+	nohup node server.js $PROG_OPTS < /dev/null >$LOG_FILE 2>&1 &
+	RETVAL=$?
+	echo $! > $PID_PATH
+	return $RETVAL
+}
+	
+stop() {
+    echo -n "Shutting down $PROG: "
+	kill `cat $PID_PATH`
+	RETVAL=$?
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	    start
+        ;;
+    stop)
+	    stop
+        ;;
+    status)
+        echo -n "Status for $PROG: "
+        if ps `cat $PID_PATH` > /dev/null 2>&1 ; then
+            echo "RUNNING"
+        else
+            echo "STOPPED"
+        fi
+        RETVAL=-1
+        ;;
+    restart|reload)
+	    stop
+	    start
+	    RETVAL=$?
+	    ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|status}"
+        RETVAL=-1
+esac
+
+if [ "$RETVAL" != "-1" ]; then
+    if [ "$RETVAL" == "0" ] ; then 
+        echo OK
+    else
+        echo FAILED
+    fi
+    exit $RETVAL
+fi
+exit 0
