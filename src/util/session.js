@@ -31,6 +31,7 @@ var atom = require('./atom');
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
 sessionCache.onexpired = function(_, session) {
+  console.log("Session expired. Id: " + session.id + ", Jid: " + session.jid);
   session.end();
 };
 
@@ -73,11 +74,13 @@ function provideSession(session, req, res, next) {
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
   var client = new xmpp.Client(options);
+  console.log("Creating connection for jid: " + options.jid);
   var session;
 
   client.on('online', function() {
     var sessionId = req.user ? sessionCache.generateKey() : null;
     session = new Session(sessionId, client);
+    console.log("Session created. Id: " + session.id + ", Jid: " + session.jid);
     provideSession(session, req, res, next);
   });
 
