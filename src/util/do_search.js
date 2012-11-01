@@ -105,6 +105,7 @@ function channelToJson(item, ns) {
   var description = item.attr('description');
   var creationDate = item.attr('created');
   var title = item.get('query:title', {query: ns});
+  var defaultAffiliation = item.get('query:default_affiliation', {query: ns});
   var channelType = item.get('query:channel_type', {query: ns});
   
   jsonItem = {
@@ -112,7 +113,8 @@ function channelToJson(item, ns) {
     description : description ? description.value() : null,
     creationDate : creationDate ? creationDate.value() : null,
     title : title ? title.text() : null,
-    channelType : channelType ? channelType.text() : null    
+    channelType : channelType ? channelType.text() : null,
+    defaultAffiliation : defaultAffiliation ? defaultAffiliation.text() : null    
   };
   
   return jsonItem;
