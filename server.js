@@ -68,7 +68,8 @@ function setupResourceHandlers(app) {
     require('./src/search'),
     require('./src/subscriptions'),
     require('./src/recommendations'),
-    require('./src/most_active')
+    require('./src/most_active'),
+    require('./src/sync')
   ];
   handlers.forEach(function(h) { h.setup(app); });
 }

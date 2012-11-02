@@ -27,6 +27,7 @@ var cache = require('./cache');
 var config = require('./config');
 var pubsub = require('./pubsub');
 var atom = require('./atom');
+var mam = require('./mam');
 
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
@@ -128,13 +129,13 @@ function useAnonymousSession(req, res, next) {
   }
 }
 
-
 function Session(id, connection) {
   this.id = id;
   this.jid = connection.jid.toString();
   this._connection = connection;
   this._presenceCount = 0;
   this._replyHandlers = new cache.Cache(config.requestExpirationTime);
+  this._mamHandlers = new cache.Cache(config.requestExpirationTime);
   this._subs = new cache.Cache(config.sessionExpirationTime);
   this._subsPresences = {}; // refcounts
   this._setupExpirationHandler();
@@ -143,6 +144,14 @@ function Session(id, connection) {
 
 Session.prototype._setupExpirationHandler = function() {
   this._replyHandlers.onexpired = function(_, handler) {
+    var error = new xmpp.Iq({'type': 'error'}).
+      c('error', {'type': 'cancel'}).
+      c('service-unavailable').
+      root();
+    handler(error);
+  };
+  
+  this._mamHandlers.onexpired = function(_, handler) {
     var error = new xmpp.Iq({'type': 'error'}).
       c('error', {'type': 'cancel'}).
       c('service-unavailable').
@@ -244,6 +253,17 @@ Session.prototype._setupStanzaListener = function() {
           }
         }
       }
+      var result = messagedoc.get('/message/mamns:result', {
+        mamns: mam.ns,
+      });
+      if (result && result.attr('queryid')) {
+        var queryId = result.attr('queryid').value();
+        var handler = self._mamHandlers.get(queryId);
+        if (handler) {
+          self._mamHandlers.remove(queryId);
+          handler(messagedoc);
+        }
+      }
     }
     if (stanza.attrs.id) {
       var handler = self._replyHandlers.get(stanza.attrs.id);
@@ -307,6 +327,20 @@ Session.prototype.sendQuery = function(iq, onreply, to) {
   iq.attr('from', this._connection.jid.toString());
   iq.attr('to', to);
   iq.attr('id', queryId);
+  console.log("OUT xmpp: " + iq);
+  this._connection.send(iq);
+};
+
+Session.prototype.sendMAMQuery = function(iq, onreply) {
+  var queryId = this._mamHandlers.generateKey();
+  this._mamHandlers.put(queryId, onreply);
+  
+  iq = iq.root();
+  query = iq.getChild('query', mam.ns);
+  query.attr('queryid', queryId);
+  
+  iq.attr('from', this._connection.jid.toString());
+  iq.attr('to', config.channelDomain);
   console.log("OUT xmpp: " + iq);
   this._connection.send(iq);
 };
