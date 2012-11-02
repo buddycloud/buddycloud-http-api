@@ -38,6 +38,11 @@ exports.setup = function(app) {
 
 //// GET /sync /////////////////////////////////////////////////////////////
 function getArchivedMessages(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var params = url.parse(req.url, true).query;
   var start = params.since;
   var max = params.max;
