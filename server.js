@@ -47,9 +47,9 @@ function crossOriginAllower(req, res, next) {
   res.header('Access-Control-Allow-Headers',
              'Authorization, Content-Type, X-Requested-With, X-Session-Id');
   res.header('Access-Control-Expose-Headers', 'Location, X-Session-Id');
-  res.header('Access-Control-Max-Age', 86400);
 
   if (req.method == 'OPTIONS') {
+    res.header('Access-Control-Max-Age', 86400);
     res.send(200);
   } else {
     next();
