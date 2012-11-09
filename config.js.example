@@ -1,21 +1,48 @@
-// buddycloud-http-api-server config file
- 
-// This port should match your web server reverse proxy setting
+// buddycloud-http-api-server config
+// rename to config.js
+
+// API requests look like:
+//
+//   [webclient (https/443)]-->[webserver reverse proxy]-->-->-\
+//                                                              |
+//   /---<---<--(unencrypted http traffic on port 9123)<---<---/
+//  |
+//   \--->--->--[buddycloud-http-api-server (http/9123)]-->-->-\
+//                                                              |
+//   /---<---<--(unencrypted xmpp traffic on port 5222)<---<---/
+//  |
+//   \--->--->--[XMPP server (xmpp/5222)]--->--->[other buddycloud components]
+
+
 exports._ = {
+  // This is the port that your webserver's reverse proxy will forward requests to
   port: 9123,
 };
- 
+
 // Production settings
 exports.production = {
+  // Moar logs?
   debug: true,
+
+  // the domain your run buddycloud for (if your username is name@example.com then this would be example.com)
   xmppDomain: 'example.com',
+
+  // the anonymous domain that unauthenticated users are dropped into (should match your XMPP server)
   xmppAnonymousDomain: 'anon.example.com',
+
+  // your buddycloud channel server
   channelDomain: 'buddycloud.example.com',
+
+  // the pusher component sends emails to users (https://github.com/buddycloud/buddycloud-pusher)
   pusherComponent: 'pusher.example.com',
+
   // you probably want to use the buddycloud search service
   searchComponent: 'search.buddycloud.com',
+
+  // where to forward media requests
   homeMediaRoot: 'http://localhost:60080',
-  // if using Fanout.io's API CDN, edit below
+
+  // if using Fanout.io's API CDN
   fanoutRealm: 'example.com',
   fanoutKey: 'your-secret-key'
 };
