@@ -61,6 +61,7 @@ function registerAccount(req, res) {
   });
   
   client.on('error', function(err) {
+    //TODO: Should rollback in case the registration failed at some point
     console.log(err);
     res.send(503);
   });
