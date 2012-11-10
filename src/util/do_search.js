@@ -68,6 +68,18 @@ exports.recommend = function(userJid, max, index) {
   return queryNode.root();
 };
 
+exports.appendRSM = function(queryNode, max, index) {
+  if (max || index) {
+    var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
+    if (max) {
+      rsm.c('max').t(max);
+    }
+    if (index) {
+      rsm.c('index').t(index);
+    }
+  }
+};
+
 exports.search = function(type, q, max, index) {
   var ns = null;
   if (type == 'metadata') {

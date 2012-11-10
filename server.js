@@ -70,7 +70,8 @@ function setupResourceHandlers(app) {
     require('./src/subscriptions'),
     require('./src/recommendations'),
     require('./src/most_active'),
-    require('./src/sync')
+    require('./src/sync'),
+    require('./src/similar')
   ];
   handlers.forEach(function(h) { h.setup(app); });
 }
