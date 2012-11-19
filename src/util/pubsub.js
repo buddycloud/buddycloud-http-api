@@ -163,6 +163,33 @@ exports.configureIq = function(nodeId, fields) {
   return form.root();
 };
 
+/**
+ * Creates a Pub-Sub <create/> IQ which creates a node
+ */
+exports.createNodeIq = function(nodeId) {
+  var pubsubIq = iq({type: 'set'}, exports.ns);
+  pubsubIq.c('create', {node: nodeId});
+  
+  var form = pubsubIq.c('configure', {node: nodeId}).
+    c('x', {xmlns: 'jabber:x:data', type: 'submit'});
+    
+  addFormField(form, 'FORM_TYPE', 'hidden',
+               'http://jabber.org/protocol/pubsub#node_config');
+  addFormField(form, 'buddycloud#default_affiliation', 'text-single',
+               'publisher');
+  
+  return pubsubIq.root();
+};
+
+/**
+ * Creates a Pub-Sub <create/> IQ which deletes a node
+ */
+exports.deleteNodeIq = function(nodeId) {
+  var deleteIq = iq({type: 'set'}, exports.ownerNS).
+    c('delete', {node: nodeId});
+  return deleteIq.root();
+};
+
 function addFormField(form, name, type, value) {
   form.c('field', {'var': name, 'type': type}).c('value').t(value);
 }
