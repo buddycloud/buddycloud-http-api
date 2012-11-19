@@ -119,6 +119,7 @@ function pubsubFieldName(field) {
   case 'title':        return 'pubsub#title';
   case 'description':  return 'pubsub#description';
   case 'access_model': return 'pubsub#access_model';
+  case 'default_affiliation': return 'buddycloud#default_affiliation';
   default:             return null;
   }
 }
