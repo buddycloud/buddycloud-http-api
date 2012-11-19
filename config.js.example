@@ -37,7 +37,7 @@ exports.production = {
   pusherComponent: 'pusher.example.com',
 
   // you probably want to use the buddycloud search service
-  searchComponent: 'search.buddycloud.com',
+  searchComponent: 'search.buddycloud.org',
 
   // where to forward media requests
   homeMediaRoot: 'http://localhost:60080',
