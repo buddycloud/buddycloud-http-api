@@ -169,7 +169,11 @@ exports.postsToJSON = function(reply) {
 
 exports.rsmToJSON = function(reply) {
   var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
-  var index = rsmSet.get('set:first', {set: rsmNs}).attr('index').value();
+  var firstNode = rsmSet.get('set:first', {set: rsmNs}); 
+  var index = 0;
+  if (firstNode) {
+    index = firstNode.attr('index').value();
+  }  
   var count = rsmSet.get('set:count', {set: rsmNs}).text();
   return {index: index, count: count};
 }
