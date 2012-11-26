@@ -13,7 +13,7 @@
 //              ↓
 //   (unencrypted xmpp traffic on port 5222)
 //              ↓
-//   [XMPP server (xmpp/5222)] → → → [other buddycloud components or XMPP servers]
+//   [XMPP server (xmpp/5222)] → [other buddycloud components or XMPP servers]
 
 
 exports._ = {
