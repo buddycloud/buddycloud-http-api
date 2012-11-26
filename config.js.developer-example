@@ -8,12 +8,12 @@ exports._ = {
 
 // Production settings (used by default)
 exports.production = {
-  xmppDomain: 'buddycloud.org',
-  xmppAnonymousDomain: 'anon.buddycloud.org',
-  channelDomain: 'channels.buddycloud.org',
-  pusherComponent: 'pusher.buddycloud.org',
+  xmppDomain: 'example.com',
+  xmppAnonymousDomain: 'anon.example.com',
+  channelDomain: 'channels.example.com',
+  pusherComponent: 'pusher.example.com',
   searchComponent: 'search.buddycloud.org',
-  homeMediaRoot: 'https://api.buddycloud.org/media'
+  homeMediaRoot: 'https://api.example.com/media'
 };
 
 // Development settings (useful for local debugging)
