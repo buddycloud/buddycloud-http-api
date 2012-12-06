@@ -47,12 +47,6 @@ exports.sendQuery = function(req, res, iq, callback) {
   }, config.channelDomain);
 };
 
-exports.sendMAMQuery = function(req, res, iq, callback) {
-  req.session.sendMAMQuery(iq, function(reply) {
-    checkError(reply, req, res, iq, callback);
-  });
-};
-
 exports.sendQueryToSearch = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
