@@ -20,7 +20,8 @@
 var config = require('./util/config');
 var session = require('./util/session');
 var api = require('./util/api');
-var mam = require('./util/mam');
+var recent = require('./util/recent');
+var pubsub = require('./util/pubsub');
 var url = require('url');
 var crypto = require('crypto');
 
@@ -33,37 +34,51 @@ var xml = require('libxmljs');
 exports.setup = function(app) {
   app.get('/sync',
            session.provider,
-           getArchivedMessages);
+           getRecentItems);
 };
 
 //// GET /sync /////////////////////////////////////////////////////////////
-function getArchivedMessages(req, res) {
+function getRecentItems(req, res) {
   if (!req.user) {
     api.sendUnauthorized(res);
     return;
   }
   
   var params = url.parse(req.url, true).query;
-  var start = params.since;
+  var since = params.since;
   var max = params.max;
   
-  requestArchivedMessages(req, res, start, max, function(reply) {
-    res.contentType('json');
-    res.send(mam.toJSON(reply, max));
-  });
+  var jsonResponse = {};
+  
+  var callback = function(reply) {
+    var rsm = recent.rsmToJSON(reply);
+    recent.toJSON(reply, jsonResponse);
+    if (rsm.last) {
+      requestRecentItems(req, res, since, max, callback, rsm.last);
+    } else {
+      res.contentType('json');
+      res.send(jsonResponse);
+    } 
+  }
+  
+  requestRecentItems(req, res, since, max, callback);
 }
 
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
+  return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns});
 }
 
-function createMAMQuery(start) {
-  var queryNode = iq({type: 'get'}, mam.ns);
-  queryNode.c('start').t(start);
-  return queryNode.root();
+function createRecentItemsIQ(since, max, after) {
+  var pubsubNode = iq({type: 'get'}, pubsub.ns);
+  pubsubNode.c('recent-items', {xmlns: 'http://buddycloud.org/v1', since: since, max: max});
+  if (after) {
+    var rsm = pubsubNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
+    rsm.c('after').t(after);
+  }
+  return pubsubNode.root();
 }
 
-function requestArchivedMessages(req, res, start, max, callback) {
-  var searchIq = createMAMQuery(start);
-  api.sendMAMQuery(req, res, searchIq, callback);
+function requestRecentItems(req, res, since, max, callback, after) {
+  var searchIq = createRecentItemsIQ(since, max, after);
+  api.sendQuery(req, res, searchIq, callback);
 }
