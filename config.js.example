@@ -3,15 +3,17 @@
 
 // API requests look like:
 //
-//   [webclient (https/443)]-->[webserver reverse proxy]-->-->-\
-//                                                              |
-//   /---<---<--(unencrypted http traffic on port 9123)<---<---/
-//  |
-//   \--->--->--[buddycloud-http-api-server (http/9123)]-->-->-\
-//                                                              |
-//   /---<---<--(unencrypted xmpp traffic on port 5222)<---<---/
-//  |
-//   \--->--->--[XMPP server (xmpp/5222)]--->--->[other buddycloud components]
+//   [webclient (https/443)]
+//              ↓
+//   [webserver reverse proxy]
+//              ↓
+//   (unencrypted http traffic on port 9123)
+//              ↓
+//   [buddycloud-http-api-server (http/9123)]
+//              ↓
+//   (unencrypted xmpp traffic on port 5222)
+//              ↓
+//   [XMPP server (xmpp/5222)] → [other buddycloud components or XMPP servers]
 
 
 exports._ = {

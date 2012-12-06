@@ -269,7 +269,6 @@ Session.prototype.onStanza = function(handler) {
 
 Session.prototype.sendPresenceOnline = function() {
   if (this._presenceCount == 0) {
-    this._sendPresence(undefined);
     this._sendPresence(undefined, config.channelDomain);
   } else {
     this._presenceCount++;
@@ -278,7 +277,6 @@ Session.prototype.sendPresenceOnline = function() {
 
 Session.prototype.sendPresenceOffline = function() {
   if (this._presenceCount > 0) {
-    this._sendPresence('unavailable');
     this._sendPresence('unavailable', config.channelDomain);
     this._presenceCount--;
   }
