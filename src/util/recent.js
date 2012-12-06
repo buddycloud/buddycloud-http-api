@@ -46,12 +46,10 @@ exports.rsmToJSON = function(reply) {
   var rsm = {};
   
   var firstNode = rsmSet.get('set:first', {set: rsmNs});
-  var first = '';
   if (firstNode) {
     rsm['first'] = firstNode.text();
   }
   var lastNode = rsmSet.get('set:last', {set: rsmNs});
-  var last = '';
   if (lastNode) {
     rsm['last'] = lastNode.text();
   }
