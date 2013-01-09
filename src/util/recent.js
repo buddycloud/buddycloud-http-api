@@ -20,7 +20,7 @@ var xml = require('libxmljs');
 
 var rsmNs = 'http://jabber.org/protocol/rsm';
 
-exports.toJSON = function(reply, json) {
+exports.toJSON = function(reply, json, counters) {
   var items = xml.parseXmlString(reply.toString()).find('/iq/p:pubsub/p:items', {
     p: pubsub.ns
   });
@@ -33,9 +33,17 @@ exports.toJSON = function(reply, json) {
       for (var i = 0; i < entries.length; i++) { 
         var entry = entries[i];
         if (!json[node]) {
-          json[node] = [];
+          if (counters) {
+            json[node] = 0;
+          } else {
+            json[node] = [];
+          }
         }
-        json[node].push(atom.toJSON(entry));
+        if (counters) {
+          json[node] += 1;
+        } else {
+          json[node].push(atom.toJSON(entry));
+        }
       }
   });
   return json;
