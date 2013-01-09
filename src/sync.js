@@ -47,12 +47,13 @@ function getRecentItems(req, res) {
   var params = url.parse(req.url, true).query;
   var since = params.since;
   var max = params.max;
+  var counters = params.counters && params.counters == 'true';
   
   var jsonResponse = {};
   
   var callback = function(reply) {
     var rsm = recent.rsmToJSON(reply);
-    recent.toJSON(reply, jsonResponse);
+    recent.toJSON(reply, jsonResponse, counters);
     if (rsm.last) {
       requestRecentItems(req, res, since, max, callback, rsm.last);
     } else {
