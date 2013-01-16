@@ -141,19 +141,17 @@ function generateNodeFeed(channel, node, reply) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var queryURI = pubsub.queryURI(reply.attr('from'), 'retrieve', nodeId);
   feed.root().node('id', queryURI);
-
-  var replydoc = xml.parseXmlString(reply.toString());
+  var replydoc = xml.parseXmlString(reply.toString().replace('xmlns="jabber:client"', ''));
   var updated = atom.get(replydoc, '//atom:entry[1]/atom:updated');
   if (updated) {
     feed.root().node('updated', updated.text());
   }
-
   populateNodeFeed(feed, replydoc);
   return feed;
 }
 
 function getLatestEntry(reply) {
-  var replydoc = xml.parseXmlString(reply.toString());
+  var replydoc = xml.parseXmlString(reply.toString().replace('xmlns="jabber:client"', ''));
   var entries = replydoc.find('/iq/p:pubsub/p:items/p:item/a:entry', {
     p: pubsub.ns,
     a: atom.ns
