@@ -63,6 +63,7 @@ function checkError(reply, req, res, iq, callback) {
 	if (reply.type == 'error') {
 		reportXmppError(req, res, reply);
 	} else {
+delete reply.attrs.xmlns;
 		callback(reply);
 	}
 }
