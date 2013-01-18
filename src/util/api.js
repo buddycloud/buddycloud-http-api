@@ -60,7 +60,7 @@ exports.sendQueryToPusher = function(req, res, iq, callback) {
 };
 
 function checkError(reply, req, res, iq, callback) {
-	if (reply.type == 'error') {i
+	if (reply.type == 'error') {
 		reportXmppError(req, res, reply);
 	} else {
                 delete reply.attrs.xmlns;
