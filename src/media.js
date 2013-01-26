@@ -100,8 +100,9 @@ function forwardRequest(req, res, mediaUrl) {
     path: mediaUrl.path,
     headers: req.headers,
   }, function(mediaRes) {
-    res.statusCode = mediaRes.statusCode;
-    res.headers = mediaRes.headers;
+    res.writeHead(mediaRes.statusCode,
+      mediaRes.headers);
+
     mediaRes.on('data', function(data) {
       res.write(data);
     });

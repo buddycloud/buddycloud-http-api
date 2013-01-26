@@ -16,33 +16,53 @@
 
 var pubsub = require('./pubsub');
 var atom = require('./atom');
- 
-/** The XMPP MAM XML namespaces. */
-exports.ns = 'urn:xmpp:mam:tmp';
+var xml = require('libxmljs');
 
-exports.toJSON = function(reply, max) {
-  var items = reply.find('/message/fwdns:forwarded/fwdns:message/p:event/p:items', {
-    fwdns: 'urn:xmpp:forward:0',
-    p: pubsub.ns + '#event',
-    a: atom.ns
+var rsmNs = 'http://jabber.org/protocol/rsm';
+
+exports.toJSON = function(reply, json, counters) {
+  var items = xml.parseXmlString(reply.toString()).find('/iq/p:pubsub/p:items', {
+    p: pubsub.ns
   });
-  var json = {};
   items.forEach(function(e) {
       var node = e.attr('node').value();
       entries = e.find('p:item/a:entry', {
-        p: pubsub.ns + '#event',
+        p: pubsub.ns,
         a: atom.ns
       });
       for (var i = 0; i < entries.length; i++) { 
         var entry = entries[i];
         if (!json[node]) {
-          json[node] = [];
+          if (counters) {
+            json[node] = 0;
+          } else {
+            json[node] = [];
+          }
         }
-        if (json[node].length >= max) {
-          break;
+        if (counters) {
+          json[node] += 1;
+        } else {
+          json[node].push(atom.toJSON(entry));
         }
-        json[node].push(atom.toJSON(entry));
       }
   });
   return json;
 };
+
+exports.rsmToJSON = function(reply) {
+  var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
+  var rsm = {};
+  
+  var firstNode = rsmSet.get('set:first', {set: rsmNs});
+  if (firstNode) {
+    rsm['first'] = firstNode.text();
+  }
+  var lastNode = rsmSet.get('set:last', {set: rsmNs});
+  if (lastNode) {
+    rsm['last'] = lastNode.text();
+  }
+  
+  var count = rsmSet.get('set:count', {set: rsmNs}).text();
+  rsm['count'] = count;
+  return rsm;
+}
