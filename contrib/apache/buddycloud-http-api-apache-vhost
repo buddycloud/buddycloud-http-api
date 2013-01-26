@@ -1,0 +1,29 @@
+<VirtualHost *:80>
+        # push any non-secure requests to HTTPS
+        ServerName  api.EXAMPLE.COM
+        RewriteEngine On
+        RewriteCond %{HTTPS} off
+        RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+</VirtualHost>
+ 
+<VirtualHost *:443>
+        ServerName  api.EXAMPLE.COM
+        SSLEngine On
+        SSLCipherSuite          HIGH:MEDIUM
+        SSLProtocol             -ALL +SSLv3 +TLSv1
+        SSLCertificateFile      /etc/apache2/certs/api.EXAMPLE.COM.pem 
+        SSLCertificateKeyFile   /etc/apache2/certs/api.EXAMPLE.COM.pem
+        SSLCertificateChainFile /etc/apache2/certs/sub.class1.server.ca.pem
+        SSLCACertificateFile    /etc/apache2/certs/ca.pem
+ 
+        LogLevel alert
+        ErrorLog  /var/log/apache2/api.EXAMPLE.COM-error.log
+        CustomLog /var/log/apache2/api.EXAMPLE.COM-access.log combined
+        <Proxy *>
+                Order deny,allow
+                Allow from all
+        </Proxy>
+        RewriteEngine On
+        ProxyPass / http://localhost:9123/
+        ProxyPassReverse / http://localhost:9123/
+</VirtualHost>
