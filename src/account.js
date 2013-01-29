@@ -19,6 +19,7 @@
 
 var config = require('./util/config');
 var pusher = require('./util/pusher');
+var friendFinder = require('./util/friendfinder');
 var connect = require('connect');
 var xmpp = require('node-xmpp');
 var crypto = require('crypto');
@@ -53,15 +54,16 @@ function registerAccount(req, res) {
   client.on('online', function() {
     registerOnChannelServer(client, function() {
       if (config.pusherComponent) {
-        registerOnPusher(client, email, res);
-      } else {
-        registrationSucessful(client, res);
+        registerOnPusher(client, email);
       }
+      if (config.friendFinderComponent) {
+        registerOnFriendFinder(client, email);
+      }
+      registrationSucessful(client, res);
     });
   });
   
   client.on('error', function(err) {
-    //TODO: Should rollback in case the registration failed at some point
     console.log(err);
     res.send(503);
   });
@@ -79,11 +81,14 @@ function registerOnChannelServer(client, callback) {
   });
 }
 
-function registerOnPusher(client, email, res) {
+function registerOnPusher(client, email) {
   var signupIq = pusher.signup(client.jid.toString(), email);
-  sendRegisterIq(client, signupIq, config.pusherComponent, function() {
-    registrationSucessful(client, res);
-  });
+  sendRegisterIq(client, signupIq, config.pusherComponent);
+}
+
+function registerOnFriendFinder(client, email) {
+  var signupIq = friendFinder.signup(client.jid.toString(), email);
+  sendRegisterIq(client, signupIq, config.friendFinderComponent);
 }
 
 function registrationSucessful(client, res) {
@@ -100,7 +105,7 @@ function sendRegisterIq(client, registerIq, to, callback) {
   
   console.log("OUT xmpp: " + iq);
   client.on('stanza', function(stanza) {
-    if (stanza.attrs.id == iqId) {
+    if (callback && stanza.attrs.id == iqId) {
       callback();
     }
   });
