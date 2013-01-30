@@ -1,4 +1,14 @@
 #!/bin/bash
+### BEGIN INIT INFO
+# Provides:          buddycloud-http-api
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      1
+# Short-Description: buddycloud-http-api
+# Description:       This script starts, stops and restarts the buddycloud http api.
+### END INIT INFO
+
 #
 # wrapper script to start buddycloud-http-api
 # usage: buddycloud-http-api.init.centos start|stop|restart|status
