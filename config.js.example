@@ -38,6 +38,9 @@ exports.production = {
   // the pusher component sends emails to users (https://github.com/buddycloud/buddycloud-pusher)
   pusherComponent: 'pusher.example.com',
 
+  // the friend finder component looks for your friends from other social networks on buddycloud
+  friendFinderComponent: 'friendfinder.example.com',
+
   // you probably want to use the buddycloud search service
   searchComponent: 'search.buddycloud.org',
 

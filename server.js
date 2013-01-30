@@ -72,6 +72,7 @@ function setupResourceHandlers(app) {
     require('./src/most_active'),
     require('./src/sync'),
     require('./src/similar'),
+    require('./src/contact_matching'),
     require('./src/topic_channel')
   ];
   handlers.forEach(function(h) { h.setup(app); });

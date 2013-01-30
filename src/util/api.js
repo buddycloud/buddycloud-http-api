@@ -59,6 +59,12 @@ exports.sendQueryToPusher = function(req, res, iq, callback) {
   }, config.pusherComponent);
 };
 
+exports.sendQueryToFriendFinder = function(req, res, iq, callback) {
+  req.session.sendQuery(iq, function(reply) {
+    checkError(reply, req, res, iq, callback);
+  }, config.friendFinderComponent);
+};
+
 function checkError(reply, req, res, iq, callback) {
 	if (reply.type == 'error') {
 		reportXmppError(req, res, reply);
