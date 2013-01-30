@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          buddycloud-http-api
 # Required-Start:    $remote_fs $syslog
@@ -6,90 +6,167 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      1
 # Short-Description: buddycloud-http-api
-# Description:       This script starts, stops and restarts the buddycloud http api.
+# Description:       This script starts, stops and restarts the buddycloud http api
 ### END INIT INFO
 
+# Author: Simon Tennant <simon@buddycloud.com>
 #
-# wrapper script to start buddycloud-http-api
-# usage: buddycloud-http-api.init.centos start|stop|restart|status
+# Please remove the "Author" lines above and replace them
+# with your own name if you copy and modify this script.
+
+# Do NOT "set -e"
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+DESC="buddycloud http api"
+NAME=buddycloud
+RUN_AS_USER=buddycloud
+RUNDIR=/usr/share/buddycloud-http-api
+DAEMON=`which node`
+DAEMON_ARGS="server.js"
+PIDDIR=/var/run/buddycloud-http-api
+PIDFILE="$PIDDIR/$NAME.pid"
+SCRIPTNAME=/etc/init.d/$NAME
+LOGDIR=/var/log
+LOGFILE="$LOGDIR/buddycloud-http-api.log"
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 1
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.2-14) to ensure that this file is present
+# and status_of_proc is working.
+. /lib/lsb/init-functions
+
 #
-# This file should work as an old style init script for the
-# buddycloud http api if you copy it to /etc/init.d. (But
-# has not been tested this way).
-# You can also use it for starting the server manually in
-# the background as above.
-# To install, copy it to a suitable location (possibly with
-# a shorter name), and set the variable declarations below
-# to something sensible for your system.
-# It has been tested under CentOS 5, but should work OK in other linux
-# distros.
+# Function that starts the daemon/service
+#
+do_start()
+{
+    # Return
+    #   0 if daemon has been started
+    #   1 if daemon was already running
+    #   2 if daemon could not be started
 
-PREFIX=/opt
-PROG_NAME=buddycloud-http-api
-PROG_DIR=$PREFIX/$PROG_NAME
-PID_PATH=/var/run/${PROG_NAME}.pid
-LOG_FILE=/var/log/${PROG_NAME}.log
-PROG_OPTS=""
-PROG='buddycloud HTTP API'
-
-export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
-export PATH=$PREFIX/bin/:$PATH
-
-start() {
-    # Check that networking is up. 
-    # (This line will only work in CentOS / RedHat / Fedora
-    # based distros but should have no effect otherwise).
-    # The rest is pretty generic.
-    [ "$NETWORKING" = "no" ] && exit 1
-	
-    echo -n "Starting $PROG: "
-    cd $PROG_DIR
-	nohup node server.js $PROG_OPTS < /dev/null >$LOG_FILE 2>&1 &
-	RETVAL=$?
-	echo $! > $PID_PATH
-	return $RETVAL
-}
-	
-stop() {
-    echo -n "Shutting down $PROG: "
-	kill `cat $PID_PATH`
-	RETVAL=$?
-	return $RETVAL
-}
-
-# See how we were called.
-case "$1" in
-    start)
-	    start
-        ;;
-    stop)
-	    stop
-        ;;
-    status)
-        echo -n "Status for $PROG: "
-        if ps `cat $PID_PATH` > /dev/null 2>&1 ; then
-            echo "RUNNING"
-        else
-            echo "STOPPED"
+    for dir in "$PIDDIR" "$LOGDIR"; do
+        if [ ! -d $dir ]; then
+            mkdir -p "$dir" || return 2
+            chown "$RUN_AS_USER": "$dir" || return 2
+            chmod 755 "$dir" || return 2
         fi
-        RETVAL=-1
+    done
+
+    start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --chuid $RUN_AS_USER --test > /dev/null \
+        || return 1
+    start-stop-daemon --start --background --pidfile $PIDFILE --chdir $RUNDIR --chuid $RUN_AS_USER --exec $DAEMON -- \
+        $DAEMON_ARGS \
+        || return 2
+    # Add code here, if necessary, that waits for the process to be ready
+    # to handle requests from services started subsequently which depend
+    # on this one.  As a last resort, sleep for some time.
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+    start-stop-daemon --stop --quiet --retry=TERM/5/KILL/5 --pidfile $PIDFILE --name $NAME
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
+    # Wait for children to finish too if this is a daemon that forks
+    # and if the daemon is only ever run from this initscript.
+    # If the above conditions are not satisfied then add some other code
+    # that waits for the process to drop all resources that could be
+    # needed by services started subsequently.  A last resort is to
+    # sleep for some time.
+    start-stop-daemon --stop --quiet --oknodo --retry=0/5/KILL/5 --exec $DAEMON
+    [ "$?" = 2 ] && return 2
+    # Many daemons don't delete their pidfiles when they exit.
+    rm -f $PIDFILE
+    return "$RETVAL"
+}
+
+#
+# Function that sends a SIGHUP to the daemon/service
+#
+do_reload() {
+    #
+    # If the daemon can reload its configuration without
+    # restarting (for example, when it is sent a SIGHUP),
+    # then implement that here.
+    #
+    start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
+    return 0
+}
+
+case "$1" in
+  start)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+    do_start
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+    esac
+    ;;
+  stop)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+    do_stop
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+    esac
+    ;;
+  status)
+       status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+       ;;
+  #reload|force-reload)
+    #
+    # If do_reload() is not implemented then leave this commented out
+    # and leave 'force-reload' as an alias for 'restart'.
+    #
+    #log_daemon_msg "Reloading $DESC" "$NAME"
+    #do_reload
+    #log_end_msg $?
+    #;;
+  restart|force-reload)
+    #
+    # If the "reload" option is implemented then remove the
+    # 'force-reload' alias
+    #
+    log_daemon_msg "Restarting $DESC" "$NAME"
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+            0) log_end_msg 0 ;;
+            1) log_end_msg 1 ;; # Old process is still running
+            *) log_end_msg 1 ;; # Failed to start
+        esac
         ;;
-    restart|reload)
-	    stop
-	    start
-	    RETVAL=$?
-	    ;;
-    *)
-        echo $"Usage: $0 {start|stop|restart|status}"
-        RETVAL=-1
+      *)
+        # Failed to stop
+        log_end_msg 1
+        ;;
+    esac
+    ;;
+  *)
+    #echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+    echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+    exit 3
+    ;;
 esac
 
-if [ "$RETVAL" != "-1" ]; then
-    if [ "$RETVAL" == "0" ] ; then 
-        echo OK
-    else
-        echo FAILED
-    fi
-    exit $RETVAL
-fi
-exit 0
+:
