@@ -27,8 +27,8 @@
 PREFIX=/opt
 PROG_NAME=buddycloud-http-api
 PROG_DIR=$PREFIX/$PROG_NAME
-PID_PATH=$PREFIX/var/run/${PROG_NAME}.pid
-LOG_FILE=$PREFIX/var/log/${PROG_NAME}.log
+PID_PATH=/var/run/${PROG_NAME}.pid
+LOG_FILE=/var/log/${PROG_NAME}.log
 PROG_OPTS=""
 PROG='buddycloud HTTP API'
 
