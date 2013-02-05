@@ -31,7 +31,27 @@ exports.setup = function(app) {
   app.get('/:channel/content/:node/:item',
           session.provider,
           getNodeItem);
+  app.delete('/:channel/content/:node/:item',
+           session.provider,
+           deleteNodeItem);
 };
+
+//// DELETE /<channel>/content/<node>/<id> ////////////////////////////////////////
+
+function deleteNodeItem(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
+  var channel = req.params.channel;
+  var node = req.params.node;
+  var itemId = req.params.item;
+
+  retractNodeItem(req, res, channel, node, itemId, function(reply) {
+    res.send(204);
+  });
+}
 
 //// GET /<channel>/content/<node>/<id> ////////////////////////////////////////
 
@@ -49,6 +69,12 @@ function getNodeItem(req, res) {
       api.sendAtomResponse(req, res, entry);
     }
   });
+}
+
+function retractNodeItem(req, res, channel, node, item, callback) {
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var iq = pubsub.singleItemRetractIq(nodeId, item);
+  api.sendQuery(req, res, iq, callback);
 }
 
 function requestNodeItem(req, res, channel, node, item, callback) {

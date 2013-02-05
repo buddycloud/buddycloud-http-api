@@ -91,6 +91,15 @@ exports.singleItemIq = function(nodeId, itemId) {
 };
 
 /**
+ * Creates a Pub-Sub <items/> IQ that retracts a single item from a node.
+ */
+exports.singleItemRetractIq = function(nodeId, itemId) {
+  var retractNode = iq({type: 'set'}).c('retract', {node: nodeId, notify: '1'});
+  var itemNode = retractNode.c('item', {id: itemId});
+  return itemNode.root();
+};
+
+/**
  * Creates a Pub-Sub <publish/> IQ, which posts an item to a node.
  */
 exports.publishIq = function(nodeId, item) {
