@@ -31,7 +31,7 @@ var atom = require('./atom');
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
 sessionCache.onexpired = function(_, session) {
-  console.log("Session expired. Id: " + session.id + ", Jid: " + session.jid);
+  console.log("Session expired. Jid: " + session.jid);
   session.end();
 };
 
@@ -41,32 +41,22 @@ sessionCache.onexpired = function(_, session) {
  * It is assumed to run afer auth.parser().
  */
 exports.provider = function(req, res, next) {
-  var sessionId = req.header('X-Session-Id');
-  if (sessionId) {
-    processSessionId(sessionId, req, res, next);
-  } else if (req.user) {
-    createSession(req, res, next);
+  if (req.credentials) {
+    var session = sessionCache.get(req.credentials);
+    if (session) {
+      provideSession(session, req, res, next);
+    } else {
+      createSession(req, res, next);
+    }
   } else {
     useAnonymousSession(req, res, next);
   }
 };
 
-function processSessionId(sessionId, req, res, next) {
-  var session = sessionCache.get(sessionId);
-  if (session) {
-    provideSession(session, req, res, next);
-  } else if (req.user) {
-    createSession(req, res, next);
-  } else {
-    api.sendUnauthorized(res);
-  }
-}
-
 function provideSession(session, req, res, next) {
   req.session = session;
   if (session.id) {
     sessionCache.put(session.id, session);
-    res.header('X-Session-Id', session.id);
   }
   next();
 }
@@ -76,11 +66,10 @@ function createSession(req, res, next) {
   var client = new xmpp.Client(options);
   console.log("Creating connection for jid: " + options.jid);
   var session;
-
+  
   client.on('online', function() {
-    var sessionId = req.user ? sessionCache.generateKey() : null;
-    session = new Session(sessionId, client);
-    console.log("Session created. Id: " + session.id + ", Jid: " + session.jid);
+    session = new Session(req.credentials, client);
+    console.log("Session created for jid: " + session.jid);
     provideSession(session, req, res, next);
   });
 
@@ -88,6 +77,7 @@ function createSession(req, res, next) {
     // FIXME: Checking the error type bassed on the error message
     // is fragile, but this is the only information that node-xmpp
     // gives us.
+    console.log(err);
     if (err == 'XMPP authentication failure') {
       api.sendUnauthorized(res);
     } else {
