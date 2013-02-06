@@ -47,6 +47,7 @@ function registerAccount(req, res) {
 
   var client = new xmpp.Client({
     jid: [username, '@', config.xmppDomain].join(''),
+    host: config.xmppHost,
     password: password,
     register: true
   });
