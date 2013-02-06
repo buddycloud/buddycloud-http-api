@@ -45,8 +45,12 @@ function registerAccount(req, res) {
     return;
   }
 
+  if (username.indexOf("@") == -1) {
+    username = [username, '@', config.xmppDomain].join('');
+  }
+
   var client = new xmpp.Client({
-    jid: [username, '@', config.xmppDomain].join(''),
+    jid: username,
     host: config.xmppHost,
     password: password,
     register: true
