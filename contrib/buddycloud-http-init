@@ -27,7 +27,7 @@ DAEMON_ARGS="server.js"
 PIDDIR=/var/run/buddycloud-http-api
 PIDFILE="$PIDDIR/$NAME.pid"
 SCRIPTNAME=/etc/init.d/$NAME
-LOGDIR=/var/log
+LOGDIR=/var/log/buddycloud-http-api
 LOGFILE="$LOGDIR/buddycloud-http-api.log"
 
 # Exit if the package is not installed
@@ -64,8 +64,8 @@ do_start()
 
     start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --chuid $RUN_AS_USER --test > /dev/null \
         || return 1
-    start-stop-daemon --start --background --pidfile $PIDFILE --chdir $RUNDIR --chuid $RUN_AS_USER --exec $DAEMON -- \
-        $DAEMON_ARGS \
+    start-stop-daemon --start --background --pidfile $PIDFILE --chdir $RUNDIR --chuid $RUN_AS_USER --exec /bin/bash -- \
+     -c "$DAEMON $DAEMON_ARGS > $LOGFILE 2>&1" \
         || return 2
     # Add code here, if necessary, that waits for the process to be ready
     # to handle requests from services started subsequently which depend
