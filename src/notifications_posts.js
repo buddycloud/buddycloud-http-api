@@ -62,7 +62,12 @@ function isPubSubItemMessage(stanza) {
 
 function extractItem(message) {
   message = xml.parseXmlString(message.toString());
-  var items = message.get('/message/p:event/p:items', {
+  messageEl = message.get('/message');
+  // Fix for tigase xmlns 
+  if (!messageEl) {
+    messageEl = message.get('/j:message', {j: 'jabber:client'})
+  }
+  var items = messageEl.get('p:event/p:items', {
     p: pubsub.eventNS
   });
   var entry = items.get('p:item/a:entry', {
