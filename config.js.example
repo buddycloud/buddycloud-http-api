@@ -30,7 +30,7 @@ exports.production = {
   xmppDomain: 'example.com',
 
   // Hostname (optional - if not provided SRV records will looked up and used)
-  // xmppHost: '1.2.3.4',
+  // xmppHost: '127.0.0.1',
  
   // the anonymous domain that unauthenticated users are dropped into (should match your XMPP server)
   xmppAnonymousDomain: 'anon.example.com',
