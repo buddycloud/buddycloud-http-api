@@ -19,8 +19,9 @@ var atom = require('./atom');
 var xml = require('libxmljs');
 
 var rsmNs = 'http://jabber.org/protocol/rsm';
+var CHANNEL_REGEX = '\\b([\\w\\d][\\w\\d-_%&<>.]+@[\\w\\d-]{3,}\\.[\\w\\d-]{2,}(?:\\.[\\w]{2,6})?)\\b';
 
-exports.toJSON = function(reply, json, counters) {
+exports.toJSON = function(reply, json, user, counters) {
   var items = xml.parseXmlString(reply.toString()).find('/iq/p:pubsub/p:items', {
     p: pubsub.ns
   });
@@ -30,19 +31,29 @@ exports.toJSON = function(reply, json, counters) {
         p: pubsub.ns,
         a: atom.ns
       });
-      for (var i = 0; i < entries.length; i++) { 
-        var entry = entries[i];
-        if (!json[node]) {
-          if (counters) {
-            json[node] = 0;
-          } else {
-            json[node] = [];
-          }
-        }
+      if (!json[node]) {
         if (counters) {
-          json[node] += 1;
+          json[node] = {mentionsCount: 0, totalCount: 0};
         } else {
-          json[node].push(atom.toJSON(entry));
+          json[node] = [];
+        }
+      }
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var jsonEntry = atom.toJSON(entry);
+        if (counters) {
+          var content = jsonEntry.content || '';
+          var matches = content.match(CHANNEL_REGEX) || [];
+          for (var j = 0; j < matches.length; j++) {
+            if (matches[j] === user) {
+              json[node].mentionsCount += 1;
+              break;
+            }
+          }
+
+          json[node].totalCount += 1;
+        } else {
+          json[node].push(jsonEntry);
         }
       }
   });
@@ -52,7 +63,7 @@ exports.toJSON = function(reply, json, counters) {
 exports.rsmToJSON = function(reply) {
   var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
   var rsm = {};
-  
+
   var firstNode = rsmSet.get('set:first', {set: rsmNs});
   if (firstNode) {
     rsm['first'] = firstNode.text();
@@ -61,7 +72,7 @@ exports.rsmToJSON = function(reply) {
   if (lastNode) {
     rsm['last'] = lastNode.text();
   }
-  
+
   var count = rsmSet.get('set:count', {set: rsmNs}).text();
   rsm['count'] = count;
   return rsm;

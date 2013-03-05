@@ -39,29 +39,30 @@ exports.setup = function(app) {
 
 //// GET /sync /////////////////////////////////////////////////////////////
 function getRecentItems(req, res) {
-  if (!req.user) {
+  var user = req.user;
+  if (!user) {
     api.sendUnauthorized(res);
     return;
   }
-  
+
   var params = url.parse(req.url, true).query;
   var since = params.since;
   var max = params.max;
   var counters = params.counters && params.counters == 'true';
-  
+
   var jsonResponse = {};
-  
+
   var callback = function(reply) {
     var rsm = recent.rsmToJSON(reply);
-    recent.toJSON(reply, jsonResponse, counters);
+    recent.toJSON(reply, jsonResponse, user, counters);
     if (rsm.last) {
       requestRecentItems(req, res, since, max, callback, rsm.last);
     } else {
       res.contentType('json');
       res.send(jsonResponse);
-    } 
+    }
   }
-  
+
   requestRecentItems(req, res, since, max, callback);
 }
 
