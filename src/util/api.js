@@ -24,6 +24,7 @@ var auth = require('./auth');
 var cache = require('./cache');
 var config = require('./config');
 var pubsub = require('./pubsub');
+var dns = require('./dns');
 
 /**
  * Sends a "401 Unauthorized" response with the correct "WWW-Authenticate"
@@ -188,9 +189,14 @@ function copyIntoBuffer(buffer, chunks) {
  * for the requested resource and stores its HTTP root in req.mediaRoot.
  */
 exports.mediaServerDiscoverer = function(req, res, next) {
-  // FIXME: This must be replaced with real discovery
-  req.mediaRoot = config.homeMediaRoot;
-  next();
+  dns.discoverAPI(req, function(mediaRoot) {
+    if (mediaRoot) {
+      req.mediaRoot = mediaRoot;
+    } else {
+      req.mediaRoot = config.homeMediaRoot;
+    }
+    next();
+  });
 };
 
 exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
