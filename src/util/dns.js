@@ -57,7 +57,6 @@ function discoverRemote(req, remoteDomain, callback) {
       if (firstAddress.port == 443) {
         protocol = HTTPS;
       }
-      console.log('Discovered: ' + protocol + firstAddress.name + MEDIA_PROXY_ENDPOINT);
       callback(protocol + firstAddress.name + MEDIA_PROXY_ENDPOINT);
     });
     
