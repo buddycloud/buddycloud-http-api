@@ -27,11 +27,11 @@ var config = require('./util/config');
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.post('/media_proxy',
+  app.post('/media_proxy/:channel',
            proxyToMediaServer);
-  app.get('/media_proxy',
+  app.get('/media_proxy/:channel/:id',
            proxyToMediaServer);
-  app.put('/media_proxy',
+  app.put('/media_proxy/:channel/:id',
            proxyToMediaServer);
 };
 
@@ -53,23 +53,20 @@ function forwardRequest(req, res) {
     path: originUrl.path,
     headers: req.headers,
   }, function(mediaRes) {
-    res.writeHead(mediaRes.statusCode,
-      mediaRes.headers);
-    mediaRes.on('data', function(data) {
-      res.write(data);
-    });
-    mediaRes.on('end', function(data) {
-      res.end();
-    });
-    mediaRes.on('close', function(data) {
-      res.send(500);
-    });
+      res.writeHead(mediaRes.statusCode, mediaRes.headers);
+      mediaRes.on('data', function(data) {
+        res.write(data);
+      });
+      mediaRes.on('end', function(data) {
+        res.end();
+      });
+      mediaRes.on('close', function(data) {
+        res.send(500);
+      });
   });
-
   mediaReq.on('error', function(err) {
     res.send(err, 500);
   });
-
   if (req.body) {
     mediaReq.write(req.body);
   }
