@@ -23,6 +23,8 @@ var https = require('https');
 var url = require('url');
 var config = require('./util/config');
 
+var PROXY_PREFIX = '/media_proxy';
+
 /**
  * Registers resource URL handlers.
  */
@@ -50,7 +52,7 @@ function forwardRequest(req, res) {
     host: destUrl.hostname,
     port: destUrl.port,
     method: req.method,
-    path: originUrl.path,
+    path: originUrl.path.slice(PROXY_PREFIX.length),
     headers: req.headers,
   }, function(mediaRes) {
       res.writeHead(mediaRes.statusCode, mediaRes.headers);
