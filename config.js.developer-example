@@ -12,7 +12,7 @@ exports.production = {
   xmppAnonymousDomain: 'anon.example.com',
   channelDomain: 'channels.example.com',
   pusherComponent: 'pusher.example.com',
-  friendFinderComponent: 'friendfinder.example.com'
+  friendFinderComponent: 'friendfinder.example.com',
   searchComponent: 'search.buddycloud.org',
   homeMediaRoot: 'https://api.example.com/media'
 };
