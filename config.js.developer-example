@@ -23,7 +23,7 @@ exports.development = {
   xmppHost: 'localhost',
   channelDomain: 'localhost',
   pusherComponent: 'pusher.localhost',
-  friendFinderComponent: 'friendfinder.localhost'
+  friendFinderComponent: 'friendfinder.localhost',
   searchComponent: 'search.localhost',
   xmppPort: '5222',
 };
