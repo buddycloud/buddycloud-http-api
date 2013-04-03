@@ -1,5 +1,5 @@
 node_modules/
 config.js
-
-
+.project
+.settings
 .DS_Store
