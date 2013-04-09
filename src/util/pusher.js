@@ -21,6 +21,7 @@ var xmpp = require('node-xmpp');
 var xml = require('libxmljs');
 var signupNs = 'http://buddycloud.com/pusher/signup';
 var settingsNs = "http://buddycloud.com/pusher/notification-settings";
+var metadataNs = "http://buddycloud.com/pusher/metadata";
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
@@ -34,14 +35,15 @@ exports.signup = function(username, email) {
   return queryNode.root();
 };
 
-exports.getSettings = function() {
+exports.getSettings = function(type) {
   var queryNode = iq({type: 'get'}, settingsNs);
+  queryNode.c('type').t(type);
   return queryNode.root();
 };
 
 exports.settingsToJSON = function(reply) {
   var settings = xml.parseXmlString(reply.toString()).get('//query:notificationSettings', {query: settingsNs});
-  var email = settings.get("query:email", {query: settingsNs});
+  var target = settings.get("query:target", {query: settingsNs});
   var postAfterMe = settings.get("query:postAfterMe", {query: settingsNs});
   var postMentionedMe = settings.get("query:postMentionedMe", {query: settingsNs});
   var postOnMyChannel = settings.get("query:postOnMyChannel", {query: settingsNs});
@@ -50,7 +52,7 @@ exports.settingsToJSON = function(reply) {
   var followRequest = settings.get("query:followRequest", {query: settingsNs});
   
   jsonItem = {
-    email : email ? email.text() : null,
+    target : target ? target.text() : null,
     postAfterMe : postAfterMe ? postAfterMe.text() : null,
     postMentionedMe : postMentionedMe ? postMentionedMe.text() : null,
     postOnMyChannel : postOnMyChannel ? postOnMyChannel.text() : null,
@@ -62,10 +64,31 @@ exports.settingsToJSON = function(reply) {
   return jsonItem;
 }
 
+exports.getMetadata = function(type) {
+  var queryNode = iq({type: 'get'}, metadataNs);
+  queryNode.c('type').t(type);
+  return queryNode.root();
+};
+
+exports.metadataToJSON = function(reply) {
+  var metadataXml = xml.parseXmlString(reply.toString()).get('//q:query', {q: metadataNs});
+  var allNodes = metadataXml.childNodes();
+  jsonItem = {};
+  
+  for (var i = 0; i < allNodes.length; i++) {
+    var prop = allNodes[i].name();
+    var value = allNodes[i].text();
+    jsonItem[prop] = value;
+  }
+  
+  return jsonItem;
+}
+
 exports.updateSettings = function(settings) {
   var queryNode = iq({type: 'set'}, settingsNs);
   var settingsNode = queryNode.c('notificationSettings');
-  setEl('email', settings.email, settingsNode);
+  setEl('type', settings.type, settingsNode);
+  setEl('target', settings.target, settingsNode);
   setEl('postAfterMe', settings.postAfterMe, settingsNode);
   setEl('postMentionedMe', settings.postMentionedMe, settingsNode);
   setEl('postOnMyChannel', settings.postOnMyChannel, settingsNode);
