@@ -20,21 +20,25 @@
 var session = require('./util/session');
 var pusher = require('./util/pusher');
 var api = require('./util/api');
+var url = require('url');
 
 /**
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.get('/user_settings',
+  app.get('/notification_settings',
           session.provider,
           getSettings);
-  app.post('/user_settings',
+  app.get('/notification_metadata',
+          session.provider,
+          getMetadata);
+  app.post('/notification_settings',
            api.bodyReader,
            session.provider,
            updateSettings);
 };
 
-//// GET /user_settings /////////////////////////////////////////////////////////////
+//// GET /notification_settings /////////////////////////////////////////////////////////////
 
 function getSettings(req, res) {
   if (!req.user) {
@@ -50,11 +54,37 @@ function getSettings(req, res) {
 }
 
 function requestSettings(req, res, callback) {
-  var getSettingsIq = pusher.getSettings();
+  var params = url.parse(req.url, true).query;
+  var type = params.type;
+  
+  var getSettingsIq = pusher.getSettings(type);
   api.sendQueryToPusher(req, res, getSettingsIq, callback);
 }
 
-////POST /user_settings /////////////////////////////////////////////////////////////
+//// GET /notification_metadata /////////////////////////////////////////////////////////////
+
+function getMetadata(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
+  requestMetadata(req, res, function(reply) {
+    var body = pusher.metadataToJSON(reply);
+    res.contentType('json');
+    res.send(body);
+  });
+}
+
+function requestMetadata(req, res, callback) {
+  var params = url.parse(req.url, true).query;
+  var type = params.type;
+  
+  var getMetadataIq = pusher.getMetadata(type);
+  api.sendQueryToPusher(req, res, getMetadataIq, callback);
+}
+
+////POST /notification_settings /////////////////////////////////////////////////////////////
 
 function updateSettings(req, res) {
   if (!req.user) {
