@@ -68,6 +68,7 @@ exports.discoverAPI = function(req, callback) {
   var remoteDomain = channel.split('@')[1];
   
   if (remoteDomain == config.xmppDomain) {
+    if (!config.homeMediaRoot) return callback();
     mediaRoot = config.homeMediaRoot;
     localMediaAddress = mediaRoot.split('://')[1];
     localMediaAddressSplit = localMediaAddress.split(':');
