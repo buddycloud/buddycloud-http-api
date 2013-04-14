@@ -193,7 +193,7 @@ exports.mediaServerDiscoverer = function(req, res, next) {
   dns.discoverAPI(req, function(mediaRoot) {
     if (mediaRoot) {
       req.mediaRoot = mediaRoot;
-    } else {
+    } else if (config.homeMediaRoot) {
       req.mediaRoot = config.homeMediaRoot;
     }
     next();

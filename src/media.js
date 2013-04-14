@@ -60,6 +60,7 @@ function generateTransactionId() {
 }
 
 function getMediaUrl(req, transactionId) {
+  if (!req.mediaRoot) return;
   var mediaUrl = url.parse(req.mediaRoot);
   ensureTrailingSlash(mediaUrl);
   mediaUrl.pathname += req.params.channel;
@@ -89,6 +90,7 @@ function base64url(buf) {
 }
 
 function forwardRequest(req, res, mediaUrl) {
+  if (!mediaUrl) return res.send(503);
   mediaUrl = url.parse(mediaUrl);
   req.headers['host'] = mediaUrl.host;
 
