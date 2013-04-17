@@ -21,7 +21,9 @@
     "node-stringprep": "0.1.x",
     "node-xmpp": "0.3.x",
     "jwt-simple": "0.1.x",
-    "iso8601": "1.1.1"
+    "iso8601": "1.1.1",
+    "pubcontrol": "0.1.0",
+    "grip": "0.1.0"
   },
   "devDependencies": {
     "mocha": "1.0.3",

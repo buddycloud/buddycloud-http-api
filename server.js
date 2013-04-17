@@ -21,11 +21,13 @@ var express = require('express');
 var auth = require('./src/util/auth');
 var config = require('./src/util/config');
 var session = require('./src/util/session');
+var grip = require('./src/util/grip');
 
 function setupConfig(app) {
   app.configure(function() {
     app.use(express.logger());
     app.use(auth.parser);
+    app.use(grip.parser);
     app.use(crossOriginAllower);
     app.use(app.router);
     app.use(express.errorHandler({

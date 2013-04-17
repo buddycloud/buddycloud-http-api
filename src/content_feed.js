@@ -26,6 +26,7 @@ var atom = require('./util/atom');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
+var grip = require('./util/grip');
 
 /**
  * Registers resource URL handlers.
@@ -52,10 +53,6 @@ function getNodeFeed(req, res) {
     var feed = generateNodeFeed(channel, node, reply);
     api.sendAtomResponse(req, res, feed.root());
   });
-}
-
-function makeChannelName(s) {
-  return s.replace(/\//g, ".");
 }
 
 function getNodeFeedNext(req, res) {
@@ -113,10 +110,12 @@ function getNodeFeedNext(req, res) {
       // if we get here, then it means since params were not provided, or
       //   the request was since the last known item
 
-      if (config.fanoutRealm) {
-        var foChannel = makeChannelName(req.session.jid + '_' + nodeId);
-        api.sendHoldResponse(req, res, foChannel, prevId);
+      if (req.gripProxied) {
+        // if we're behind grip, do a long poll
+        var gripChannel = grip.encodeChannel(req.session.jid + '_' + nodeId);
+        api.sendHoldResponse(req, res, gripChannel, prevId);
       } else {
+        // otherwise respond immediately with empty (plain poll)
         var feed = api.generateNodeFeedFromEntries(channel, node, sub.from, []);
         api.sendAtomResponse(req, res, feed.root());
       }

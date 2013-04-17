@@ -19,12 +19,14 @@
 
 var xml = require('libxmljs');
 var xmpp = require('node-xmpp');
+var griplib = require('grip');
 var atom = require('./atom');
 var auth = require('./auth');
 var cache = require('./cache');
 var config = require('./config');
 var pubsub = require('./pubsub');
 var dns = require('./dns');
+var grip = require('./grip');
 
 /**
  * Sends a "401 Unauthorized" response with the correct "WWW-Authenticate"
@@ -37,6 +39,10 @@ exports.sendUnauthorized = function(res) {
   );
   res.send(401);
 };
+
+exports.sendGripUnsupported = function(res) {
+  res.send("Error: Realtime endpoint not supported. Set up Pushpin or Fanout.io\n", 501);
+}
 
 /**
  * Like session.sendQuery(), but takes care of any returned XMPP error
@@ -114,16 +120,28 @@ exports.sendAtomResponse = function(req, res, doc, statusCode) {
   res.send(response, statusCode || 200);
 };
 
+// publishes to -atom and -json of the channel name
+exports.publishAtomResponse = function(channelBase, doc, id, prevId) {
+  var headers = {'Content-Type': 'application/atom+xml'};
+  var response = doc.toString();
+  grip.publish(channelBase + '-atom', id, prevId, headers, response);
+
+  headers = {'Content-Type': 'application/json'};
+  response = JSON.stringify(atom.toJSON(doc));
+  grip.publish(channelBase + '-json', id, prevId, headers, response);
+};
+
 // suffixes -json or -atom to the channel name
-exports.sendHoldResponse = function(req, res, channel, prevId) {
+exports.sendHoldResponse = function(req, res, channelBase, prevId) {
+  var channel;
   var contentType;
   var body;
   if (req.accepts('application/atom+xml')) {
-    channel = channel + '-atom';
+    channel = channelBase + '-atom';
     contentType = 'application/atom+xml';
     body = '<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom"/>\n';
   } else if (req.accepts('application/json')) {
-    channel = channel + '-json';
+    channel = channelBase + '-json';
     contentType = 'application/json';
     body = '[]';
   } else {
@@ -131,26 +149,13 @@ exports.sendHoldResponse = function(req, res, channel, prevId) {
     return;
   }
 
-  var c = {};
-  c['name'] = channel;
-  if (prevId) {
-    c['prev-id'] = prevId;
-  }
+  var channelObj = new griplib.Channel(channel, prevId);
+  var headers = {'Content-Type': contentType};
+  var response = new griplib.Response({'headers': headers, 'body': body});
+  var instruct = griplib.createHoldResponse(channelObj, response);
 
-  var hold = {};
-  hold['mode'] = 'response';
-  hold['channels'] = [c];
-
-  var response = {};
-  response['headers'] = { 'Content-Type': contentType };
-  response['body'] = body;
-
-  var instruct = {};
-  instruct['hold'] = hold;
-  instruct['response'] = response;
-
-  console.log("sending hold for channel " + channel);
-  res.send(instruct, { 'Content-Type': 'application/fo-instruct' });
+  console.log('sending hold for channel ' + channel);
+  res.send(instruct, {'Content-Type': 'application/grip-instruct'});
 };
 
 /**
