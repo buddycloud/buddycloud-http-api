@@ -124,11 +124,15 @@ exports.sendAtomResponse = function(req, res, doc, statusCode) {
 exports.publishAtomResponse = function(channelBase, doc, id, prevId) {
   var headers = {'Content-Type': 'application/atom+xml'};
   var response = doc.toString();
-  grip.publish(channelBase + '-atom', id, prevId, headers, response);
+  var channel = channelBase + '-atom';
+  console.log('grip: publishing on channel ' + channel);
+  grip.publish(channel, id, prevId, headers, response);
 
   headers = {'Content-Type': 'application/json'};
   response = JSON.stringify(atom.toJSON(doc));
-  grip.publish(channelBase + '-json', id, prevId, headers, response);
+  channel = channelBase + '-json';
+  console.log('grip: publishing on channel ' + channel);
+  grip.publish(channel, id, prevId, headers, response);
 };
 
 // suffixes -json or -atom to the channel name
@@ -154,7 +158,7 @@ exports.sendHoldResponse = function(req, res, channelBase, prevId) {
   var response = new griplib.Response({'headers': headers, 'body': body});
   var instruct = griplib.createHoldResponse(channelObj, response);
 
-  console.log('sending hold for channel ' + channel);
+  console.log('grip: sending hold for channel ' + channel);
   res.send(instruct, {'Content-Type': 'application/grip-instruct'});
 };
 

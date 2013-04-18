@@ -21,15 +21,15 @@ var pubcontrol = require('pubcontrol')
 var griplib = require('grip')
 var config = require('./config');
 
-// global PubControl reference
-var pub = null;
+// global PubControl list
+var pubs = null;
 
 /**
  * Middleware that parses the HTTP "Grip-Sig" header and sets
  * req.gripProxied.
  */
 exports.parser = function(req, res, next) {
-  if (!config.gripKey) {
+  if (!config.gripProxies || config.gripProxies.length < 1) {
     next();
     return;
   }
@@ -40,12 +40,13 @@ exports.parser = function(req, res, next) {
     return;
   }
 
-  if (!griplib.validateSig(sig, config.gripKey)) {
-    next();
-    return;
+  for(var i = 0; i < config.gripProxies.length; ++i) {
+    var gripProxy = config.gripProxies[i];
+    if (griplib.validateSig(sig, gripProxy.key)) {
+      req.gripProxied = true;
+      break;
+    }
   }
-
-  req.gripProxied = true;
 
   next();
 };
@@ -58,17 +59,22 @@ exports.encodeChannel = function(channel) {
  * Convenience publish function.
  */
 exports.publish = function(channel, id, prevId, rheaders, rbody, sbody) {
-  if (!config.gripControlUri) {
+  if (!config.gripProxies || config.gripProxies.length < 1) {
     return;
   }
 
-  if (!pub) {
-    var auth = null;  
-    if(config.gripControlIss) {
-      auth = pubcontrol.Auth.AuthJwt({'iss': config.gripControlIss}, config.gripKey);
-    }
+  if (!pubs) {
+    pubs = [];
 
-    pub = new pubcontrol.PubControl(config.gripControlUri, auth);
+    for(var i = 0; i < config.gripProxies.length; ++i) {
+      var gripProxy = config.gripProxies[i];
+      var auth = null;  
+      if(gripProxy.controlIss) {
+        auth = new pubcontrol.Auth.AuthJwt({'iss': gripProxy.controlIss}, gripProxy.key);
+      }
+
+      pubs.push(new pubcontrol.PubControl(gripProxy.controlUri, auth));
+    }
   }
 
   var formats = [];
@@ -79,5 +85,16 @@ exports.publish = function(channel, id, prevId, rheaders, rbody, sbody) {
     formats.push(new griplib.HttpStreamFormat(sbody));
   }
 
-  pub.publish(channel, new pubcontrol.Item(formats, id, prevId));
+  var item = new pubcontrol.Item(formats, id, prevId);
+
+  for(var i = 0; i < config.gripProxies.length; ++i) {
+    (function() {
+      var gripProxy = config.gripProxies[i];
+      pubs[i].publish(channel, item, function(success, message) {
+        if (!success) {
+          console.log("grip: failed to publish to " + gripProxy.controlUri + ", reason: " + message);
+        }
+      });
+    }());
+  }
 }

@@ -50,12 +50,18 @@ exports.production = {
   // where to forward media requests
   homeMediaRoot: 'http://localhost:60080',
 
-  // pushpin is used for sending realtime data to clients
-  gripKey: 'changeme', // make sure this matches with pushpin.conf
-  gripControlUri: 'http://localhost:5561'
-
-  // to use the fanout.io API CDN instead of pushpin:
-  //gripKey: new Buffer('your-realm-key', 'base64'),
-  //gripControlUri: 'http://api.fanout.io/realm/your-realm',
-  //gripControlIss: 'your-realm'
+  // pushpin and/or fanout.io is used for sending realtime data to clients
+  gripProxies: [
+    // pushpin
+    {
+      key: 'changeme', // make sure this matches with pushpin.conf
+      controlUri: 'http://localhost:5561'
+    },
+    // fanout.io
+    /*{
+      key: new Buffer('your-realm-key', 'base64'),
+      controlUri: 'http://api.fanout.io/realm/your-realm',
+      controlIss: 'your-realm'
+    }*/
+  ]
 };
