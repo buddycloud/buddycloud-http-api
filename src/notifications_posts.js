@@ -22,6 +22,7 @@ var atom = require('./util/atom');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
+var grip = require('./util/grip');
 var xml = require('libxmljs');
 
 exports.setup = function(app) {
@@ -36,16 +37,25 @@ function listenForNextItem(req, res, next) {
     return;
   }
 
+  if (!req.gripProxied) {
+    api.sendGripUnsupported(res);
+    return;
+  }
+
+  var channel = grip.encodeChannel('np-' + req.session.jid);
+
   req.session.onStanza(function(stanza, wait) {
     if (isPubSubItemMessage(stanza)) {
       req.session.sendPresenceOffline();
       var item = extractItem(stanza);
-      api.sendAtomResponse(req, res, item);
+      api.publishAtomResponse(channel, item);
     } else {
       wait();
     }
   });
+
   req.session.sendPresenceOnline();
+  api.sendHoldResponse(req, res, channel);
 }
 
 function isPubSubItemMessage(stanza) {

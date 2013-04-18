@@ -151,10 +151,6 @@ Session.prototype._setupExpirationHandler = function() {
   };*/
 };
 
-function makeChannelName(s) {
-  return s.replace(/\//g, ".");
-}
-
 Session.prototype._setupStanzaListener = function() {
   var self = this;
   this._connection.on('stanza', function(stanza) {
@@ -196,42 +192,25 @@ Session.prototype._setupStanzaListener = function() {
             sub.items.push(item);
           }
 
-          if (config.fanoutRealm) {
-            // publish using id of latest item, and prev id of last recorded
-            var item = sub.items[sub.items.length - 1];
-            var foId = item.id.id + '_' + item.id.time;
-            var foPrevId = null;
-            if (sub.lastPublishedId) {
-              foPrevId = sub.lastPublishedId;
-            }
-            sub.lastPublishedId = foId;
-
-            var at = nodeId.indexOf('/user/');
-            var channelAndNode = nodeId.substring(at + 6);
-            at = channelAndNode.indexOf('/');
-            var channel = channelAndNode.substring(0, at);
-            var node = channelAndNode.substring(at + 1);
-
-            var feed = api.generateNodeFeedFromEntries(channel, node, sub.from, entries);
-
-            var foChannel = makeChannelName(self.jid + '_' + nodeId);
-
-            var headers = {};
-            headers['Content-Type'] = 'application/atom+xml';
-            var hritem = {};
-            hritem['headers'] = headers;
-            hritem['body'] = feed.root().toString();
-
-            self.fanoutPublish(foChannel + '-atom', foId, foPrevId, hritem);
-
-            headers = {};
-            headers['Content-Type'] = 'application/json';
-            var hritem = {};
-            hritem['headers'] = headers;
-            hritem['body'] = JSON.stringify(atom.toJSON(feed.root()));
-
-            self.fanoutPublish(foChannel + '-json', foId, foPrevId, hritem);
+          // publish using id of latest item, and prev id of last recorded
+          var item = sub.items[sub.items.length - 1];
+          var gripId = item.id.id + '_' + item.id.time;
+          var gripPrevId = null;
+          if (sub.lastPublishedId) {
+            gripPrevId = sub.lastPublishedId;
           }
+          sub.lastPublishedId = gripId;
+
+          var at = nodeId.indexOf('/user/');
+          var channelAndNode = nodeId.substring(at + 6);
+          at = channelAndNode.indexOf('/');
+          var channel = channelAndNode.substring(0, at);
+          var node = channelAndNode.substring(at + 1);
+
+          var feed = api.generateNodeFeedFromEntries(channel, node, sub.from, entries);
+
+          gripChannel = grip.encodeChannel(self.jid + '_' + nodeId);
+          api.publishAtomResponse(gripChannel, feed.root(), gripId, gripPrevId);
         }
       }
     }
@@ -383,48 +362,4 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
       }
     }
   });
-}
-
-Session.prototype.fanoutPublish = function(channel, id, prevId, hrItem) {
-  var item = {};
-  if (id) {
-    item['id'] = id;
-  }
-  if (prevId) {
-    item['prev-id'] = prevId;
-  }
-  item['http-response'] = hrItem;
-  var items = [];
-  items.push(item);
-  var content = {};
-  content["items"] = items;
-  var contentRaw = JSON.stringify(content);
-
-  var claim = {};
-  claim["exp"] = Math.floor((new Date()).getTime() / 1000) + 3600;
-  claim["iss"] = config.fanoutRealm;
-  var authToken = jwt.encode(claim, new Buffer(config.fanoutKey, 'base64'));
-  console.log("token: " + authToken);
-
-  var options = {
-    'method': 'POST',
-    'hostname': 'api.fanout.io',
-    'path': '/realm/' + config.fanoutRealm + '/publish/' + channel + '/',
-    'headers': {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(contentRaw, 'utf8'),
-      'Authorization': 'Bearer ' + authToken,
-    }
-  };
-
-  console.log(options.path);
-
-  var req = http.request(options, function(res) {
-    console.log("STATUS: " + res.statusCode);
-    res.on("data", function(chunk) {
-      console.log("BODY: " + chunk);
-    });
-  });
-  req.write(contentRaw);
-  req.end();
 }
