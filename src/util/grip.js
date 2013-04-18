@@ -40,10 +40,10 @@ exports.parser = function(req, res, next) {
     return;
   }
 
-  /*if (!griplib.validateSig(sig, config.gripKey)) {
+  if (!griplib.validateSig(sig, config.gripKey)) {
     next();
     return;
-  }*/
+  }
 
   req.gripProxied = true;
 

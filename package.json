@@ -22,8 +22,8 @@
     "node-xmpp": "0.3.x",
     "jwt-simple": "0.1.x",
     "iso8601": "1.1.1",
-    "pubcontrol": "0.1.0",
-    "grip": "0.1.0"
+    "pubcontrol": "0.1.1",
+    "grip": "0.1.3"
   },
   "devDependencies": {
     "mocha": "1.0.3",
