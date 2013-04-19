@@ -121,14 +121,22 @@ exports.sendAtomResponse = function(req, res, doc, statusCode) {
 };
 
 // publishes to -atom and -json of the channel name
-exports.publishAtomResponse = function(channelBase, doc, id, prevId) {
-  var headers = {'Content-Type': 'application/atom+xml'};
+exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
+  var headers = {};
+  headers['Access-Control-Allow-Origin'] = origin;
+  headers['Access-Control-Allow-Credentials'] = 'true';
+  headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE';
+  headers['Access-Control-Allow-Headers'] =
+          'Authorization, Content-Type, X-Requested-With, X-Session-Id';
+  headers['Access-Control-Expose-Headers'] = 'Location, X-Session-Id';
+
+  headers['Content-Type'] = 'application/atom+xml';
   var response = doc.toString();
   var channel = channelBase + '-atom';
   console.log('grip: publishing on channel ' + channel);
   grip.publish(channel, id, prevId, headers, response);
 
-  headers = {'Content-Type': 'application/json'};
+  headers['Content-Type'] = 'application/json';
   response = JSON.stringify(atom.toJSON(doc));
   channel = channelBase + '-json';
   console.log('grip: publishing on channel ' + channel);
@@ -136,7 +144,15 @@ exports.publishAtomResponse = function(channelBase, doc, id, prevId) {
 };
 
 // suffixes -json or -atom to the channel name
-exports.sendHoldResponse = function(req, res, channelBase, prevId) {
+exports.sendHoldResponse = function(req, res, origin, channelBase, prevId) {
+  var headers = {};
+  headers['Access-Control-Allow-Origin'] = origin;
+  headers['Access-Control-Allow-Credentials'] = 'true';
+  headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE';
+  headers['Access-Control-Allow-Headers'] =
+          'Authorization, Content-Type, X-Requested-With, X-Session-Id';
+  headers['Access-Control-Expose-Headers'] = 'Location, X-Session-Id';
+
   var channel;
   var contentType;
   var body;
@@ -154,7 +170,7 @@ exports.sendHoldResponse = function(req, res, channelBase, prevId) {
   }
 
   var channelObj = new griplib.Channel(channel, prevId);
-  var headers = {'Content-Type': contentType};
+  headers['Content-Type'] = contentType;
   var response = new griplib.Response({'headers': headers, 'body': body});
   var instruct = griplib.createHoldResponse(channelObj, response);
 
