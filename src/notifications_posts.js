@@ -44,18 +44,25 @@ function listenForNextItem(req, res, next) {
 
   var channel = grip.encodeChannel('np-' + req.session.jid);
 
-  req.session.onStanza(function(stanza, wait) {
-    if (isPubSubItemMessage(stanza)) {
-      req.session.sendPresenceOffline();
-      var item = extractItem(stanza);
-      api.publishAtomResponse(channel, item);
-    } else {
+  var origin = req.header('Origin', '*');
+  if (origin == 'null') {
+    origin = '*';
+  }
+
+  if (!req.session.np_hook) {
+    req.session.np_hook = true;
+    req.session.onStanza(function(stanza, wait) {
+      if (isPubSubItemMessage(stanza)) {
+        req.session.sendPresenceOffline();
+        var item = extractItem(stanza);
+        api.publishAtomResponse(origin, channel, item);
+      }
       wait();
-    }
-  });
+    });
+  }
 
   req.session.sendPresenceOnline();
-  api.sendHoldResponse(req, res, channel);
+  api.sendHoldResponse(req, res, origin, channel);
 }
 
 function isPubSubItemMessage(stanza) {
