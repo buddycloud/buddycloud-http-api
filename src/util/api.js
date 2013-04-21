@@ -114,8 +114,8 @@ exports.sendAtomResponse = function(req, res, doc, statusCode, lastCursor) {
     res.contentType('json');
     if (lastCursor != null) {
       response = {};
-      response["last_cursor"] = lastCursor;
-      response["items"] = atom.toJSON(doc);
+      response['last_cursor'] = lastCursor;
+      response['items'] = atom.toJSON(doc);
       response = JSON.stringify(response);
     }
     else {
@@ -150,8 +150,8 @@ exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
   headers['Content-Type'] = 'application/json';
   if (id != null) {
     response = {};
-    response["last_cursor"] = id;
-    response["items"] = atom.toJSON(doc);
+    response['last_cursor'] = id;
+    response['items'] = atom.toJSON(doc);
     response = JSON.stringify(response);
   } else {
     response = JSON.stringify(atom.toJSON(doc));
@@ -185,7 +185,10 @@ exports.sendHoldResponse = function(req, res, channelBase, prevId) {
   } else if (req.accepts('application/json')) {
     channel = channelBase + '-json';
     contentType = 'application/json';
-    body = '[]';
+    body = {};
+    body['last_cursor'] = prevId;
+    body['items'] = [];
+    body = JSON.stringify(body);
   } else {
     res.send(406);
     return;
