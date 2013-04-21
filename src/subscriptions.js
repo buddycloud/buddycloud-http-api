@@ -150,8 +150,19 @@ function getNodeSubscriptions(req, res) {
   var node = req.params.node;
   requestNodeAffiliations(req, res, channel, node, function(reply) {
     var body = replyToJSON(reply, 'node');
-    res.contentType('json');
-    res.send(body);
+    if (!body[req.session.jid]) {
+      var nodeId = pubsub.channelNodeId(channel, node);
+      console.log(req.session.jid + " is not subscribed to " + nodeId + ", creating temporary subscription");
+      req.session.subscribe(nodeId, function(sub) {
+        res.contentType('json');
+        res.send(body);
+      }, function(errstr) {
+        res.send(500);
+      });
+    } else {
+      res.contentType('json');
+      res.send(body);
+    }
   });
 }
 

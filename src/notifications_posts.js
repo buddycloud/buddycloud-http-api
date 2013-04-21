@@ -23,7 +23,6 @@ var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
 var grip = require('./util/grip');
-var xml = require('libxmljs');
 
 exports.setup = function(app) {
   app.get('/notifications/posts',
@@ -32,73 +31,56 @@ exports.setup = function(app) {
 };
 
 function listenForNextItem(req, res, next) {
-  if (!req.user) {
-    api.sendUnauthorized(res);
-    return;
-  }
-
   if (!req.gripProxied) {
     api.sendGripUnsupported(res);
     return;
   }
 
-  var channel = grip.encodeChannel('np-' + req.session.jid);
+  var gripChannel = grip.encodeChannel('np-' + req.session.jid);
 
-  var origin = req.header('Origin', '*');
-  if (origin == 'null') {
-    origin = '*';
-  }
-
-  if (!req.session.np_hook) {
-    req.session.np_hook = true;
-    req.session.onStanza(function(stanza, wait) {
-      if (isPubSubItemMessage(stanza)) {
-        req.session.sendPresenceOffline();
-        var item = extractItem(stanza);
-        api.publishAtomResponse(origin, channel, item);
+  if (req.query.since != null) {
+    var since = req.query.since;
+    if (since) {
+      var at = since.indexOf(':');
+      if (at == -1 || since.substring(0, at) != "cursor") {
+        res.send('Error: Invalid since value\n', 400);
+        return;
       }
-      wait();
-    });
-  }
 
-  req.session.sendPresenceOnline();
-  api.sendHoldResponse(req, res, origin, channel);
-}
+      var cur = parseInt(since.substring(at + 1));
+      if (isNaN(cur)) {
+        res.send('Error: Invalid cursor value\n', 400);
+        return;
+      }
 
-function isPubSubItemMessage(stanza) {
-  if (stanza.attrs.from == config.channelDomain) {
-    var eventEl = stanza.getChild('event', pubsub.eventNS);
-    var itemsEl = eventEl ? eventEl.getChild('items') : null;
-    var itemEl = itemsEl ? itemsEl.getChild('item') : null;
-    var entryEl = itemEl ? itemEl.getChild('entry', atom.ns) : null;
-    return !!entryEl;
+      var last = req.session.itemCache.length;
+      if (cur < last) {
+        var entries = [];
+        for (var n = cur; n < last; ++n) {
+          entries.push(req.session.itemCache[n]);
+        }
+
+        var nodeId = entries[0].get('a:source/a:id', {a: atom.ns}).text();
+        var at = nodeId.indexOf('/user/');
+        var channelAndNode = nodeId.substring(at + 6);
+        at = channelAndNode.indexOf('/');
+        var channel = channelAndNode.substring(0, at);
+        var node = channelAndNode.substring(at + 1);
+
+        var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, entries);
+        api.sendAtomResponse(req, res, feed.root(), 200, '' + last);
+      } else {
+        api.sendHoldResponse(req, res, gripChannel, '' + last);
+      }
+    } else {
+      // if no cursor specified, then bootstrap with an empty response and cursor header
+      out = {};
+      out["last_cursor"] = '' + req.session.itemCache.length;
+      out["items"] = [];
+      res.send(out);
+    }
   } else {
-    return false;
+    // if no since parameter at all, then hold
+    api.sendHoldResponse(req, res, gripChannel, '' + req.session.itemCache.length);
   }
-}
-
-function extractItem(message) {
-  message = xml.parseXmlString(message.toString());
-  messageEl = message.get('/message');
-  // Fix for tigase xmlns 
-  if (!messageEl) {
-    messageEl = message.get('/j:message', {j: 'jabber:client'})
-  }
-  var items = messageEl.get('p:event/p:items', {
-    p: pubsub.eventNS
-  });
-  var entry = items.get('p:item/a:entry', {
-    p: pubsub.eventNS,
-    a: atom.ns
-  });
-  addSourceToEntry(entry, items.attr('node').value());
-  return entry;
-}
-
-function addSourceToEntry(entry, node) {
-  var source = entry.node('source');
-  var queryURI = pubsub.queryURI(config.channelDomain, 'retrieve', node);
-  var sourceId = source.node('id', queryURI);
-  source.namespace(atom.ns);
-  sourceId.namespace(atom.ns);
 }
