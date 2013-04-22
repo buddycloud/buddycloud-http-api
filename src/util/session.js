@@ -27,6 +27,7 @@ var cache = require('./cache');
 var config = require('./config');
 var pubsub = require('./pubsub');
 var atom = require('./atom');
+var grip = require('./grip');
 
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
@@ -38,7 +39,7 @@ sessionCache.onexpired = function(_, session) {
 /**
  * Middleware that sets req.session to a Session object matching the
  * request's supplied session ID or it's authentication credentials.
- * It is assumed to run afer auth.parser().
+ * It is assumed to run after auth.parser().
  */
 exports.provider = function(req, res, next) {
   if (req.credentials) {
@@ -58,19 +59,35 @@ function provideSession(session, req, res, next) {
   if (session.id) {
     sessionCache.put(session.id, session);
   }
-  next();
+  var origin = req.header('Origin');
+  if (origin) {
+    req.session.origin = origin;
+  }
+  if (session.ready) {
+    next();
+  } else {
+    session.waitingReqs.push([req, res, next]);
+  }
 }
 
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
   var client = new xmpp.Client(options);
   console.log("Creating connection for jid: " + options.jid);
-  var session;
-  
+
+  var session = new Session(req.credentials, client);
+
+  // initially the session is cached in a non-ready state
+  provideSession(session, req, res, next);
+
   client.on('online', function() {
-    session = new Session(req.credentials, client);
+    session.ready = true;
     console.log("Session created for jid: " + session.jid);
-    provideSession(session, req, res, next);
+    for (var n = 0; n < session.waitingReqs.length; ++n) {
+      var wr = session.waitingReqs[n];
+      var wrNext = wr[2];
+      wrNext();
+    }
   });
 
   client.on('error', function(err) {
@@ -78,10 +95,16 @@ function createSession(req, res, next) {
     // is fragile, but this is the only information that node-xmpp
     // gives us.
     console.log(err);
-    if (err == 'XMPP authentication failure') {
-      api.sendUnauthorized(res);
-    } else {
-      next(err);
+    sessionCache.remove(req.credentials);
+    for (var n = 0; n < session.waitingReqs.length; ++n) {
+      var wr = session.waitingReqs[n];
+      var wrRes = wr[1];
+      var wrNext = wr[2];
+      if (err == 'XMPP authentication failure') {
+        api.sendUnauthorized(wrRes);
+      } else {
+        wrNext(err);
+      }
     }
   });
 }
@@ -112,16 +135,23 @@ function useAnonymousSession(req, res, next) {
     provideSession(anonymousSession, req, res, next);
   } else {
     createSession(req, res, function(err) {
-      if (!err)
-        anonymousSession = req.session;
+      if (!err) {
+        req.session.jid = req.session._connection.jid.toString();
+      } else {
+        anonymousSession = null;
+      }
       next(err);
     });
+    anonymousSession = req.session;
   }
 }
 
 function Session(id, connection) {
   this.id = id;
   this.jid = connection.jid.toString();
+  this.itemCache = [];
+  this.ready = false;
+  this.waitingReqs = [];
   this._connection = connection;
   this._presenceCount = 0;
   this._replyHandlers = new cache.Cache(config.requestExpirationTime);
@@ -156,7 +186,27 @@ Session.prototype._setupStanzaListener = function() {
   this._connection.on('stanza', function(stanza) {
     console.log("IN xmpp: " + stanza);
     if (stanza.name == "message") {
-      var messagedoc = xml.parseXmlString(stanza.toString());
+      if (pubsub.isPubSubItemMessage(stanza)) {
+        // save in the session-level cache, for use by /notifications/posts
+        var prevId = '' + self.itemCache.length;
+        var item = pubsub.extractItem(stanza);
+        self.itemCache.push(item);
+        console.log('cache size for ' + self.jid + ' is now '+ self.itemCache.length);
+        var id = '' + self.itemCache.length;
+
+        var nodeId = item.get('a:source/a:id', {a: atom.ns}).text();
+        var at = nodeId.indexOf('/user/');
+        var channelAndNode = nodeId.substring(at + 6);
+        at = channelAndNode.indexOf('/');
+        var channel = channelAndNode.substring(0, at);
+        var node = channelAndNode.substring(at + 1);
+
+        var gripChannel = grip.encodeChannel('np-' + self.jid);
+        var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, [item]);
+        api.publishAtomResponse(self.origin, gripChannel, feed.root(), id, prevId);
+      }
+
+      /*var messagedoc = xml.parseXmlString(stanza.toString());
       var items = messagedoc.get('/message/p:event/p:items', {
         p: pubsub.ns + '#event',
       });
@@ -212,7 +262,7 @@ Session.prototype._setupStanzaListener = function() {
           gripChannel = grip.encodeChannel(self.jid + '_' + nodeId);
           api.publishAtomResponse(gripChannel, feed.root(), gripId, gripPrevId);
         }
-      }
+      }*/
     }
     if (stanza.attrs.id) {
       var handler = self._replyHandlers.get(stanza.attrs.id);

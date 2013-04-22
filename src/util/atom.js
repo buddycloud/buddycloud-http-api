@@ -42,7 +42,8 @@ exports.normalizeEntry = function(entry) {
 
 function ensureEntryHasTitle(entry) {
   var content = exports.get(entry, 'atom:content/text()');
-  if (content) {
+  var title = exports.get(entry, 'atom:title');
+  if (content && !title) {
     var teaser = extractTeaser(content.toString());
     entry.node('title', teaser).namespace(exports.ns);
   }

@@ -104,7 +104,7 @@ function reportXmppError(req, res, errorStanza) {
  * determined by the "Accept" request header (either
  * XML or JSON).
  */
-exports.sendAtomResponse = function(req, res, doc, statusCode) {
+exports.sendAtomResponse = function(req, res, doc, statusCode, lastCursor) {
   var response;
 
   if (req.accepts('application/atom+xml')) {
@@ -112,7 +112,15 @@ exports.sendAtomResponse = function(req, res, doc, statusCode) {
     response = doc.toString();
   } else if (req.accepts('application/json')) {
     res.contentType('json');
-    response = JSON.stringify(atom.toJSON(doc));
+    if (lastCursor != null) {
+      response = {};
+      response['last_cursor'] = lastCursor;
+      response['items'] = atom.toJSON(doc);
+      response = JSON.stringify(response);
+    }
+    else {
+      response = JSON.stringify(atom.toJSON(doc));
+    }
   } else {
     statusCode = 406;
   }
@@ -122,6 +130,9 @@ exports.sendAtomResponse = function(req, res, doc, statusCode) {
 
 // publishes to -atom and -json of the channel name
 exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
+  if (origin == 'null') {
+    origin = '*';
+  }
   var headers = {};
   headers['Access-Control-Allow-Origin'] = origin;
   headers['Access-Control-Allow-Credentials'] = 'true';
@@ -137,14 +148,25 @@ exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
   grip.publish(channel, id, prevId, headers, response);
 
   headers['Content-Type'] = 'application/json';
-  response = JSON.stringify(atom.toJSON(doc));
+  if (id != null) {
+    response = {};
+    response['last_cursor'] = id;
+    response['items'] = atom.toJSON(doc);
+    response = JSON.stringify(response);
+  } else {
+    response = JSON.stringify(atom.toJSON(doc));
+  }
   channel = channelBase + '-json';
   console.log('grip: publishing on channel ' + channel);
   grip.publish(channel, id, prevId, headers, response);
 };
 
 // suffixes -json or -atom to the channel name
-exports.sendHoldResponse = function(req, res, origin, channelBase, prevId) {
+exports.sendHoldResponse = function(req, res, channelBase, prevId) {
+  var origin = req.header('Origin', '*');
+  if (origin == 'null') {
+    origin = '*';
+  }
   var headers = {};
   headers['Access-Control-Allow-Origin'] = origin;
   headers['Access-Control-Allow-Credentials'] = 'true';
@@ -163,7 +185,10 @@ exports.sendHoldResponse = function(req, res, origin, channelBase, prevId) {
   } else if (req.accepts('application/json')) {
     channel = channelBase + '-json';
     contentType = 'application/json';
-    body = '[]';
+    body = {};
+    body['last_cursor'] = prevId;
+    body['items'] = [];
+    body = JSON.stringify(body);
   } else {
     res.send(406);
     return;
@@ -235,7 +260,7 @@ exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
   feed.root().node('id', queryURI);
 
   entries.forEach(function(entry) {
-    atom.ensureEntryHasTitle(entry);
+    atom.normalizeEntry(entry);
     feed.root().addChild(entry.remove());
   });
   return feed;
