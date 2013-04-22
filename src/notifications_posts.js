@@ -36,6 +36,10 @@ function listenForNextItem(req, res, next) {
     return;
   }
 
+  // repeated calls are okay, as it is only ever sent once. note though,
+  //   that we never send offline presence to undo any of this
+  req.session.sendPresenceOnline();
+
   var gripChannel = grip.encodeChannel('np-' + req.session.jid);
 
   if (req.query.since != null) {
