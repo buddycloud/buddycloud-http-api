@@ -341,6 +341,15 @@ Session.prototype.replyToQuery = function(iq) {
   this._connection.send(reply);
 };
 
+Session.prototype.replyToConfirm = function(message) {
+  var to = message.attrs.to;
+  var from = message.attrs.from;
+  message.attrs.to = from;
+  message.attrs.from = to;
+  
+  this._connection.send(message);
+};
+
 /**
  * Closes the XMPP connection associated with the session.
  */
