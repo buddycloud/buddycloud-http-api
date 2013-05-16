@@ -127,11 +127,11 @@ function forwardRequest(req, res, mediaUrl) {
 }
 
 function listenForConfirmationRequest(session, transactionId) {
-  console.log('Listening for confirmation of transaction ' + transactionId);
+  console.log('Listening for confirmation request of transaction ' + transactionId);
   session.onStanza(function(stanza, wait) {
-    console.log('Received Confirmation for transaction ' + transactionId);
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
+      console.log('Received confirmation request for transaction ' + transactionId);
       session.replyToQuery(stanza);
     } else {
       wait();
