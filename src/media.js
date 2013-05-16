@@ -132,7 +132,7 @@ function listenForConfirmationRequest(session, transactionId) {
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
       console.log('Received confirmation request for transaction ' + transactionId);
-      session.replyToQuery(stanza);
+      session.replyToConfirm(stanza);
     } else {
       wait();
     }
