@@ -82,7 +82,7 @@ function createSession(req, res, next) {
 
   client.on('online', function() {
     session.ready = true;
-    session.sendPresenceOnline();
+    session._sendGeneralPresence();
     console.log("Session created for jid: " + session.jid);
     for (var n = 0; n < session.waitingReqs.length; ++n) {
       var wr = session.waitingReqs[n];
@@ -309,6 +309,10 @@ Session.prototype._sendPresence = function(type, to) {
     to: to,
     type: type
   }));
+};
+
+Session.prototype._sendGeneralPresence = function() {
+  this._connection.send(new xmpp.Element('presence'));
 };
 
 /**
