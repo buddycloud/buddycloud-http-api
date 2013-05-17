@@ -26,6 +26,8 @@ var xmpp = require('node-xmpp');
 var api = require('./util/api');
 var session = require('./util/session');
 
+var activeTransactions = [];
+
 /**
  * Registers resource URL handlers.
  */
@@ -48,8 +50,11 @@ exports.setup = function(app) {
 
 function proxyToMediaServer(req, res, next) {
   var transactionId = req.user ? generateTransactionId() : null;
+  if (transactionId) {
+    activeTransactions.push(transactionId);
+  }
   var mediaUrl = getMediaUrl(req, transactionId);
-  forwardRequest(req, res, mediaUrl);
+  forwardRequest(req, res, mediaUrl, transactionId);
   if (transactionId) {
     listenForConfirmationRequest(req.session, transactionId);
   }
@@ -89,7 +94,7 @@ function base64url(buf) {
   return buf.toString('base64').replace('+', '-').replace('/', '_');
 }
 
-function forwardRequest(req, res, mediaUrl) {
+function forwardRequest(req, res, mediaUrl, transactionId) {
   if (!mediaUrl) return res.send(503);
   mediaUrl = url.parse(mediaUrl);
   req.headers['host'] = mediaUrl.host;
@@ -109,14 +114,17 @@ function forwardRequest(req, res, mediaUrl) {
       res.write(data);
     });
     mediaRes.on('end', function(data) {
+      removeTransaction(transactionId);
       res.end();
     });
     mediaRes.on('close', function(data) {
+      removeTransaction(transactionId);
       res.send(500);
     });
   });
 
   mediaReq.on('error', function(err) {
+    removeTransaction(transactionId);
     res.send(err, 500);
   });
 
@@ -124,6 +132,13 @@ function forwardRequest(req, res, mediaUrl) {
     mediaReq.write(req.body);
   }
   mediaReq.end();
+}
+
+function removeTransaction(transactionId) {
+  var txIdx = activeTransactions.indexOf(transactionId);
+  if (txIdx != -1) {
+    activeTransactions.splice(txIdx, 1);
+  }
 }
 
 function listenForConfirmationRequest(session, transactionId) {
@@ -134,7 +149,7 @@ function listenForConfirmationRequest(session, transactionId) {
     if (confirmEl && confirmEl.attrs.id == transactionId) {
       console.log('Received confirmation request for transaction ' + transactionId);
       session.replyToConfirm(stanza);
-    } else {
+    } else if (activeTransactions.indexOf(transactionId) != -1) {
       wait();
     }
   });
