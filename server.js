@@ -76,6 +76,7 @@ function setupResourceHandlers(app) {
     require('./src/similar'),
     require('./src/contact_matching'),
     require('./src/topic_channel'),
+    require('./src/app_node'),
     require('./src/media_proxy')
   ];
   handlers.forEach(function(h) { h.setup(app); });
