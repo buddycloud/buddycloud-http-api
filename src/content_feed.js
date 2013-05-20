@@ -42,6 +42,10 @@ exports.setup = function(app) {
            api.bodyReader,
            session.provider,
            postToNodeFeed);
+  app.put('/:channel/content/:node',
+           api.bodyReader,
+           session.provider,
+           updateNodeFeed);
 };
 
 //// GET /<channel>/content/<node> /////////////////////////////////////////////
@@ -149,19 +153,6 @@ function generateNodeFeed(channel, node, reply) {
   return feed;
 }
 
-function getLatestEntry(reply) {
-  var replydoc = xml.parseXmlString(reply.toString());
-  var entries = replydoc.find('/iq/p:pubsub/p:items/p:item/a:entry', {
-    p: pubsub.ns,
-    a: atom.ns
-  });
-  if (entries.length > 0) {
-    return entries[0];
-  } else {
-    return null;
-  }
-}
-
 function populateNodeFeed(feed, replydoc) {
   var entries = replydoc.find('/iq/p:pubsub/p:items/p:item/a:entry', {
     p: pubsub.ns,
@@ -184,16 +175,7 @@ function postToNodeFeed(req, res) {
   var channel = req.params.channel;
   var node = req.params.node;
 
-  publishNodeItem(req, res, channel, node, entry, function(reply) {
-    var itemId = getPublishedItemId(reply);
-    if (!itemId) {
-      res.send(500);
-      return;
-    }
-    var itemUri = getNodeItemUri(channel, node, itemId);
-    res.header('Location', itemUri);
-    sendPostAsResponse(req, res, itemId, entry);
-  });
+  publishNodeItemAndReturn(req, res, channel, node, entry);
 }
 
 function parseRequestBody(req, res) {
@@ -236,4 +218,55 @@ function sendPostAsResponse(req, res, itemId, entry) {
   entry.author = req.user.split('/', 2)[0];;
   req.headers['accept'] = req.headers['content-type'];
   api.sendAtomResponse(req, res, atom.fromJSON(entry).root(), 201);
+}
+
+//// PUT /<channel>/content/<node> ////////////////////////////////////////////
+
+function updateNodeFeed(req, res) {
+  var entry = parseRequestBody(req, res);
+  if (!entry) {
+    return;
+  }
+
+  var channel = req.params.channel;
+  var node = req.params.node;
+
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var latestIq = pubsub.itemsIq(nodeId, 1);
+  api.sendQuery(req, res, latestIq, function(reply) {
+    var itemId = getLatestItemId(reply);
+    if (itemId) {
+      var retractIq = pubsub.singleItemRetractIq(nodeId, itemId);
+      api.sendQuery(req, res, retractIq, function(retractReply) {
+        publishNodeItemAndReturn(req, res, channel, node, entry);
+      });
+    } else {
+      publishNodeItemAndReturn(req, res, channel, node, entry);
+    }
+  });
+}
+
+function getLatestItemId(reply) {
+  var replydoc = xml.parseXmlString(reply.toString());
+  var item = replydoc.get('/iq/p:pubsub/p:items/p:item[1]', {
+    p: pubsub.ns
+  });
+  if (item) {
+    return item.attr('id').value();
+  } else {
+    return null;
+  }
+}
+
+function publishNodeItemAndReturn(req, res, channel, node, entry) {
+  publishNodeItem(req, res, channel, node, entry, function(reply) {
+    var itemId = getPublishedItemId(reply);
+    if (!itemId) {
+      res.send(500);
+      return;
+    }
+    var itemUri = getNodeItemUri(channel, node, itemId);
+    res.header('Location', itemUri);
+    sendPostAsResponse(req, res, itemId, entry);
+  });
 }
