@@ -18,10 +18,10 @@ var dns = require('dns');
 var net = require('net');
 var config = require('./config');
 
-var HTTP = 'http://';
-var HTTPS = 'https://';
 var API_SRV_PREFIX = '_buddycloud-api._tcp.';
 var MEDIA_PROXY_ENDPOINT = '/media_proxy';
+
+var TXT_TOKENS = ['v', 'host', 'protocol', 'path', 'port'];
 
 function ping(address, port, error, success) {
   var socket = new net.Socket();
@@ -37,7 +37,7 @@ function ping(address, port, error, success) {
 }
 
 function discoverRemote(req, remoteDomain, callback) {
-  dns.resolveSrv(API_SRV_PREFIX + remoteDomain, function (err, addresses) {
+  dns.resolveTxt(API_SRV_PREFIX + remoteDomain, function (err, addresses) {
     if (err) {
       callback(null);
       return;
@@ -50,20 +50,71 @@ function discoverRemote(req, remoteDomain, callback) {
     
     //TODO Iterate over all addresses
     var firstAddress = addresses[0];
-    ping(firstAddress.name, firstAddress.port, function() {
+    var txtRecord = splitTXTRecord(firstAddress);
+    if (!txtRecord) {
+      callback(null);
+      return;
+    }
+    
+    var host = txtRecord['host'];
+    var port = txtRecord['port'];
+    
+    ping(host, port, function() {
       callback(null);
     }, function() {
-      var protocol = HTTP;
-      if (firstAddress.port == 443) {
-        protocol = HTTPS;
-      }
-      callback(protocol + firstAddress.name + MEDIA_PROXY_ENDPOINT);
+      var protocol = txtRecord['protocol'];
+      var path = txtRecord['path'];
+      path = !path || path == '/' ? '' : path; 
+      callback(protocol + '://' + host + ':' + port + path + MEDIA_PROXY_ENDPOINT);
     });
-    
   });
 }
 
+function sortTuplesByValues(dict) {
+  var tuples = [];
+  for (var key in dict) {
+    tuples.push([key, dict[key]]);
+  }
+  tuples.sort(function(a, b) { 
+    return a[1] - b[1]; 
+  });
+  return tuples;
+}
+
+function extractTXTValues(tuples, response) {
+  var values = {};
+  for (var i = 0; i < tuples.length; i++) {
+    var tuple = tuples[i];
+    var token = tuple[0];
+    var thisIdx = tuple[1];
+    var nextIdx = null;
+    if (i < tuples.length - 1) {
+      var nextTuple = tuples[i + 1];
+      nextIdx = nextTuple[1];
+    }
+    values[token] = response.substring(
+      thisIdx + token.length + 1, 
+      nextIdx ? nextIdx : response.length); 
+  }
+  return values;
+}
+
+function splitTXTRecord(response) {
+  var indexes = {};
+  for (var i in TXT_TOKENS) {
+    var t = TXT_TOKENS[i];
+    indexes[t] = response.indexOf(t + '=');
+    if (indexes[t] == -1) {
+      return null;
+    }
+  }
+  var tuples = sortTuplesByValues(indexes);
+  var values = extractTXTValues(tuples, response);
+  return values;
+}
+
 exports.discoverAPI = function(req, callback) {
+  
   var channel = req.params.channel;
   var remoteDomain = channel.split('@')[1];
   
