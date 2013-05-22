@@ -30,10 +30,12 @@ var PROXY_PREFIX = '/media_proxy';
  */
 exports.setup = function(app) {
   app.post('/media_proxy/:channel',
+           api.bodyReader,
            proxyToMediaServer);
   app.get('/media_proxy/:channel/:id',
            proxyToMediaServer);
   app.put('/media_proxy/:channel/:id',
+           api.bodyReader,
            proxyToMediaServer);
 };
 
