@@ -26,8 +26,6 @@ var xmpp = require('node-xmpp');
 var api = require('./util/api');
 var session = require('./util/session');
 
-var activeTransactions = [];
-
 /**
  * Registers resource URL handlers.
  */
@@ -50,14 +48,12 @@ exports.setup = function(app) {
 
 function proxyToMediaServer(req, res, next) {
   var transactionId = req.user ? generateTransactionId() : null;
-  if (transactionId) {
-    activeTransactions.push(transactionId);
-  }
   var mediaUrl = getMediaUrl(req, transactionId);
-  forwardRequest(req, res, mediaUrl, transactionId);
+  var listener = null;
   if (transactionId) {
-    listenForConfirmationRequest(req.session, transactionId);
+    listener = listenForConfirmationRequest(req.session, transactionId);
   }
+  forwardRequest(req, res, mediaUrl, listener);
 }
 
 function generateTransactionId() {
@@ -94,7 +90,7 @@ function base64url(buf) {
   return buf.toString('base64').replace('+', '-').replace('/', '_');
 }
 
-function forwardRequest(req, res, mediaUrl, transactionId) {
+function forwardRequest(req, res, mediaUrl, listener) {
   if (!mediaUrl) return res.send(503);
   mediaUrl = url.parse(mediaUrl);
   req.headers['host'] = mediaUrl.host;
@@ -114,17 +110,17 @@ function forwardRequest(req, res, mediaUrl, transactionId) {
       res.write(data);
     });
     mediaRes.on('end', function(data) {
-      removeTransaction(transactionId);
+      removeListener(req, listener);
       res.end();
     });
     mediaRes.on('close', function(data) {
-      removeTransaction(transactionId);
+      removeListener(req, listener);
       res.send(500);
     });
   });
 
   mediaReq.on('error', function(err) {
-    removeTransaction(transactionId);
+    removeListener(req, listener);
     res.send(err, 500);
   });
 
@@ -134,23 +130,20 @@ function forwardRequest(req, res, mediaUrl, transactionId) {
   mediaReq.end();
 }
 
-function removeTransaction(transactionId) {
-  var txIdx = activeTransactions.indexOf(transactionId);
-  if (txIdx != -1) {
-    activeTransactions.splice(txIdx, 1);
+function removeListener(req, listener) {
+  if (listener) {
+    req.session.removeStanzaListener(listener);
   }
 }
 
 function listenForConfirmationRequest(session, transactionId) {
   console.log('Listening for confirmation request of transaction ' + transactionId);
-  session.onStanza(function(stanza, wait) {
-    console.log('Confirmation stanza ' + stanza);
+  return session.onStanza(function(stanza) {
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
       console.log('Received confirmation request for transaction ' + transactionId);
       session.replyToConfirm(stanza);
-    } else if (activeTransactions.indexOf(transactionId) != -1) {
-      wait();
+      session.removeStanzaListener(arguments.callee);
     }
   });
 }

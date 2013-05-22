@@ -281,11 +281,12 @@ Session.prototype._setupStanzaListener = function() {
  * callback is called with the stanza as argument.
  */
 Session.prototype.onStanza = function(handler) {
-  var self = this;
-  this._connection.once('stanza', function(stanza) {
-    var wait = function() { self.onStanza(handler); };
-    handler(stanza, wait);
-  });
+  this._connection.on('stanza', handler);
+  return handler;
+};
+
+Session.prototype.removeStanzaListener = function(handler) {
+  this._connection.removeListener('stanza', handler);
 };
 
 Session.prototype.sendPresenceOnline = function() {
