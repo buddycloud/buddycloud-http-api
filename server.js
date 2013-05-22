@@ -59,8 +59,10 @@ function crossOriginAllower(req, res, next) {
 }
 
 function setupResourceHandlers(app) {
+  // Always define non-REST (static) endpoints first
   var handlers = [
     require('./src/account'),
+    require('./src/media_proxy'),
     require('./src/content_feed'),
     require('./src/content_item'),
     require('./src/media'),
@@ -76,8 +78,7 @@ function setupResourceHandlers(app) {
     require('./src/similar'),
     require('./src/contact_matching'),
     require('./src/topic_channel'),
-    require('./src/app_node'),
-    require('./src/media_proxy')
+    require('./src/app_node')
   ];
   handlers.forEach(function(h) { h.setup(app); });
 }
