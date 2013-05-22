@@ -138,12 +138,13 @@ function removeListener(req, listener) {
 
 function listenForConfirmationRequest(session, transactionId) {
   console.log('Listening for confirmation request of transaction ' + transactionId);
-  return session.onStanza(function(stanza) {
+  var listener = function(stanza) {
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
       console.log('Received confirmation request for transaction ' + transactionId);
       session.replyToConfirm(stanza);
-      session.removeStanzaListener(arguments.callee);
+      session.removeStanzaListener(listener);
     }
-  });
+  };
+  return session.onStanza(listener);
 }

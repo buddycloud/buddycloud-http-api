@@ -352,7 +352,7 @@ Session.prototype.replyToConfirm = function(message) {
   var from = message.attrs.from;
   message.attrs.to = from;
   message.attrs.from = to;
-  
+  console.log("OUT xmpp: " + message);
   this._connection.send(message);
 };
 
