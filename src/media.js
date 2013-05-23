@@ -91,7 +91,11 @@ function base64url(buf) {
 }
 
 function forwardRequest(req, res, mediaUrl, listener) {
-  if (!mediaUrl) return res.send(503);
+  if (!mediaUrl) {
+    removeListener(req, listener);
+    return res.send(503);
+  }
+  
   mediaUrl = url.parse(mediaUrl);
   req.headers['host'] = mediaUrl.host;
 
