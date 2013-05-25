@@ -52,7 +52,7 @@ function login(req, res) {
   });
 
   client.on('online', function() {
-    loginSucessful(client, res);
+    logged(client, res);
   });
 
   client.on('error', function(err) {
@@ -61,7 +61,7 @@ function login(req, res) {
   });
 }
 
-function loginSucessful(client, res) {
+function logged(client, res) {
   client.end();
   res.send(200);
 }
