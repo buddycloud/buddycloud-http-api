@@ -65,6 +65,7 @@ function setupResourceHandlers(app) {
     require('./src/media_proxy'),
     require('./src/content_feed'),
     require('./src/content_item'),
+    require('./src/replies'),
     require('./src/media'),
     require('./src/metadata'),
     require('./src/notification_settings'),
