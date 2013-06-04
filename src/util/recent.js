@@ -64,6 +64,8 @@ exports.rsmToJSON = function(reply) {
   var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
   var rsm = {};
 
+  if (!rsmSet) return rsm
+
   var firstNode = rsmSet.get('set:first', {set: rsmNs});
   if (firstNode) {
     rsm['first'] = firstNode.text();
