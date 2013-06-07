@@ -26,6 +26,11 @@ var grip = require('./src/util/grip');
 function setupConfig(app) {
   app.configure(function() {
     app.use(express.logger());
+    app.use(function(req, res, next) {
+        if (config.debug) 
+          console.log("Incoming request: " + req.method + " " + req.url)
+        next()
+    })
     app.use(auth.parser);
     app.use(grip.parser);
     app.use(crossOriginAllower);
@@ -33,7 +38,7 @@ function setupConfig(app) {
     app.use(express.errorHandler({
       dumpExceptions: config.debug || false,
       showStack: config.debug || false
-    }));
+    }))
   });
 }
 
