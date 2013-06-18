@@ -156,6 +156,12 @@ exports.fromJSON = function(entry) {
       namespace(exports.threadNS);
   }
 
+  if (entry.mediaId) {
+    entrydoc.root().
+      node('media-id', escapeText(entry.mediaId)).
+      namespace(exports.ns);
+  }
+
   return entrydoc;
 };
 
