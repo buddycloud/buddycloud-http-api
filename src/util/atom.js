@@ -102,6 +102,7 @@ function entryToJSON(entry) {
   var published = exports.get(entry, 'atom:published');
   var updated = exports.get(entry, 'atom:updated');
   var content = exports.get(entry, 'atom:content');
+  var mediaId = exports.get(entry, 'atom:media-id');
   var replyTo = entry.get(
     't:in-reply-to',
     {t: 'http://purl.org/syndication/thread/1.0'}
@@ -114,6 +115,7 @@ function entryToJSON(entry) {
     published: published ? published.text() : null,
     updated: updated ? updated.text() : null,
     content: content ? content.text() : null,
+    mediaId: mediaId ? mediaId.text() : null,
     replyTo: replyTo ? replyTo.attr('ref').value() : undefined
   };
 }
