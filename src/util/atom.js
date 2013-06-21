@@ -47,7 +47,7 @@ function ensureEntryHasTitle(entry) {
     var teaser = extractTeaser(content.toString());
     entry.node('title', teaser).namespace(exports.ns);
   }
-};
+}
 
 function extractTeaser(content) {
   if (content.length < 40) {
@@ -62,7 +62,7 @@ function ensureEntryHasAuthorName(entry) {
   var authorName = exports.get(entry, 'atom:author/atom:name');
   if (author && !authorName) {
     var name;
-    if (author.text().indexOf('acct:') == 0) {
+    if (author.text().indexOf('acct:') === 0) {
       name = author.text().split(':', 2)[1];
     } else {
       name = author.text();
@@ -102,7 +102,11 @@ function entryToJSON(entry) {
   var published = exports.get(entry, 'atom:published');
   var updated = exports.get(entry, 'atom:updated');
   var content = exports.get(entry, 'atom:content');
-  var mediaId = exports.get(entry, 'atom:media-id');
+  var media = structuredFieldToJSON(exports.get(entry, 'media'),
+    function(i) {
+      return {id: i.attr('id').value(), channel: i.attr('channel').value()};
+    }
+  );
   var replyTo = entry.get(
     't:in-reply-to',
     {t: 'http://purl.org/syndication/thread/1.0'}
@@ -115,9 +119,22 @@ function entryToJSON(entry) {
     published: published ? published.text() : null,
     updated: updated ? updated.text() : null,
     content: content ? content.text() : null,
-    mediaId: mediaId ? mediaId.text() : null,
+    media: media.length > 0 ? media : null,
     replyTo: replyTo ? replyTo.attr('ref').value() : undefined
   };
+}
+
+function structuredFieldToJSON(field, parser) {
+  var json = [];
+  if (field) {
+    var items = field.childNodes();
+
+    items.forEach(function(i) {
+      json.push(parser(i));
+    });
+  }
+
+  return json;
 }
 
 /**
@@ -158,10 +175,15 @@ exports.fromJSON = function(entry) {
       namespace(exports.threadNS);
   }
 
-  if (entry.mediaId) {
-    entrydoc.root().
-      node('media-id', escapeText(entry.mediaId)).
-      namespace(exports.ns);
+  if (entry.media) {
+    var media = entrydoc.root().node('media');
+    for (var m in entry.media) {
+      media.
+        node('item').
+        attr('id', entry.media[m].id).
+        attr('channel', entry.media[m].channel).
+        namespace(exports.ns);
+    }
   }
 
   return entrydoc;
