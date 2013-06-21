@@ -103,8 +103,10 @@ function entryToJSON(entry) {
   var updated = exports.get(entry, 'atom:updated');
   var content = exports.get(entry, 'atom:content');
   var media = structuredFieldToJSON(exports.get(entry, 'media'),
-    function(i) {
-      return {id: i.attr('id').value(), channel: i.attr('channel').value()};
+    function(item) {
+      var id = item.attr('id').value();
+      var channel = item.attr('channel').value();
+      return {id: id, channel: channel};
     }
   );
   var replyTo = entry.get(
