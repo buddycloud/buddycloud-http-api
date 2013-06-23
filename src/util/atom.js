@@ -102,7 +102,7 @@ function entryToJSON(entry) {
   var published = exports.get(entry, 'atom:published');
   var updated = exports.get(entry, 'atom:updated');
   var content = exports.get(entry, 'atom:content');
-  var media = structuredFieldToJSON(exports.get(entry, 'media'),
+  var media = structuredFieldToJSON(exports.get(entry, 'atom:media'),
     function(item) {
       var id = item.attr('id').value();
       var channel = item.attr('channel').value();

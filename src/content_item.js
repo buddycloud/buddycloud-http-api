@@ -43,7 +43,7 @@ function deleteNodeItem(req, res) {
     api.sendUnauthorized(res);
     return;
   }
-  
+
   var channel = req.params.channel;
   var node = req.params.node;
   var itemId = req.params.item;

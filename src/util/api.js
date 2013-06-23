@@ -42,7 +42,7 @@ exports.sendUnauthorized = function(res) {
 
 exports.sendGripUnsupported = function(res) {
   res.send("Error: Realtime endpoint not supported. Set up Pushpin or Fanout.io\n", 501);
-}
+};
 
 /**
  * Like session.sendQuery(), but takes care of any returned XMPP error
