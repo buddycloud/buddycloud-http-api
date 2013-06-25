@@ -95,6 +95,7 @@ function feedToJSON(feed) {
 }
 
 function entryToJSON(entry) {
+  console.log("ENTRY: " + entry);
   var id = exports.get(entry, 'atom:id');
   var sourceId = exports.get(entry, 'atom:source/atom:id');
   var author = exports.get(entry, 'atom:author');
@@ -102,7 +103,9 @@ function entryToJSON(entry) {
   var published = exports.get(entry, 'atom:published');
   var updated = exports.get(entry, 'atom:updated');
   var content = exports.get(entry, 'atom:content');
-  var media = structuredFieldToJSON(exports.get(entry, 'atom:media'),
+
+  // Workaround to handle entries result from post and get
+  var media = structuredFieldToJSON(entry.get('//media') || exports.get(entry, 'atom:media'),
     function(item) {
       var id = item.attr('id').value();
       var channel = item.attr('channel').value();
@@ -127,6 +130,7 @@ function entryToJSON(entry) {
 }
 
 function structuredFieldToJSON(field, parser) {
+  console.log("MEDIA: " + field);
   var json = [];
   if (field) {
     var items = field.childNodes();
