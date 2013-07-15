@@ -51,17 +51,17 @@ exports.production = {
   homeMediaRoot: 'http://localhost:60080',
 
   // pushpin and/or fanout.io is used for sending realtime data to clients
-    gripProxies: [
-    // pushpin
-    {
-      key: 'changeme', // make sure this matches with pushpin.conf
-      controlUri: 'http://localhost:5561'
-    },
-    // fanout.io
-    /*{
-      key: new Buffer('your-realm-key', 'base64'),
-      controlUri: 'http://api.fanout.io/realm/your-realm',
-      controlIss: 'your-realm'
-    }*/
-  ]
+  //  gripProxies: [
+  //  // pushpin
+  //  {
+  //    key: 'changeme', // make sure this matches with pushpin.conf
+  //    controlUri: 'http://localhost:5561'
+  //  },
+  //  // fanout.io
+  //  /*{
+  //    key: new Buffer('your-realm-key', 'base64'),
+  //    controlUri: 'http://api.fanout.io/realm/your-realm',
+  //    controlIss: 'your-realm'
+  //  }*/
+  //]
 };
