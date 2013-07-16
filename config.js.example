@@ -23,26 +23,26 @@ exports._ = {
 
 // Production settings
 exports.production = {
-  // Moar logs?
+  // More logs?
   debug: true,
 
-  // the domain your run buddycloud for (if your username is name@example.com then this would be example.com)
-  xmppDomain: 'example.com',
+  // the domain your run buddycloud for (if your username is name@EXAMPLE.COM then this would be EXAMPLE.COM)
+  xmppDomain: 'EXAMPLE.COM',
 
   // Hostname (optional - if not provided SRV records will looked up and used)
   // xmppHost: '127.0.0.1',
  
   // the anonymous domain that unauthenticated users are dropped into (should match your XMPP server)
-  xmppAnonymousDomain: 'anon.example.com',
+  xmppAnonymousDomain: 'anon.EXAMPLE.COM',
 
   // your buddycloud channel server
-  channelDomain: 'buddycloud.example.com',
+  channelDomain: 'buddycloud.EXAMPLE.COM',
 
   // the pusher component sends emails to users (https://github.com/buddycloud/buddycloud-pusher)
-  pusherComponent: 'pusher.example.com',
+  pusherComponent: 'pusher.EXAMPLE.COM',
 
-  // the friend finder component looks for your friends from other social networks on buddycloud
-  friendFinderComponent: 'friendfinder.example.com',
+  // the friend finder component looks for your friends from other social networks
+  friendFinderComponent: 'friendfinder.buddycloud.org',
 
   // you probably want to use the buddycloud search service
   searchComponent: 'search.buddycloud.org',
@@ -51,17 +51,17 @@ exports.production = {
   homeMediaRoot: 'http://localhost:60080',
 
   // pushpin and/or fanout.io is used for sending realtime data to clients
-  gripProxies: [
-    // pushpin
-    {
-      key: 'changeme', // make sure this matches with pushpin.conf
-      controlUri: 'http://localhost:5561'
-    },
-    // fanout.io
-    /*{
-      key: new Buffer('your-realm-key', 'base64'),
-      controlUri: 'http://api.fanout.io/realm/your-realm',
-      controlIss: 'your-realm'
-    }*/
-  ]
+  //  gripProxies: [
+  //  // pushpin
+  //  {
+  //    key: 'changeme', // make sure this matches with pushpin.conf
+  //    controlUri: 'http://localhost:5561'
+  //  },
+  //  // fanout.io
+  //  /*{
+  //    key: new Buffer('your-realm-key', 'base64'),
+  //    controlUri: 'http://api.fanout.io/realm/your-realm',
+  //    controlIss: 'your-realm'
+  //  }*/
+  //]
 };
