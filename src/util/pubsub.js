@@ -132,6 +132,23 @@ exports.nodeAffiliationsIq = function(nodeId, item) {
 };
 
 /**
+ * Creates a Pub-Sub <affiliations/> IQ with multiple <affiliation> tags,
+ * each composed by a jid of a subscribing channel and its new type of affiliation.
+ * The <subscribedJIDAndAffiliation> parameter must be an array of entries in the format:
+ * {'jid' : 'jid_val', 'affiliation' : 'affiliation_type'}
+ */
+exports.changeNodeAffiliationsIq = function(nodeId, subscribedJIDAndAffiliation) {
+  var iqBody = iq({type : 'set'}, exports.ownerNS).
+	  c('affiliations', {node: nodeId});
+
+  for ( var i=0; i<subscribedJIDAndAffiliation.length; i++ ){
+    iqBody.c('affiliation', subscribedJIDAndAffiliation[i]);
+  }
+
+  return iqBody.root();
+};
+
+/**
  * Creates a Pub-Sub <subscribe/> IQ, which subscribes to a node.
  */
 exports.subscribeIq = function(nodeId, jid, isTemp) {

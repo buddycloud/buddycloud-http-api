@@ -39,6 +39,9 @@ exports.setup = function(app) {
   app.get('/:channel/subscribers/:node',
           session.provider,
           getNodeSubscriptions);
+  app.post('/:channel/subscribers/:node',
+          session.provider,
+          changeNodeSubscriptions);
 };
 
 //// GET /subscribed ///////////////////////////////////////////////////////////
@@ -170,4 +173,52 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
   var iq = pubsub.nodeAffiliationsIq(nodeId);
   api.sendQuery(req, res, iq, callback);
+}
+
+//// POST /<channel>/subscribers/<node> //////////////////////////////////////////////////////////
+
+function changeNodeSubscriptions(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+
+  var channel = req.params.channel;
+  var node = req.params.node;
+
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var newSubscribedAffiliations = [];
+
+  try {
+
+    var propertyNames = Object.getOwnPropertyNames(req.body);
+    for ( var i=0; i<propertyNames.length; i++ ){
+
+      var key = propertyNames[i];
+      var subscribedChannel = key.split('/', 2)[0];
+      var subscribedNode = key.split('/', 2)[1];
+      var affiliation = body[key];
+
+      if ( affiliation != "member" && affiliation != "publisher" && affiliation != "moderator" && affiliation != "outcast" ){
+        continue;
+      }
+
+      //TODO
+      //Also filter out from newSubscribedAffiliations those channel jids which aren't actually subscribed to this node.
+      //Probably by performing a getNodeSubscriptions and comparing the results with the new affiliation information given by the user
+
+      newSubscribedAffiliations.push({
+        'jid' : pubsub.channelNodeId(subscribedChannel, subscribedNode),
+        'affiliation' : affiliation
+      });
+    }
+
+  } catch (e) {
+    res.send(400);
+  }
+
+  api.sendQuery(req, res, pubsub.changeNodeAffiliationsIq(nodeId, newSubscribedAffiliations), function(){
+    res.send(200);
+  });
+
 }
