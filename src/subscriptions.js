@@ -200,7 +200,7 @@ function changeNodeSubscriptions(req, res) {
 
     for ( var key in req.body ){
 
-      var subscribedChannel = key.split('/', 2)[0];
+      var jid = key;
       var affiliation = body[key];
 
       if ( !isValidAffiliation(affiliation) ){
@@ -212,7 +212,7 @@ function changeNodeSubscriptions(req, res) {
       //Probably by performing a getNodeSubscriptions and comparing the results with the new affiliation information given by the user
 
       newSubscribedAffiliations.push({
-        'jid' : subscribedChannel,
+        'jid' : jid,
         'affiliation' : affiliation
       });
     }
