@@ -177,6 +177,13 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
 
 //// POST /<channel>/subscribers/<node> //////////////////////////////////////////////////////////
 
+function isValidAffiliation(affiliation){
+  return (
+    affiliation == "member" || affiliation == "publisher" ||
+    affiliation == "moderator" || affiliation == "outcast"
+  )
+}
+
 function changeNodeSubscriptions(req, res) {
   if (!req.user) {
     api.sendUnauthorized(res);
@@ -191,15 +198,12 @@ function changeNodeSubscriptions(req, res) {
 
   try {
 
-    var propertyNames = Object.getOwnPropertyNames(req.body);
-    for ( var i=0; i<propertyNames.length; i++ ){
+    for ( var key in req.body ){
 
-      var key = propertyNames[i];
       var subscribedChannel = key.split('/', 2)[0];
-      var subscribedNode = key.split('/', 2)[1];
       var affiliation = body[key];
 
-      if ( affiliation != "member" && affiliation != "publisher" && affiliation != "moderator" && affiliation != "outcast" ){
+      if ( !isValidAffiliation(affiliation) ){
         continue;
       }
 
@@ -208,7 +212,7 @@ function changeNodeSubscriptions(req, res) {
       //Probably by performing a getNodeSubscriptions and comparing the results with the new affiliation information given by the user
 
       newSubscribedAffiliations.push({
-        'jid' : pubsub.channelNodeId(subscribedChannel, subscribedNode),
+        'jid' : subscribedChannel,
         'affiliation' : affiliation
       });
     }
