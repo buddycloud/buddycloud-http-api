@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "connect": "2.4.x",
-    "express": "2.x",
+    "express": "3.x",
     "libxmljs": "0.5.x",
     "ltx": "0.2.x",
     "node-expat": "1.6.x",
