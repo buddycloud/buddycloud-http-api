@@ -105,9 +105,9 @@ function createServer() {
       console.error('HTTPS enabled, but no certificate/key specified');
       process.exit(1);
     }
-    return express.createServer(options);
+    return express(options);
   } else {
-    return express.createServer();
+    return express();
   }
 }
 
