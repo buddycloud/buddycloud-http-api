@@ -29,8 +29,8 @@ exports.production = {
   // the domain your run buddycloud for (if your username is name@EXAMPLE.COM then this would be EXAMPLE.COM)
   xmppDomain: 'EXAMPLE.COM',
 
-  // Hostname (optional - if not provided SRV records will looked up and used)
-  // xmppHost: '127.0.0.1',
+  // Hostname (optional - if not provided SRV client records will looked up and used)
+  xmppHost: '127.0.0.1',
  
   // the anonymous domain that unauthenticated users are dropped into (should match your XMPP server)
   xmppAnonymousDomain: 'anon.EXAMPLE.COM',
