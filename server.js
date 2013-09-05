@@ -117,3 +117,8 @@ setupResourceHandlers(app);
 printInitialMessage();
 app.listen(config.port);
 
+process.on('uncaughtException', function(error) {
+    // Try and prevent issues crashing the whole system 
+    // for other users too
+    console.error(error)
+})
