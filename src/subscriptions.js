@@ -40,6 +40,7 @@ exports.setup = function(app) {
           session.provider,
           getNodeSubscriptions);
   app.post('/:channel/subscribers/:node',
+          api.bodyReader,
           session.provider,
           changeNodeSubscriptions);
 };
@@ -177,13 +178,6 @@ function requestNodeAffiliations(req, res, channel, node, callback) {
 
 //// POST /<channel>/subscribers/<node> //////////////////////////////////////////////////////////
 
-function isValidAffiliation(affiliation){
-  return (
-    affiliation == "member" || affiliation == "publisher" ||
-    affiliation == "moderator" || affiliation == "outcast"
-  )
-}
-
 function changeNodeSubscriptions(req, res) {
   if (!req.user) {
     api.sendUnauthorized(res);
@@ -197,32 +191,17 @@ function changeNodeSubscriptions(req, res) {
   var newSubscribedAffiliations = [];
 
   try {
-
-    for ( var key in req.body ){
-
-      var jid = key;
-      var affiliation = body[key];
-
-      if ( !isValidAffiliation(affiliation) ){
-        continue;
-      }
-
-      //TODO
-      //Also filter out from newSubscribedAffiliations those channel jids which aren't actually subscribed to this node.
-      //Probably by performing a getNodeSubscriptions and comparing the results with the new affiliation information given by the user
-
-      newSubscribedAffiliations.push({
-        'jid' : jid,
-        'affiliation' : affiliation
-      });
-    }
-
+    var newAffiliations = JSON.parse(req.body);
+    // TODO Filter out from newAffiliations those channel jids which aren't actually subscribed to this node.
+    // Probably by performing a getNodeSubscriptions and comparing the results with the new affiliation information given by the user
   } catch (e) {
     res.send(400);
   }
 
-  api.sendQuery(req, res, pubsub.changeNodeAffiliationsIq(nodeId, newSubscribedAffiliations), function(){
-    res.send(200);
-  });
+  api.sendQuery(req, res, 
+    pubsub.changeNodeAffiliationsIq(nodeId, newAffiliations), 
+    function() {
+      res.send(200);
+    });
 
 }

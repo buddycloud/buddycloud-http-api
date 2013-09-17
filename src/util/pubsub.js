@@ -137,14 +137,13 @@ exports.nodeAffiliationsIq = function(nodeId, item) {
  * The <subscribedJIDAndAffiliation> parameter must be an array of entries in the format:
  * {'jid' : 'jid_val', 'affiliation' : 'affiliation_type'}
  */
-exports.changeNodeAffiliationsIq = function(nodeId, subscribedJIDAndAffiliation) {
+exports.changeNodeAffiliationsIq = function(nodeId, newAffiliations) {
   var iqBody = iq({type : 'set'}, exports.ownerNS).
 	  c('affiliations', {node: nodeId});
-
-  for ( var i=0; i<subscribedJIDAndAffiliation.length; i++ ){
-    iqBody.c('affiliation', subscribedJIDAndAffiliation[i]);
+  for (var jid in newAffiliations) {
+    var affiliation = newAffiliations[jid];
+    iqBody.c('affiliation', {jid: jid, affiliation: affiliation});
   }
-
   return iqBody.root();
 };
 
