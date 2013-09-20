@@ -61,20 +61,24 @@ exports.toJSON = function(reply, json, user, counters) {
 };
 
 exports.rsmToJSON = function(reply) {
-  var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs})
-  var rsm = {}
+  var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
+  var rsm = {};
 
-  if (!rsmSet) return rsm
+  if (!rsmSet) {
+    return rsm;
+  }
 
-  var firstNode = rsmSet.get('set:first', {set: rsmNs})
+  var firstNode = rsmSet.get('set:first', {set: rsmNs});
   if (firstNode) {
-    rsm['first'] = firstNode.text()
+    rsm['first'] = firstNode.text();
   }
-  var lastNode = rsmSet.get('set:last', {set: rsmNs})
+  var lastNode = rsmSet.get('set:last', {set: rsmNs});
   if (lastNode) {
-    rsm['last'] = lastNode.text()
+    rsm['last'] = lastNode.text();
   }
-  var count = rsmSet.get('set:count', {set: rsmNs})
-  if (count) rsm['count'] = count.text()
-  return rsm
+  var count = rsmSet.get('set:count', {set: rsmNs});
+  if (count) {
+    rsm['count'] = count.text();
+  }
+  return rsm;
 }

@@ -95,7 +95,6 @@ function feedToJSON(feed) {
 }
 
 function entryToJSON(entry) {
-  console.log("ENTRY: " + entry);
   var id = exports.get(entry, 'atom:id');
   var sourceId = exports.get(entry, 'atom:source/atom:id');
   var author = exports.get(entry, 'atom:author');
@@ -130,7 +129,6 @@ function entryToJSON(entry) {
 }
 
 function structuredFieldToJSON(field, parser) {
-  console.log("MEDIA: " + field);
   var json = [];
   if (field) {
     var items = field.childNodes();
