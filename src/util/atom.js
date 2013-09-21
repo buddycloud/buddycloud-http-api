@@ -95,7 +95,6 @@ function feedToJSON(feed) {
 }
 
 function entryToJSON(entry) {
-  console.log("ENTRY: " + entry);
   var id = exports.get(entry, 'atom:id');
   var sourceId = exports.get(entry, 'atom:source/atom:id');
   var author = exports.get(entry, 'atom:author');
@@ -117,8 +116,14 @@ function entryToJSON(entry) {
     {t: 'http://purl.org/syndication/thread/1.0'}
   );
 
+  var localId = null;
+  if (id) {
+    var idSplitted = id.text().split(',');
+    localId = idSplitted[idSplitted.length - 1];
+  }
+
   return {
-    id: id ? id.text() : null,
+    id: localId,
     source: sourceId ? sourceId.text().match(/node=\/user\/(.*)$/)[1] : undefined,
     author: authorName ? authorName.text() : (author ? author.text() : null),
     published: published ? published.text() : null,
@@ -130,7 +135,6 @@ function entryToJSON(entry) {
 }
 
 function structuredFieldToJSON(field, parser) {
-  console.log("MEDIA: " + field);
   var json = [];
   if (field) {
     var items = field.childNodes();
