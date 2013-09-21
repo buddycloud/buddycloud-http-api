@@ -116,8 +116,14 @@ function entryToJSON(entry) {
     {t: 'http://purl.org/syndication/thread/1.0'}
   );
 
+  var localId = null;
+  if (id) {
+    var idSplitted = id.text().split(',');
+    localId = idSplitted[idSplitted.length - 1];
+  }
+
   return {
-    id: id ? id.text() : null,
+    id: localId,
     source: sourceId ? sourceId.text().match(/node=\/user\/(.*)$/)[1] : undefined,
     author: authorName ? authorName.text() : (author ? author.text() : null),
     published: published ? published.text() : null,
