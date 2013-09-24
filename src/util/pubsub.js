@@ -148,6 +148,30 @@ exports.changeNodeAffiliationsIq = function(nodeId, newAffiliations) {
 };
 
 /**
+ * Creates a Pub-Sub <subscriptions/> IQ, which approves 
+ * pending subscriptions to a node.
+ */
+exports.approveSubscriptionIq = function(nodeId, subscribers) {
+  var iqBody = iq({type : 'set'}, exports.ownerNS).
+      c('subscriptions', {node: nodeId});
+  for (var i in subscribers) {
+    var subscriber = subscribers[i]; 
+    iqBody.c('subscription', {jid: subscriber['jid'], subscription: subscriber['subscription']});
+  }
+  return iqBody.root();
+};
+
+/**
+ * Creates a Pub-Sub <subscriptions/> IQ, that retrieves 
+ * subscriptions from a node.
+ */
+exports.nodeSubscriptionsIq = function(nodeId, subscribersJid) {
+  var iqBody = iq({type : 'get'}, exports.ownerNS).
+      c('subscriptions', {node: nodeId});
+  return iqBody.root();
+};
+
+/**
  * Creates a Pub-Sub <subscribe/> IQ, which subscribes to a node.
  */
 exports.subscribeIq = function(nodeId, jid, isTemp) {

@@ -43,6 +43,13 @@ exports.setup = function(app) {
           api.bodyReader,
           session.provider,
           changeNodeSubscriptions);
+  app.get('/:channel/subscribers/:node/approve',
+          session.provider,
+          getPendingNodeSubscriptions);
+  app.post('/:channel/subscribers/:node/approve',
+          api.bodyReader,
+          session.provider,
+          approveNodeSubscriptions);
 };
 
 //// GET /subscribed ///////////////////////////////////////////////////////////
@@ -204,4 +211,64 @@ function changeNodeSubscriptions(req, res) {
       res.send(200);
     });
 
+}
+
+//// GET /<channel>/subscribers/<node>/approve /////////////////////////////////////////
+
+function getPendingNodeSubscriptions(req, res) {
+  var channel = req.params.channel;
+  var node = req.params.node;
+  requestNodeSubscriptions(req, res, channel, node, function(reply) {
+    var body = subscriptionsToJSON(reply);
+    res.contentType('json');
+    res.send(body);
+  });
+}
+
+function requestNodeSubscriptions(req, res, channel, node, callback) {
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var iq = pubsub.nodeSubscriptionsIq(nodeId);
+  api.sendQuery(req, res, iq, callback);
+}
+
+function subscriptionsToJSON(reply) {
+
+  var replydoc = xml.parseXmlString(reply.toString());
+  var entries = replydoc.find('//p:subscription', {p: pubsub.ownerNS});
+  var subscriptions = [];
+
+  entries.forEach(function(entry) {
+    var jid = entry.attr('jid').value();
+    var subscription = entry.attr('subscription').value();
+    subscriptions.push({jid: jid, subscription: subscription});
+  });
+
+  return subscriptions;
+}
+
+//// POST /<channel>/subscribers/<node>/approve //////////////////////////////////////////////////////////
+
+function approveNodeSubscriptions(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+
+  var channel = req.params.channel;
+  var node = req.params.node;
+
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var subscribersToApprove = [];
+
+  try {
+    var subscribersToApprove = JSON.parse(req.body);
+  } catch (e) {
+    res.send(400);
+  }
+
+  api.sendQuery(req, res, 
+    pubsub.approveSubscriptionIq(nodeId, subscribersToApprove), 
+    function() {
+      res.send(200);
+    });
 }
