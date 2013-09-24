@@ -60,18 +60,30 @@ function getUserSubscriptions(req, res) {
     return;
   }
 
-  var channel = req.params.channel;
-  var node = req.params.node;
-
-  requestUserAffiliations(req, res, channel, node, function(reply) {
-    var body = replyToJSON(reply, 'user');
-    res.contentType('json');
-    res.send(body);
+  requestUserAffiliations(req, res, function(reply) {
+    var affiliations = replyToJSON(reply, 'user');
+    requestUserSubscriptions(req, res, function(reply) {
+      var subscriptions = subscriptionsToJSON(reply, 'user');
+      for (var i in subscriptions) {
+        var nodeSubscription = subscriptions[i];
+        var subscription = nodeSubscription['subscription'];
+        if (subscription != 'subscribed') {
+          affiliations[nodeSubscription['node']] = subscription;
+        }
+      }
+      res.contentType('json');
+      res.send(affiliations);
+    });
   });
 }
 
-function requestUserAffiliations(req, res, channel, node, callback) {
+function requestUserAffiliations(req, res, callback) {
   var iq = pubsub.userAffiliationsIq();
+  api.sendQuery(req, res, iq, callback);
+}
+
+function requestUserSubscriptions(req, res, callback) {
+  var iq = pubsub.userSubscriptionsIq();
   api.sendQuery(req, res, iq, callback);
 }
 
@@ -99,7 +111,7 @@ function replyToJSON(reply, target) {
 
     // Strip the leading "/user/" from node names
     if (target == 'user') {
-      keyValue = keyValue.slice('/user/'.length);
+      keyValue = stripUserPrefix(keyValue);
     }
 
     var affiliation = entry.attr('affiliation').value();
@@ -107,6 +119,10 @@ function replyToJSON(reply, target) {
   });
 
   return subscriptions;
+}
+
+function stripUserPrefix(nodeId) {
+  return nodeId.slice('/user/'.length);
 }
 
 //// POST /subscribed //////////////////////////////////////////////////////////
@@ -219,7 +235,7 @@ function getPendingNodeSubscriptions(req, res) {
   var channel = req.params.channel;
   var node = req.params.node;
   requestNodeSubscriptions(req, res, channel, node, function(reply) {
-    var body = subscriptionsToJSON(reply);
+    var body = subscriptionsToJSON(reply, 'node');
     res.contentType('json');
     res.send(body);
   });
@@ -231,16 +247,29 @@ function requestNodeSubscriptions(req, res, channel, node, callback) {
   api.sendQuery(req, res, iq, callback);
 }
 
-function subscriptionsToJSON(reply) {
+function subscriptionsToJSON(reply, target) {
+  var ns;
+  if (target == 'user') {
+    ns = pubsub.ns;
+  } else if (target == 'node') {
+    ns = pubsub.ownerNS;
+  }
 
   var replydoc = xml.parseXmlString(reply.toString());
-  var entries = replydoc.find('//p:subscription', {p: pubsub.ownerNS});
+  var entries = replydoc.find('//p:subscription', {p: ns});
   var subscriptions = [];
 
   entries.forEach(function(entry) {
-    var jid = entry.attr('jid').value();
     var subscription = entry.attr('subscription').value();
-    subscriptions.push({jid: jid, subscription: subscription});
+    var response = {subscription: subscription};
+    if (target == 'user') {
+      var node = entry.attr('node').value();
+      response['node'] = stripUserPrefix(node);
+    } else if (target == 'node') {
+      var jid = entry.attr('jid').value();
+      response['jid'] = jid;
+    }
+    subscriptions.push(response);
   });
 
   return subscriptions;

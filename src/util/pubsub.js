@@ -165,9 +165,19 @@ exports.approveSubscriptionIq = function(nodeId, subscribers) {
  * Creates a Pub-Sub <subscriptions/> IQ, that retrieves 
  * subscriptions from a node.
  */
-exports.nodeSubscriptionsIq = function(nodeId, subscribersJid) {
+exports.nodeSubscriptionsIq = function(nodeId) {
   var iqBody = iq({type : 'get'}, exports.ownerNS).
       c('subscriptions', {node: nodeId});
+  return iqBody.root();
+};
+
+/**
+ * Creates a Pub-Sub <subscriptions/> IQ, that retrieves 
+ * subscriptions from an user.
+ */
+exports.userSubscriptionsIq = function() {
+  var iqBody = iq({type : 'get'}, exports.ns).
+      c('subscriptions');
   return iqBody.root();
 };
 
