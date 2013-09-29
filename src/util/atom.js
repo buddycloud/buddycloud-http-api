@@ -172,11 +172,13 @@ exports.fromJSON = function(entry) {
       namespace(exports.ns);
   }
 
+  var content = '';
   if (entry.content) {
-    entrydoc.root().
-      node('content', escapeText(entry.content)).
-      namespace(exports.ns);
+    content = escapeText(entry.content);
   }
+  entrydoc.root().
+	node('content', content).
+	namespace(exports.ns);
 
   if (entry.replyTo) {
     entrydoc.root().
