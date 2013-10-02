@@ -1,4 +1,4 @@
-This is the buddycloud HTTP API server. It implements the https://buddycloud.org/wiki/Buddycloud_HTTP_API
+Implements https://buddycloud.org/wiki/Buddycloud_HTTP_API
 
 # Install
 
@@ -11,7 +11,7 @@ Please log any issues at https://github.com/buddycloud/buddycloud-http-api/issue
 
 # Developers
 
-The project page is hosted at https://buddycloud.org/wiki/Buddycloud_HTTP_API_server. For developing please see the config file named config.js.developer-example.
+For developing please see the config file named config.js.developer-example.
 
 
 # License and copyright
