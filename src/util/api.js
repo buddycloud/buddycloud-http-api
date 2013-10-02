@@ -200,7 +200,8 @@ exports.sendHoldResponse = function(req, res, channelBase, prevId) {
   var instruct = griplib.createHoldResponse(channelObj, response);
 
   console.log('grip: sending hold for channel ' + channel);
-  res.send(instruct, {'Content-Type': 'application/grip-instruct'});
+  res.set('Content-Type', 'application/grip-instruct');
+  res.send(instruct);
 };
 
 /**
