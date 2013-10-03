@@ -14,6 +14,6 @@ Please log any issues at https://github.com/buddycloud/buddycloud-http-api/issue
 For developing please see the config file named config.js.developer-example.
 
 
-# #License and copyright
+## License and copyright
 
 This code is Apache 2 licensed and copyright buddycloud.
