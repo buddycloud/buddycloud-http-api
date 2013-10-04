@@ -87,7 +87,8 @@ function reportXmppError(req, res, errorStanza) {
     if (error.getChild('not-authorized') ||
         error.getChild('not-allowed') ||
         error.getChild('pending-subscription') ||
-        error.getChild('forbidden')) {
+        error.getChild('forbidden') ||
+        error.getChild('registration-required')) {
       if (req.user) {
         res.send(403);
       } else {
