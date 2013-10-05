@@ -184,7 +184,15 @@ function getNodeSubscriptions(req, res) {
         res.contentType('json');
         res.send(body);
       }, function(errstr) {
-        res.send(500);
+        if (errstr == 'registration-required') {
+          if (req.user) {
+            res.send(403);
+          } else {
+            api.sendUnauthorized(res);
+          }
+        } else {
+          res.send(500);
+        }
       });
     } else {
       res.contentType('json');

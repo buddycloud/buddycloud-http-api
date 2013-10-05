@@ -404,8 +404,7 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
     });
     console.log("OUT xmpp: " + pres);
     this._connection.send(pres);
-  }
-  else {
+  } else {
     ++refs;
   }
 
@@ -418,12 +417,16 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
       for(var i = 0; i < sub.pending.length; ++i) {
         sub.pending[i].onsub(sub.userData);
       }
-    }
-    else {
+    } else {
       var pending = sub.pending;
       delete self._subs[subkey];
+      var reason = 'failed';
+      if (reply.type == 'error' && reply.getChild('error')
+              .getChild('registration-required')) {
+        reason = 'registration-required';
+      }
       for(var i = 0; i < pending.length; ++i) {
-        pending[i].onerror('failed');
+        pending[i].onerror(reason);
       }
     }
   });
