@@ -49,7 +49,7 @@ function createChannelNode(req, res) {
 }
 
 function requestChannelCreation(req, res, channel, callback) {
-  var createIq = pubsub.createNodeIq(NODE_PREFIX + channel + POSTS_NODE_SUFIX);
+  var createIq = pubsub.createTopicNodeIq(NODE_PREFIX + channel + POSTS_NODE_SUFIX);
   api.sendQuery(req, res, createIq, callback);
 }
 
