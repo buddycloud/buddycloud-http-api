@@ -158,15 +158,15 @@ function extractSubscriptionCommand(body) {
 
 function subscribe(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
-  var bareJid = req.user.split('/', 2)[0];
-  var iq = pubsub.subscribeIq(nodeId, bareJid);
+  var jid = req.user;
+  var iq = pubsub.subscribeIq(nodeId, jid);
   api.sendQuery(req, res, iq, callback);
 }
 
 function unsubscribe(req, res, channel, node, callback) {
   var nodeId = pubsub.channelNodeId(channel, node);
-  var bareJid = req.user.split('/', 2)[0];
-  var iq = pubsub.unsubscribeIq(nodeId, bareJid);
+  var jid = req.user;
+  var iq = pubsub.unsubscribeIq(nodeId, jid);
   api.sendQuery(req, res, iq, callback);
 }
 
@@ -177,19 +177,8 @@ function getNodeSubscriptions(req, res) {
   var node = req.params.node;
   requestNodeAffiliations(req, res, channel, node, function(reply) {
     var body = replyToJSON(reply, 'node');
-    if (!body[req.session.jid]) {
-      var nodeId = pubsub.channelNodeId(channel, node);
-      console.log(req.session.jid + " is not subscribed to " + nodeId + ", creating temporary subscription");
-      req.session.subscribe(nodeId, function(sub) {
-        res.contentType('json');
-        res.send(body);
-      }, function(errstr) {
-        res.send(500);
-      });
-    } else {
-      res.contentType('json');
-      res.send(body);
-    }
+    res.contentType('json');
+    res.send(body);
   });
 }
 

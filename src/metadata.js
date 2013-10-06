@@ -41,7 +41,6 @@ exports.setup = function(app) {
 function getNodeMetadata(req, res) {
   var channel = req.params.channel;
   var node = req.params.node;
-
   requestNodeMetadata(req, res, channel, node, function(reply) {
     var body = replyToJSON(reply);
     res.contentType('json');
@@ -86,7 +85,7 @@ function getOption(reply, name) {
 function setNodeMetadata(req, res) {
   var channel = req.params.channel;
   var node = req.params.node;
-  var fields = JSON.parse(req.body);
+  var fields = JSON.parse(req.body.toString() || '{}');
 
   configureNode(req, res, channel, node, fields, function() {
     res.send(200);
