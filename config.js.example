@@ -65,3 +65,11 @@ exports.production = {
   //  }*/
   //]
 };
+
+// Test suite settings 
+exports.testing = {
+  port: 19123,
+  xmppDomain: 'localhost',
+  xmppHost: '127.0.0.1',
+  xmppPort: 15222,
+};
