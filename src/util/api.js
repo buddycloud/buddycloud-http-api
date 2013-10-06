@@ -54,6 +54,12 @@ exports.sendQuery = function(req, res, iq, callback) {
   }, config.channelDomain);
 };
 
+exports.sendQueryToXmpp = function(req, res, iq, domain, callback) {
+  req.session.sendQuery(iq, function(reply) {
+    checkError(reply, req, res, iq, callback);
+  }, domain);
+};
+
 exports.sendQueryToSearch = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
@@ -76,7 +82,7 @@ function checkError(reply, req, res, iq, callback) {
 	if (reply.type == 'error') {
 		reportXmppError(req, res, reply);
 	} else {
-                delete reply.attrs.xmlns;
+        delete reply.attrs.xmlns;
 		callback(reply);
 	}
 }

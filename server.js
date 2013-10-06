@@ -67,6 +67,7 @@ function setupResourceHandlers(app) {
   // Always define non-REST (static) endpoints first
   var handlers = [
     require('./src/account'),
+    require('./src/password'),
     require('./src/media_proxy'),
     require('./src/content_feed'),
     require('./src/content_item'),
