@@ -54,6 +54,12 @@ exports.sendQuery = function(req, res, iq, callback) {
   }, config.channelDomain);
 };
 
+exports.sendQueryToXmpp = function(req, res, iq, domain, callback) {
+  req.session.sendQuery(iq, function(reply) {
+    checkError(reply, req, res, iq, callback);
+  }, domain);
+};
+
 exports.sendQueryToSearch = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
