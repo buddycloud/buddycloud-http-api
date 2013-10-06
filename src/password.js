@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-// account.js:
-// Handles account-related requests (/account).
+// password.js:
+// Handles password-related requests (/account/pw/).
 
 var config = require('./util/config');
-var pusher = require('./util/pusher');
 var session = require('./util/session');
 var api = require('./util/api');
 var xmpp = require('node-xmpp');
@@ -31,6 +30,10 @@ exports.setup = function(app) {
            api.bodyReader,
            session.provider,
            changePassword);
+  app.post('/account/pw/reset',
+           api.bodyReader,
+           session.provider,
+           resetPassword);
 };
 
 //// POST /account/pw/change /////////////////////////////////////////////////////////////
@@ -70,5 +73,38 @@ function createPasswordChangeIQ(username, password) {
   var queryNode = new xmpp.Iq({type: 'set'}).c('query', {xmlns: 'jabber:iq:register'});
   queryNode.c('username').t(username);
   queryNode.c('password').t(password);
+  return queryNode.root();
+}
+
+//// POST /account/pw/reset /////////////////////////////////////////////////////////////
+
+function resetPassword(req, res) {
+  try {
+    var pwReset = JSON.parse(req.body);
+  } catch (e) {
+    res.send(400);
+  }
+  
+  var username = pwReset['username'];
+  
+  if (!username) {
+    res.send(400);
+    return;
+  }
+
+  if (username.indexOf("@") == -1) {
+    username = [username, '@', config.xmppDomain].join('');
+  }
+
+  var pwResetIq = createPasswordChangeIQ(username);
+  api.sendQueryToPusher(req, res, pwResetIq, function(reply) {
+    res.send(200);
+  });
+}
+
+function createPasswordChangeIQ(username) {
+  var queryNode = new xmpp.Iq({type: 'set'}).c('query', 
+      {xmlns: 'http://buddycloud.com/pusher/password-reset'});
+  queryNode.c('username').t(username);
   return queryNode.root();
 }
