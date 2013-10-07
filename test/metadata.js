@@ -213,6 +213,7 @@ describe('Node Metadata', function() {
         res.statusCode.should.equal(200);
 
         delete options.body;
+        delete options.method;
         tutil.get(options, function(res, body) {
           res.statusCode.should.equal(200);
           var metadata = JSON.parse(body);

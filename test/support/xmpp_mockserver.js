@@ -121,6 +121,10 @@ function checkAuth(user, password, callback) {
 }
 
 function handleStanza(client, stanza) {
+  if (stanza.name == 'presence') {
+    return;
+  }
+
   var action = findMatchingRule(stanza);
   if (!action) {
     console.error('No rule for handling stanza ' + stanza.toString());

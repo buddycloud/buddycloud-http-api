@@ -31,6 +31,21 @@ var mockConfig = {
     // Get own subscriptions + affiliations
     '<iq from="alice@localhost/http" type="get">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <subscriptions/>\
+       </pubsub>\
+     </iq>':
+    '<iq type="result">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+         <subscriptions>\
+           <subscription node="/user/alice@localhost/posts" \
+                        subscription="subscribed"/>\
+           <subscription node="/user/public@localhost/posts" \
+                        subscription="subscribed"/>\
+         </subscriptions>\
+       </pubsub>\
+     </iq>',
+    '<iq from="alice@localhost/http" type="get">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
          <affiliations/>\
        </pubsub>\
      </iq>':

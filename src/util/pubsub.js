@@ -186,7 +186,10 @@ exports.userSubscriptionsIq = function() {
  */
 exports.subscribeIq = function(nodeId, jid, isTemp) {
   var query = iq({type: 'set'});
-  query.c('subscribe', {node: nodeId, jid: jid});
+  query.c('subscribe', {
+    node: nodeId,
+    jid: bareJid(jid)
+  });
   if (isTemp) {
     var form = query.c('options').
     c('x', {xmlns: 'jabber:x:data', type: 'submit'});
@@ -202,9 +205,13 @@ exports.subscribeIq = function(nodeId, jid, isTemp) {
  */
 exports.unsubscribeIq = function(nodeId, jid) {
   return iq({type: 'set'}).
-    c('unsubscribe', {node: nodeId, jid: jid}).
+    c('unsubscribe', {node: nodeId, jid: bareJid(jid)}).
     root();
 };
+
+function bareJid(jid) {
+  return (jid.indexOf('/') != -1) ? jid.split('/', 2)[0] : jid;
+}
 
 /**
  * Creates a Pub-Sub <configure/> IQ which sets a node's configuration.

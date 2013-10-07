@@ -95,7 +95,7 @@ function createSession(req, res, next) {
     // FIXME: Checking the error type bassed on the error message
     // is fragile, but this is the only information that node-xmpp
     // gives us.
-    console.log(err);
+    console.error(err);
     sessionCache.remove(req.credentials);
     for (var n = 0; n < session.waitingReqs.length; ++n) {
       var wr = session.waitingReqs[n];
@@ -126,7 +126,7 @@ function xmppConnectionOptions(req) {
       jid: '@' + domain,
       host: host,
       port: port,
-      preferredSaslMechanism: 'ANONYMOUS'
+      //preferredSaslMechanism: 'ANONYMOUS'
     };
   }
 }

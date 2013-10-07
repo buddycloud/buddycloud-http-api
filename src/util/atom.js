@@ -174,7 +174,7 @@ exports.fromJSON = function(entry) {
 
   var content = '';
   if (entry.content) {
-    content = escapeText(entry.content);
+    content = entry.content;
   }
   entrydoc.root().
 	node('content', content).
