@@ -19,7 +19,7 @@
     "ltx": "~0.3.0",
     "node-expat": "~2.0.0",
     "node-stringprep": "~0.1.8",
-    "node-xmpp": "~0.7.0",
+    "node-xmpp": "~0.7.1",
     "jwt-simple": "0.1.x",
     "iso8601": "1.1.1",
     "pubcontrol": "0.3.1",
