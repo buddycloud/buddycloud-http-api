@@ -70,6 +70,13 @@ function provideSession(session, req, res, next) {
   }
 }
 
+exports.expire = function(req) {
+  sessionCache.remove(req.credentials);
+  if (req.session) {
+    req.session.end();
+  }
+};
+
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
   var client = new xmpp.Client(options);
