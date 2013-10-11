@@ -20,6 +20,8 @@
 var config = require('./util/config');
 var pusher = require('./util/pusher');
 var friendFinder = require('./util/friendfinder');
+var session = require('./util/session');
+var api = require('./util/api');
 var connect = require('connect');
 var xmpp = require('node-xmpp');
 var crypto = require('crypto');
@@ -31,6 +33,9 @@ exports.setup = function(app) {
   app.post('/account',
            connect.json(),
            registerAccount);
+  app.delete('/account',
+           session.provider,
+           deleteAccount);
 };
 
 //// POST /account /////////////////////////////////////////////////////////////
@@ -116,4 +121,52 @@ function sendRegisterIq(client, registerIq, to, callback) {
   });
   
   client.send(iq);
+}
+
+//// DELETE /account /////////////////////////////////////////////////////////////
+
+function deleteAccount(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
+  unregisterFromChannelServer(req, res, function() {
+    var recipients = [config.pusherComponent, 
+        config.friendFinderComponent, 
+        config.searchComponent,
+        config.xmppDomain];
+    
+    unregisterFrom(req, recipients, 0, function() {
+      session.expire(req);
+      res.send(200);
+    });
+  });
+}
+
+function unregisterFrom(req, recipients, recipientIndex, callback) {
+  if (recipientIndex >= recipients.length) {
+    callback();
+    return;
+  }
+  var to = recipients[recipientIndex];
+  if (to) {
+    req.session.sendQuery(createDeleteAccountIQ(), function() {
+      unregisterFrom(req, recipients, recipientIndex + 1, callback);
+    }, to);
+  } else {
+    unregisterFrom(req, recipients, recipientIndex + 1, callback);
+  }
+}
+
+function unregisterFromChannelServer(req, res, callback) {
+  var deleteIQ = createDeleteAccountIQ();
+  api.sendQuery(req, res, deleteIQ, callback);
+}
+
+function createDeleteAccountIQ() {
+  var removeEl = new xmpp.Iq({type: 'set'})
+        .c('query', {xmlns: 'jabber:iq:register'})
+        .c('remove');
+  return removeEl.root();
 }
