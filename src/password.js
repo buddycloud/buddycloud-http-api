@@ -96,13 +96,13 @@ function resetPassword(req, res) {
     username = [username, '@', config.xmppDomain].join('');
   }
 
-  var pwResetIq = createPasswordChangeIQ(username);
+  var pwResetIq = createPasswordResetIQ(username);
   api.sendQueryToPusher(req, res, pwResetIq, function(reply) {
     res.send(200);
   });
 }
 
-function createPasswordChangeIQ(username) {
+function createPasswordResetIQ(username) {
   var queryNode = new xmpp.Iq({type: 'set'}).c('query', 
       {xmlns: 'http://buddycloud.com/pusher/password-reset'});
   queryNode.c('username').t(username);
