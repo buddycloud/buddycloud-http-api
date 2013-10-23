@@ -90,6 +90,7 @@ function createSession(req, res, next) {
   client.on('online', function() {
     session.ready = true;
     session._sendGeneralPresence();
+    session.sendPresenceOnline();
     console.log("Session created for jid: " + session.jid);
     for (var n = 0; n < session.waitingReqs.length; ++n) {
       var wr = session.waitingReqs[n];
