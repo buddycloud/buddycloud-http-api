@@ -38,6 +38,9 @@ exports.setup = function(app) {
   app.get('/:channel/next/:node',
           session.provider,
           getNodeFeedNext);
+  app.get('/:channel/content/:node/threads',
+          session.provider,
+          getThreadedNodeFeed);
   app.post('/:channel/content/:node',
            api.bodyReader,
            session.provider,
@@ -269,4 +272,48 @@ function publishNodeItemAndReturn(req, res, channel, node, entry) {
     res.header('Location', itemUri);
     sendPostAsResponse(req, res, itemId, entry);
   });
+}
+
+//// GET /<channel>/content/<node>/threads ////////////////////////////////////////////
+
+function getThreadedNodeFeed(req, res) {
+  var channel = req.params.channel;
+  var node = req.params.node;
+  requestNodeThreads(req, res, channel, node, function(reply) {
+    var feed = generateThreadedNodeFeed(channel, node, reply);
+    res.contentType('json');
+    res.send(feed);
+  });
+}
+
+function generateThreadedNodeFeed(channel, node, reply) {
+  var replydoc = xml.parseXmlString(reply.toString());
+  var threads = replydoc.find('/iq/p:pubsub/p:thread', {
+    p: pubsub.ns
+  });
+  
+  var feed = [];
+  
+  threads.forEach(function(thread) {
+    var entries = thread.find('p:item/a:entry', {
+      p: pubsub.ns, a: atom.ns
+    });
+    var items = [];
+    entries.forEach(function(entry) {
+      atom.normalizeEntry(entry);
+      items.push(atom.toJSON(entry));
+    });
+    feed.push({
+      'id': thread.attr('id').value(), 
+      'updated': thread.attr('updated').value(),
+      'items': items})
+  });
+  
+  return feed;
+}
+
+function requestNodeThreads(req, res, channel, node, callback) {
+  var nodeId = pubsub.channelNodeId(channel, node);
+  var iq = pubsub.threadsIq(nodeId, req.query.max, req.query.after);
+  api.sendQuery(req, res, iq, callback);
 }

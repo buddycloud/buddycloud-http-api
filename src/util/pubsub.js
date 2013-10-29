@@ -71,6 +71,14 @@ exports.itemsIq = function(nodeId, max, after) {
   return itemsNode.root();
 };
 
+exports.threadsIq = function(nodeId, max, after) {
+  var itemsNode = iq({type: 'get'}).c('threads', {node: nodeId});
+  if (max || after) {
+    addRSM(itemsNode.up(), max, after);
+  }
+  return itemsNode.root();
+};
+
 function addRSM(parent, max, after) {
   var setElem = parent.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
   if (max) {
