@@ -21,7 +21,7 @@ var xml = require('libxmljs');
 var rsmNs = 'http://jabber.org/protocol/rsm';
 var CHANNEL_REGEX = '\\b([\\w\\d][\\w\\d-_%&<>.]+@[\\w\\d-]{3,}\\.[\\w\\d-]{2,}(?:\\.[\\w]{2,6})?)\\b';
 
-exports.toJSON = function(reply, json, user, counters) {
+exports.toJSON = function(reply, json, user, summary) {
   var items = xml.parseXmlString(reply.toString()).find('/iq/p:pubsub/p:items', {
     p: pubsub.ns
   });
@@ -31,34 +31,79 @@ exports.toJSON = function(reply, json, user, counters) {
         p: pubsub.ns,
         a: atom.ns
       });
-      if (!json[node]) {
-        if (counters) {
-          json[node] = {mentionsCount: 0, totalCount: 0};
-        } else {
-          json[node] = [];
-        }
-      }
-      for (var i = 0; i < entries.length; i++) {
-        var entry = entries[i];
-        var jsonEntry = atom.toJSON(entry);
-        if (counters) {
-          var content = jsonEntry.content || '';
-          var matches = content.match(CHANNEL_REGEX) || [];
-          for (var j = 0; j < matches.length; j++) {
-            if (matches[j] === user) {
-              json[node].mentionsCount += 1;
-              break;
-            }
-          }
 
-          json[node].totalCount += 1;
-        } else {
+      if (summary) {
+        if (!json[node]) {
+          json[node] = {mentionsCount: 0, totalCount: 0, repliesCount: 0, postsThisWeek: []};
+        }
+        parseSummary(entries, user, json[node]);
+      } else {
+        json[node] = json[node] || [];
+
+        for (var i in entries) {
+          var jsonEntry = atom.toJSON(entries[i]);
           json[node].push(jsonEntry);
         }
       }
   });
   return json;
 };
+
+function lastWeekDate() {
+  var weekInMillis = 7*(24*60*(60*1000));
+  var now = new Date();
+  return new Date(now - weekInMillis);
+}
+
+function countReplies(posts, replies) {
+  var repliesCount = 0;
+  for (var i in posts) {
+    repliesCount += replies[posts[i]] || 0;
+  }
+  return repliesCount;
+}
+
+function checkMentions(content, user) {
+  var matches = content.match(CHANNEL_REGEX) || [];
+  for (var j in matches) {
+    if (matches[j] === user) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+function parseSummary(entries, user, obj) {
+  var lastWeek =  lastWeekDate();
+  var userPosts = [];
+  var replies = {};
+
+  obj.totalCount += entries.length;
+  for (var i in entries) {
+    var jsonEntry = atom.toJSON(entries[i]);
+    obj.mentionsCount += checkMentions(jsonEntry.content || '', user);
+    
+    var updated = new Date(jsonEntry.updated);
+    if (updated > lastWeek) {
+      obj.postsThisWeek.push(jsonEntry.updated);
+    }
+
+    if (jsonEntry.replyTo) {
+      if (replies[jsonEntry.replyTo]) {
+        replies[jsonEntry.replyTo] = replies[jsonEntry.replyTo] + 1;
+      } else {
+        replies[jsonEntry.replyTo] = 1;
+      }
+    } else {
+      // Posts from this user
+      if (jsonEntry.author === user) {
+        userPosts.push(jsonEntry.id);
+      }
+    }
+  }
+  obj.repliesCount += countReplies(userPosts, replies);
+}
 
 exports.rsmToJSON = function(reply) {
   var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
@@ -81,4 +126,4 @@ exports.rsmToJSON = function(reply) {
     rsm['count'] = count.text();
   }
   return rsm;
-}
+};
