@@ -38,6 +38,7 @@ exports.setup = function(app) {
 };
 
 //// GET /sync /////////////////////////////////////////////////////////////
+
 function getRecentItems(req, res) {
   var user = req.user;
   if (!user) {
@@ -51,17 +52,23 @@ function getRecentItems(req, res) {
   var summary = params.summary && params.summary == 'true';
 
   var jsonResponse = {};
+  var rsmLast;
 
   var callback = function(reply) {
     var rsm = recent.rsmToJSON(reply);
     recent.toJSON(reply, jsonResponse, user, summary);
     if (rsm.last) {
+      if (rsm.last === rsmLast) {
+        res.send(500);
+      }
+
+      rsmLast = rsm.last;
       requestRecentItems(req, res, since, max, callback, rsm.last);
     } else {
       res.contentType('json');
       res.send(jsonResponse);
     }
-  }
+  };
 
   requestRecentItems(req, res, since, max, callback);
 }
