@@ -78,6 +78,7 @@ function parseSummary(entries, user, obj) {
   var lastWeek =  lastWeekDate();
   var userPosts = [];
   var replies = {};
+  var lastUpdated;
 
   obj.totalCount += entries.length;
   for (var i in entries) {
@@ -87,6 +88,10 @@ function parseSummary(entries, user, obj) {
     var updated = new Date(jsonEntry.updated);
     if (updated > lastWeek) {
       obj.postsThisWeek.push(jsonEntry.updated);
+    }
+
+    if (!lastUpdated || updated > lastUpdated) {
+      lastUpdated = updated;
     }
 
     if (jsonEntry.replyTo) {
@@ -102,6 +107,12 @@ function parseSummary(entries, user, obj) {
       }
     }
   }
+  if (lastUpdated) {
+    if (!obj.lastUpdated || lastUpdated > obj.lastUpdated) {
+      obj.lastUpdated = lastUpdated;
+    }
+  }
+
   obj.repliesCount += countReplies(userPosts, replies);
 }
 
