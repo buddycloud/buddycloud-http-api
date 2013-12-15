@@ -63,14 +63,17 @@ function countReplies(posts, replies) {
   return repliesCount;
 }
 
-function checkMentions(content, user) {
+function checkMentions(jsonEntry, user) {
+  if (jsonEntry.author === user) {
+    return 0;
+  }
+  var content = jsonEntry.content || '';
   var matches = content.match(CHANNEL_REGEX) || [];
   for (var j in matches) {
     if (matches[j] === user) {
       return 1;
     }
   }
-
   return 0;
 }
 
@@ -80,10 +83,12 @@ function parseSummary(entries, user, obj) {
   var replies = {};
   var lastUpdated;
 
-  obj.totalCount += entries.length;
   for (var i in entries) {
     var jsonEntry = atom.toJSON(entries[i]);
-    obj.mentionsCount += checkMentions(jsonEntry.content || '', user);
+    if (jsonEntry.author != user) {
+      obj.totalCount += 1;
+    }
+    obj.mentionsCount += checkMentions(jsonEntry, user);
     
     var updated = new Date(jsonEntry.updated);
     if (updated > lastWeek) {
@@ -95,10 +100,9 @@ function parseSummary(entries, user, obj) {
     }
 
     if (jsonEntry.replyTo) {
-      if (replies[jsonEntry.replyTo]) {
-        replies[jsonEntry.replyTo] = replies[jsonEntry.replyTo] + 1;
-      } else {
-        replies[jsonEntry.replyTo] = 1;
+      if (jsonEntry.author != user) {
+        var repliesToThread = replies[jsonEntry.replyTo];
+        replies[jsonEntry.replyTo] = repliesToThread ? repliesToThread + 1 : 1;
       }
     } else {
       // Posts from this user
@@ -107,6 +111,7 @@ function parseSummary(entries, user, obj) {
       }
     }
   }
+  
   if (lastUpdated) {
     if (!obj.lastUpdated || lastUpdated > obj.lastUpdated) {
       obj.lastUpdated = lastUpdated;
