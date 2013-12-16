@@ -112,6 +112,19 @@ exports.updateSettings = function(settings) {
   return queryNode.root();
 };
 
+exports.deleteSettings = function(settings) {
+  var removeEl = new xmpp.Iq({type: 'set'})
+        .c('query', {xmlns: 'jabber:iq:register'})
+        .c('remove');
+  if (settings.type) {
+    setEl('type', settings.type, removeEl);
+  }
+  if (settings.target) {
+    setEl('target', settings.target, removeEl);
+  }
+  return removeEl.root();
+};
+
 function setEl(key, value, root) {
   if (value) {
     root.c(key).t(value);

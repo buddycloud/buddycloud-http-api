@@ -36,6 +36,10 @@ exports.setup = function(app) {
            api.bodyReader,
            session.provider,
            updateSettings);
+  app.delete('/notification_settings',
+             api.bodyReader,
+             session.provider,
+             deleteSettings);
 };
 
 //// GET /notification_settings /////////////////////////////////////////////////////////////
@@ -105,4 +109,22 @@ function updateSettings(req, res) {
 function requestSettingsUpdate(req, res, settings, callback) {
   var updateSettingsIq = pusher.updateSettings(settings);
   api.sendQueryToPusher(req, res, updateSettingsIq, callback);
+}
+
+////DELETE /notification_settings /////////////////////////////////////////////////////////////
+
+function deleteSettings(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  var fields = JSON.parse(req.body);
+  requestDeleteSettings(req, res, fields, function(reply) {
+    res.send(200);
+  });
+}
+
+function requestDeleteSettings(req, res, settings, callback) {
+  var deleteSettingsIq = pusher.deleteSettings(settings);
+  api.sendQueryToPusher(req, res, deleteSettingsIq, callback);
 }
