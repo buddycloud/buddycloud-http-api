@@ -35,33 +35,47 @@ exports.signup = function(username, email) {
   return queryNode.root();
 };
 
-exports.getSettings = function(type) {
+exports.getSettings = function(type, target) {
   var queryNode = iq({type: 'get'}, settingsNs);
   queryNode.c('type').t(type);
+  if (target) {
+    queryNode.c('target').t(target);
+  }
   return queryNode.root();
 };
 
 exports.settingsToJSON = function(reply) {
-  var settings = xml.parseXmlString(reply.toString()).get('//query:notificationSettings', {query: settingsNs});
-  var target = settings.get("query:target", {query: settingsNs});
-  var postAfterMe = settings.get("query:postAfterMe", {query: settingsNs});
-  var postMentionedMe = settings.get("query:postMentionedMe", {query: settingsNs});
-  var postOnMyChannel = settings.get("query:postOnMyChannel", {query: settingsNs});
-  var postOnSubscribedChannel = settings.get("query:postOnSubscribedChannel", {query: settingsNs});
-  var followMyChannel = settings.get("query:followMyChannel", {query: settingsNs});
-  var followRequest = settings.get("query:followRequest", {query: settingsNs});
+
+  var replyEl = xml.parseXmlString(reply.toString());
+
+  var allSettings = replyEl.find('//query:notificationSettings', {query: settingsNs});
+  var allSettingsJSON = []
   
-  jsonItem = {
-    target : target ? target.text() : null,
-    postAfterMe : postAfterMe ? postAfterMe.text() : null,
-    postMentionedMe : postMentionedMe ? postMentionedMe.text() : null,
-    postOnMyChannel : postOnMyChannel ? postOnMyChannel.text() : null,
-    postOnSubscribedChannel : postOnSubscribedChannel ? postOnSubscribedChannel.text() : null,
-    followMyChannel : followMyChannel ? followMyChannel.text() : null,
-    followRequest : followRequest ? followRequest.text() : null
-  };
+  for (var i = 0; i < allSettings.length; i++) {
+    var settings = allSettings[i];
+    
+    var target = settings.get("query:target", {query: settingsNs});
+    var postAfterMe = settings.get("query:postAfterMe", {query: settingsNs});
+    var postMentionedMe = settings.get("query:postMentionedMe", {query: settingsNs});
+    var postOnMyChannel = settings.get("query:postOnMyChannel", {query: settingsNs});
+    var postOnSubscribedChannel = settings.get("query:postOnSubscribedChannel", {query: settingsNs});
+    var followMyChannel = settings.get("query:followMyChannel", {query: settingsNs});
+    var followRequest = settings.get("query:followRequest", {query: settingsNs});
   
-  return jsonItem;
+    jsonItem = {
+      target : target ? target.text() : null,
+      postAfterMe : postAfterMe ? postAfterMe.text() : null,
+      postMentionedMe : postMentionedMe ? postMentionedMe.text() : null,
+      postOnMyChannel : postOnMyChannel ? postOnMyChannel.text() : null,
+      postOnSubscribedChannel : postOnSubscribedChannel ? postOnSubscribedChannel.text() : null,
+      followMyChannel : followMyChannel ? followMyChannel.text() : null,
+      followRequest : followRequest ? followRequest.text() : null
+    };
+    
+    allSettingsJSON.push(jsonItem);
+  }
+  
+  return allSettingsJSON;
 }
 
 exports.getMetadata = function(type) {

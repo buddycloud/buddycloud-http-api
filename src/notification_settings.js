@@ -56,8 +56,9 @@ function getSettings(req, res) {
 function requestSettings(req, res, callback) {
   var params = url.parse(req.url, true).query;
   var type = params.type;
+  var target = params.target;
   
-  var getSettingsIq = pusher.getSettings(type);
+  var getSettingsIq = pusher.getSettings(type, target);
   api.sendQueryToPusher(req, res, getSettingsIq, callback);
 }
 
