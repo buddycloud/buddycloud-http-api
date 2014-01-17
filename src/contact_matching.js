@@ -25,44 +25,41 @@ var url = require('url');
 var xmpp = require('node-xmpp');
 var xml = require('libxmljs');
 
-var ns = 'http://buddycloud.com/friend_finder/match_';
+var ns = 'http://buddycloud.com/friend_finder/match';
 
 /**
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.get('/match_contacts',
+  app.post('/match_contacts',
+           api.bodyReader,
            session.provider,
-           getMatchingContacts);
+           postMatchingContacts);
 };
 
-//// GET /match_contacts?provider=p&access_token=o /////////////////////////////////////////////////////////////
+//// POST /match_contacts /////////////////////////////////////////////////////////////
 
-function getMatchingContacts(req, res) {
+function postMatchingContacts(req, res) {
   if (!req.user) {
     api.sendUnauthorized(res);
     return;
   }
   
-  var params = url.parse(req.url, true).query;
+  var contacts = JSON.parse(req.body);
   
-  var provider = params.provider;
-  var accessToken = params.access_token;
-  var accessTokenSecret = params.access_token_secret;
-
-  requestMatchingContacts(req, res, provider, accessToken, accessTokenSecret, function(reply) {
-    var items = contactsToJSON(reply, ns + provider);
+  requestMatchingContacts(req, res, contacts.mine, contacts.others, function(reply) {
+    var items = contactsToJSON(reply);
     var body = {items: items};
     res.contentType('json');
     res.send(body);
   });
 }
 
-function contactsToJSON(reply, providerNs) {
-  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: providerNs});
+function contactsToJSON(reply) {
+  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: ns});
   var jsonItems = [];
   items.forEach(function(e){
-    jsonItems.push(contactToJSON(e, ns));
+    jsonItems.push(contactToJSON(e));
   });
   return jsonItems;
 }
@@ -70,11 +67,11 @@ function contactsToJSON(reply, providerNs) {
 function contactToJSON(item) {
   var jid = item.attr('jid');
   var matchedHash = item.attr('matched-hash');
-  return {jid : jid.value(), matchedHash : matchedHash.value()};
+  return {'jid' : jid.value(), 'matched-hash' : matchedHash.value()};
 }
 
-function requestMatchingContacts(req, res, provider, accessToken, accessTokenSecret, callback) {
-  var iq = getMatchingContactsIq(provider, accessToken, accessTokenSecret);
+function requestMatchingContacts(req, res, mine, others, callback) {
+  var iq = getMatchingContactsIq(mine, others);
   api.sendQueryToFriendFinder(req, res, iq, callback);
 }
 
@@ -82,11 +79,17 @@ function iq(attrs, ns) {
   return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
 }
 
-function getMatchingContactsIq(provider, accessToken, accessTokenSecret) {
-  var queryNode = iq({type: 'get'}, ns + provider);
-  queryNode.c('access_token').t(accessToken);
-  if (accessTokenSecret) {
-    queryNode.c('access_token_secret').t(accessTokenSecret);
+function getMatchingContactsIq(mine, others) {
+  var queryNode = iq({type: 'get'}, ns);
+  if (mine) {
+    for (var myHashIdx in mine) {
+      queryNode.c('item', {'item-hash': mine[myHashIdx], 'me': 'true'});
+    }
+  }
+  if (others) {
+    for (var otherHashIdx in others) {
+      queryNode.c('item', {'item-hash': others[otherHashIdx]});
+    }
   }
   return queryNode.root();
 }
