@@ -35,8 +35,6 @@ function hash(str) {
 
 exports.signup = function(username, email) {
   var queryNode = iq({type: 'get'}, ns);
-  var itemNode = queryNode.c('item');
-  queryNode.c('me').t('true');
-  queryNode.c('item-hash').t(hash('email:' + email));
+  queryNode.c('item', {'item-hash': hash('email:' + email), 'me': 'true'});
   return queryNode.root();
 };
