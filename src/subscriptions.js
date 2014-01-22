@@ -279,9 +279,7 @@ function approveNodeSubscriptions(req, res) {
   var subscribersToApprove = [];
 
   try {
-    console.log(req.body);
     subscribersToApprove = JSON.parse(req.body);
-    console.log(subscribersToApprove);
   } catch (e) {
     res.send(400);
   }
