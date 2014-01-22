@@ -39,6 +39,10 @@ exports.setup = function(app) {
           session.provider,
           api.mediaServerDiscoverer,
           proxyToMediaServer);
+  app.get('/:channel/media/:id/metadata',
+          session.provider,
+          api.mediaServerDiscoverer,
+          proxyToMediaServer);
   app.put('/:channel/media/:id',
           api.bodyReader,
           session.provider,
@@ -67,6 +71,9 @@ function getMediaUrl(req, transactionId) {
   mediaUrl.pathname += req.params.channel;
   if (req.params.id) {
     mediaUrl.pathname += '/' + req.params.id;
+  }
+  if (req.url.indexOf('metadata') > -1) {
+    mediaUrl.pathname += '/metadata';
   }
   mediaUrl.query = req.query || {};
   if (transactionId) {
