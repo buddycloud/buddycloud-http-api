@@ -82,7 +82,7 @@ function ensureTrailingSlash(mediaUrl) {
 }
 
 function generateAuthToken(req, transactionId) {
-  var buf = new Buffer(req.session.jid + ':' + transactionId);
+  var buf = new Buffer(req.session.getFullJID() + ':' + transactionId);
   return base64url(buf);
 }
 
