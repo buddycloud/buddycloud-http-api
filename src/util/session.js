@@ -170,6 +170,10 @@ function Session(id, connection) {
   this._setupStanzaListener();
 }
 
+Session.prototype.getFullJID = function() {
+  return this._connection.jid.toString();
+};
+
 Session.prototype._setupExpirationHandler = function() {
   this._replyHandlers.onexpired = function(_, handler) {
     var error = new xmpp.Iq({'type': 'error'}).

@@ -279,13 +279,15 @@ function approveNodeSubscriptions(req, res) {
   var subscribersToApprove = [];
 
   try {
-    var subscribersToApprove = JSON.parse(req.body);
+    console.log(req.body);
+    subscribersToApprove = JSON.parse(req.body);
+    console.log(subscribersToApprove);
   } catch (e) {
     res.send(400);
   }
 
-  api.sendQuery(req, res, 
-    pubsub.approveSubscriptionIq(nodeId, subscribersToApprove), 
+  api.sendQuery(req, res,
+    pubsub.approveSubscriptionIq(nodeId, subscribersToApprove),
     function() {
       res.send(200);
     });
