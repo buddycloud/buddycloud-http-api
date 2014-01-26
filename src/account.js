@@ -51,7 +51,8 @@ function registerAccount(req, res) {
   }
 
   if (username.indexOf("@") == -1) {
-    username = [username, '@', config.xmppDomain].join('');
+    domain = config.xmppDomain || req.headers['x-forwarded-host'];
+    username = [username, '@', domain].join('');
   }
 
   var client = new xmpp.Client({
