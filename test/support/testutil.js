@@ -60,7 +60,7 @@ exports.mockXmppServer = function(serverConfig, callback) {
   mockserver.on('message', function() {
     callback();
   });
-}
+};
 
 /**
  * Like http.get(), but with the target host and port automatically filled

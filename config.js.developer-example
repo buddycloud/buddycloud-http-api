@@ -3,7 +3,7 @@
 
 // Default settings (apply to all profiles)
 exports._ = {
-  port: 3000,
+  port: 9091,
 };
 
 // Production settings (used by default)
