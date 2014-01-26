@@ -127,7 +127,8 @@ function xmppConnectionOptions(req) {
       port: config.xmppPort
     };
   } else {
-    var domain = config.xmppAnonymousDomain || config.xmppDomain;
+    var domain = config.xmppAnonymousDomain || config.xmppDomain 
+      || 'anon.' + req.headers['x-forwarded-host'];
     var host = config.xmppAnonymousHost || config.xmppHost;
     var port = config.xmppAnonymousPort ||config.xmppPort;
     return {
