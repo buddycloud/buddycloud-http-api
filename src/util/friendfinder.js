@@ -17,14 +17,15 @@
 // pusher.js:
 // Creates XMPP queries for the pusher component.
 
-var xmpp = require('node-xmpp');
-var xml = require('libxmljs');
-var crypto = require('crypto');
+var xml = require('libxmljs')
+  , crypto = require('crypto')
+  , ltx = require('ltx')
+
 var ns = 'http://buddycloud.com/friend_finder/match';
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
+  return new ltx.Element('iq', attrs).c('query', { xmlns: ns || exports.ns })
 }
 
 function hash(str) {

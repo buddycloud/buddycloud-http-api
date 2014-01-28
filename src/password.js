@@ -17,10 +17,10 @@
 // password.js:
 // Handles password-related requests (/account/pw/).
 
-var config = require('./util/config');
-var session = require('./util/session');
-var api = require('./util/api');
-var xmpp = require('node-xmpp');
+var config = require('./util/config')
+  , session = require('./util/session')
+  , api = require('./util/api')
+  , ltx = require('ltx')
 
 /**
  * Registers resource URL handlers.
@@ -44,17 +44,17 @@ function changePassword(req, res) {
   } catch (e) {
     res.send(400);
   }
-  
+
   var username = pwChange['username'];
   var password = pwChange['password'];
-  
+
   if (!username || !password) {
     res.send(400);
     return;
   }
 
   var domain = null;
-  
+
   if (username.indexOf("@") == -1) {
     domain = config.xmppDomain;
   } else {
@@ -70,7 +70,7 @@ function changePassword(req, res) {
 }
 
 function createPasswordChangeIQ(username, password) {
-  var queryNode = new xmpp.Iq({type: 'set'}).c('query', {xmlns: 'jabber:iq:register'});
+  var queryNode = new ltx.Element('iq', {type: 'set'}).c('query', {xmlns: 'jabber:iq:register'});
   queryNode.c('username').t(username);
   queryNode.c('password').t(password);
   return queryNode.root();
@@ -84,9 +84,9 @@ function resetPassword(req, res) {
   } catch (e) {
     res.send(400);
   }
-  
+
   var username = pwReset['username'];
-  
+
   if (!username) {
     res.send(400);
     return;
@@ -103,7 +103,7 @@ function resetPassword(req, res) {
 }
 
 function createPasswordResetIQ(username) {
-  var queryNode = new xmpp.Iq({type: 'set'}).c('query', 
+  var queryNode = new ltx.Element('iq', { type: 'set' }).c('query',
       {xmlns: 'http://buddycloud.com/pusher/password-reset'});
   queryNode.c('username').t(username);
   return queryNode.root();

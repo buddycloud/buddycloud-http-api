@@ -22,7 +22,6 @@ var crypto = require('crypto');
 var http = require('http');
 var https = require('https');
 var url = require('url');
-var xmpp = require('node-xmpp');
 var api = require('./util/api');
 var session = require('./util/session');
 
@@ -102,7 +101,7 @@ function forwardRequest(req, res, mediaUrl, listener) {
     removeListener(req, listener);
     return res.send(503);
   }
-  
+
   mediaUrl = url.parse(mediaUrl);
   req.headers['host'] = mediaUrl.host;
 

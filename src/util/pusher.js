@@ -17,15 +17,16 @@
 // pusher.js:
 // Creates XMPP queries for the pusher component.
 
-var xmpp = require('node-xmpp');
-var xml = require('libxmljs');
+var ltx = require('ltx')
+  , xml = require('libxmljs')
+
 var signupNs = 'http://buddycloud.com/pusher/signup';
 var settingsNs = "http://buddycloud.com/pusher/notification-settings";
-var metadataNs = "http://buddycloud.com/pusher/metadata";
+var  metadataNs = "http://buddycloud.com/pusher/metadata";
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
+  return new ltx.Element('iq', attrs).c('query', {xmlns: ns || exports.ns});
 }
 
 exports.signup = function(username, email) {
@@ -50,10 +51,10 @@ exports.settingsToJSON = function(reply) {
 
   var allSettings = replyEl.find('//query:notificationSettings', {query: settingsNs});
   var allSettingsJSON = []
-  
+
   for (var i = 0; i < allSettings.length; i++) {
     var settings = allSettings[i];
-    
+
     var target = settings.get("query:target", {query: settingsNs});
     var postAfterMe = settings.get("query:postAfterMe", {query: settingsNs});
     var postMentionedMe = settings.get("query:postMentionedMe", {query: settingsNs});
@@ -61,7 +62,7 @@ exports.settingsToJSON = function(reply) {
     var postOnSubscribedChannel = settings.get("query:postOnSubscribedChannel", {query: settingsNs});
     var followMyChannel = settings.get("query:followMyChannel", {query: settingsNs});
     var followRequest = settings.get("query:followRequest", {query: settingsNs});
-  
+
     jsonItem = {
       target : target ? target.text() : null,
       postAfterMe : postAfterMe ? postAfterMe.text() : null,
@@ -71,10 +72,10 @@ exports.settingsToJSON = function(reply) {
       followMyChannel : followMyChannel ? followMyChannel.text() : null,
       followRequest : followRequest ? followRequest.text() : null
     };
-    
+
     allSettingsJSON.push(jsonItem);
   }
-  
+
   return allSettingsJSON;
 }
 
@@ -88,13 +89,13 @@ exports.metadataToJSON = function(reply) {
   var metadataXml = xml.parseXmlString(reply.toString()).get('//q:query', {q: metadataNs});
   var allNodes = metadataXml.childNodes();
   jsonItem = {};
-  
+
   for (var i = 0; i < allNodes.length; i++) {
     var prop = allNodes[i].name();
     var value = allNodes[i].text();
     jsonItem[prop] = value;
   }
-  
+
   return jsonItem;
 }
 
@@ -113,8 +114,8 @@ exports.updateSettings = function(settings) {
 };
 
 exports.deleteSettings = function(settings) {
-  var removeEl = new xmpp.Iq({type: 'set'})
-        .c('query', {xmlns: 'jabber:iq:register'})
+  var removeEl = new ltx.Element({ type: 'set' })
+        .c('query', { xmlns: 'jabber:iq:register' })
         .c('remove');
   if (settings.type) {
     setEl('type', settings.type, removeEl);

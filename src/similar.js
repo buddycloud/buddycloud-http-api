@@ -17,13 +17,12 @@
 // similar.js:
 // Handles requests related to channel similarity (/:channel/similar/).
 
-var config = require('./util/config');
-var searchUtils = require('./util/do_search');
-var session = require('./util/session');
-var api = require('./util/api');
-
-var url = require('url');
-var xmpp = require('node-xmpp');
+var config = require('./util/config')
+  , searchUtils = require('./util/do_search')
+  , session = require('./util/session')
+  , api = require('./util/api')
+  , url = require('url')
+  , ltx = require('ltx')
 
 var similarityNs = 'http://buddycloud.com/channel_directory/similar_channels';
 
@@ -40,7 +39,7 @@ exports.setup = function(app) {
 
 function getSimilarChannels(req, res) {
   var channel = req.params.channel;
-  
+
   var params = url.parse(req.url, true).query;
   var max = params.max;
   var index = params.index;
@@ -60,7 +59,7 @@ function requestSimilarChannels(req, res, channel, max, index, callback) {
 }
 
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
+  return new ltx.Element('iq', attrs).c('query', { xmlns: ns || exports.ns })
 }
 
 function getSimilarChannelIq(channel, max, index) {

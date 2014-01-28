@@ -39,9 +39,9 @@
 // 'users' defines the username/password combinations accepted by the
 // server. 'stanzas' specifies how each request is replied to.
 
-var ltx = require('ltx');
-var xmpp = require('node-xmpp');
-var config = require('../../src/util/config');
+var ltx = require('ltx')
+  , xmpp = require('node-xmpp-server')
+  , config = require('../../src/util/config')
 
 var stanzasNS = 'urn:ietf:params:xml:ns:xmpp-stanzas';
 var mockConfig;
@@ -84,7 +84,7 @@ function addStanzaRules(rules) {
 
 function removeInsignificantWhitespace(stanza) {
   var doc = ltx.parse(stanza.toString().replace(/>\s+</g, '><'));
-  if (typeof stanza != 'string') { // was an already-parsed document
+  if (typeof stanza !== 'string') { // was an already-parsed document
     return doc;
   } else {
     return doc.toString();
@@ -92,36 +92,43 @@ function removeInsignificantWhitespace(stanza) {
 }
 
 function start() {
-  var server = new xmpp.C2SServer({
-    domain: config.xmppHost,
-    port: config.xmppPort
-  });
+  var serverOptions = {
+      domain: config.xmppHost,
+      port: config.xmppPort
+  }
+
+  var server = new xmpp.C2SServer(serverOptions)
+
+  server.registerSaslMechanism(require('node-xmpp-server').auth.Anonymous)
+
   server.on('connect', function(client) {
-    client.on('authenticate', function(options, callback) {
-      checkAuth(options.user, options.password, callback);
-    });
-    client.on('stanza', function(stanza) {
-      handleStanza(client, stanza);
-    });
+      client.on('authenticate', function(options, callback) {
+          checkAuth(options, callback);
+      });
+      client.on('stanza', function(stanza) {
+          handleStanza(client, stanza);
+      });
   });
 }
 
-function checkAuth(user, password, callback) {
-  if (!user) {
-    // Anonymous login
-    callback();
+function checkAuth(options, callback) {
+  var user = options.jid.getLocal()
+  var password = options.password
+  if (options.saslmech === 'ANONYMOUS') {
+      // Anonymous login
+      callback(null, options)
   } else {
-    var correctPassword = mockConfig.users[user];
-    if (correctPassword && password == correctPassword) {
-      callback();
-    } else {
-      callback(new Error('Unauthorized'));
-    }
+      var correctPassword = mockConfig.users[user];
+      if (correctPassword && (password === correctPassword)) {
+          callback(null, options);
+      } else {
+          callback(new Error('Unauthorized'));
+      }
   }
 }
 
 function handleStanza(client, stanza) {
-  if (stanza.name == 'presence') {
+  if (stanza.name === 'presence') {
     return;
   }
 
@@ -133,7 +140,7 @@ function handleStanza(client, stanza) {
   }
 
   var reply;
-  if (typeof action == 'object') {
+  if (typeof action === 'object') {
     addStanzaRules(action);
     reply = action[''];
   } else {
@@ -146,7 +153,7 @@ function handleStanza(client, stanza) {
 }
 
 function replyServiceUnavailable(client, id) {
-  client.send(new xmpp.Iq({id: id, type: 'error'}).
+  client.send(new ltx.Element('iq', { id: id, type: 'error' }).
               c('error', {type: '503'}).
               c('service-unavailable', {xmlns: stanzasNS}));
 }
@@ -198,4 +205,3 @@ function elementMatches(expected, actual) {
 
 setup();
 start();
-

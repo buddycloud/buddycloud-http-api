@@ -17,17 +17,16 @@
 // sync.js:
 // Handles requests to synchronize unread counters and posts (/sync).
 
-var config = require('./util/config');
-var session = require('./util/session');
-var api = require('./util/api');
-var recent = require('./util/recent');
-var pubsub = require('./util/pubsub');
-var atom = require('./util/atom');
-var url = require('url');
-var crypto = require('crypto');
-
-var xmpp = require('node-xmpp');
-var xml = require('libxmljs');
+var config = require('./util/config')
+  , session = require('./util/session')
+  , api = require('./util/api')
+  , recent = require('./util/recent')
+  , pubsub = require('./util/pubsub')
+  , atom = require('./util/atom')
+  , url = require('url')
+  , crypto = require('crypto')
+  , xml = require('libxmljs')
+  , ltx = require('ltx')
 
 /**
  * Registers resource URL handlers.
@@ -68,7 +67,7 @@ function getReplies(req, res) {
         json.push(jsonEntry);
       }
     });
-    
+
 	res.contentType('json');
     res.send(json);
   }
@@ -77,14 +76,14 @@ function getReplies(req, res) {
 }
 
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns});
+  return new ltx.Element('iq', attrs).c('pubsub', {xmlns: ns});
 }
 
 function createRepliesIQ(channel, node, itemId) {
   var pubsubNode = iq({type: 'get'}, pubsub.ns);
   pubsubNode.c('replies', {
-    xmlns: 'http://buddycloud.org/v1', 
-    node: '/user/' + channel + '/' + node, 
+    xmlns: 'http://buddycloud.org/v1',
+    node: '/user/' + channel + '/' + node,
     item_id: itemId
   });
   return pubsubNode.root();

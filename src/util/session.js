@@ -17,17 +17,18 @@
 // session.js:
 // Handles session management.
 
-var xmpp = require('node-xmpp');
-var http = require('http');
-var xml = require('libxmljs');
-var iso8601 = require('iso8601');
-var jwt = require('jwt-simple');
-var api = require('./api');
-var cache = require('./cache');
-var config = require('./config');
-var pubsub = require('./pubsub');
-var atom = require('./atom');
-var grip = require('./grip');
+var Client = require('node-xmpp-client')
+  , http = require('http')
+  , xml = require('libxmljs')
+  , iso8601 = require('iso8601')
+  , jwt = require('jwt-simple')
+  , api = require('./api')
+  , cache = require('./cache')
+  , config = require('./config')
+  , pubsub = require('./pubsub')
+  , atom = require('./atom')
+  , grip = require('./grip')
+  , ltx = require('ltx')
 
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
@@ -79,7 +80,7 @@ exports.expire = function(req) {
 
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
-  var client = new xmpp.Client(options);
+  var client = new Client(options);
   console.log("Creating connection for jid: " + options.jid);
 
   var session = new Session(req.credentials, client);
@@ -99,20 +100,20 @@ function createSession(req, res, next) {
     }
   });
 
-  client.on('error', function(err) {
+  client.on('error', function(error) {
     // FIXME: Checking the error type bassed on the error message
     // is fragile, but this is the only information that node-xmpp
     // gives us.
-    console.error(err);
+    console.error(error);
     sessionCache.remove(req.credentials);
     for (var n = 0; n < session.waitingReqs.length; ++n) {
       var wr = session.waitingReqs[n];
       var wrRes = wr[1];
       var wrNext = wr[2];
-      if (err == 'XMPP authentication failure') {
-        api.sendUnauthorized(wrRes);
+      if (error === 'XMPP authentication failure') {
+          api.sendUnauthorized(wrRes);
       } else {
-        wrNext(err);
+          wrNext(error);
       }
     }
   });
@@ -127,7 +128,7 @@ function xmppConnectionOptions(req) {
       port: config.xmppPort
     };
   } else {
-    var domain = config.xmppAnonymousDomain || config.xmppDomain 
+    var domain = config.xmppAnonymousDomain || config.xmppDomain
       || 'anon.' + req.headers['x-forwarded-host'];
     var host = config.xmppAnonymousHost || config.xmppHost;
     var port = config.xmppAnonymousPort ||config.xmppPort;
@@ -177,13 +178,13 @@ Session.prototype.getFullJID = function() {
 
 Session.prototype._setupExpirationHandler = function() {
   this._replyHandlers.onexpired = function(_, handler) {
-    var error = new xmpp.Iq({'type': 'error'}).
+    var error = new ltx.Element('iq', {'type': 'error'}).
       c('error', {'type': 'cancel'}).
       c('service-unavailable').
       root();
     handler(error);
   };
-  
+
   // TODO: send iq to unsub. also decrement refs on presence, and send pres
   //   unavailable if needed.
   /*this._subs.onexpired = function(_, handler) {
@@ -318,7 +319,7 @@ Session.prototype.sendPresenceOffline = function() {
 };
 
 Session.prototype._sendPresence = function(type, to) {
-  this._connection.send(new xmpp.Presence({
+  this._connection.send(new ltx.Element('presence', {
     from: this._connection.jid.bare().toString(),
     to: to,
     type: type
@@ -326,7 +327,7 @@ Session.prototype._sendPresence = function(type, to) {
 };
 
 Session.prototype._sendGeneralPresence = function() {
-  this._connection.send(new xmpp.Element('presence'));
+  this._connection.send(new ltx.Element('presence'));
 };
 
 /**
@@ -351,7 +352,7 @@ Session.prototype.sendQuery = function(iq, onreply, to) {
  * Sends a reply for a received <iq/>.
  */
 Session.prototype.replyToQuery = function(iq) {
-  var reply = new xmpp.Iq({
+  var reply = new ltx.Element('iq', {
     type: 'result',
     from: iq.attrs.to,
     to: iq.attrs.from,
@@ -411,7 +412,7 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
   if (!refs) {
     refs = 1;
     this._subsPresences[pubjid] = refs;
-    var pres = new xmpp.Presence({
+    var pres = new ltx.Element('presence', {
       from: this.jid,
       to: pubjid,
     });
@@ -424,17 +425,17 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
   var iq = pubsub.subscribeIq(nodeId, this.jid, true);
   var self = this;
   this.sendQuery(iq, function(reply) {
-    if (reply.type == "result") {
+    if (reply.attrs.type === "result") {
       sub.state = 'subscribed';
       // TODO: record subid, needed for unsub
-      for(var i = 0; i < sub.pending.length; ++i) {
+      for (var i = 0; i < sub.pending.length; ++i) {
         sub.pending[i].onsub(sub.userData);
       }
     } else {
       var pending = sub.pending;
       delete self._subs[subkey];
       var reason = 'failed';
-      if (reply.type == 'error' && reply.getChild('error')
+      if ((reply.attrs.type === 'error') && reply.getChild('error')
               .getChild('registration-required')) {
         reason = 'registration-required';
       }
