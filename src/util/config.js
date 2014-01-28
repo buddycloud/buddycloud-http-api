@@ -20,7 +20,7 @@
 // config options.
 var config = null
 if ('testing' === process.env.NODE_ENV) {
-    config = require('../../config.js.developer-example')
+    config = require('../../config.js.example')
 } else {
     config = require('../../config');
 }
