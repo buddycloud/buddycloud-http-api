@@ -59,7 +59,7 @@ function requestSimilarChannels(req, res, channel, max, index, callback) {
 }
 
 function iq(attrs, ns) {
-  return new ltx.Element('iq' attrs).c('query', { xmlns: ns || exports.ns })
+  return new ltx.Element('iq', attrs).c('query', { xmlns: ns || exports.ns })
 }
 
 function getSimilarChannelIq(channel, max, index) {
