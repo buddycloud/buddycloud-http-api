@@ -93,30 +93,30 @@ function removeInsignificantWhitespace(stanza) {
 
 function start() {
   var server = new xmpp.C2SServer({
-    domain: config.xmppHost,
-    port: config.xmppPort
+      domain: config.xmppHost,
+      port: config.xmppPort
   });
   server.on('connect', function(client) {
-    client.on('authenticate', function(options, callback) {
-      checkAuth(options.user, options.password, callback);
-    });
-    client.on('stanza', function(stanza) {
-      handleStanza(client, stanza);
-    });
+      client.on('authenticate', function(options, callback) {
+          checkAuth(options.jid.getLocal(), options.password, callback);
+      });
+      client.on('stanza', function(stanza) {
+          handleStanza(client, stanza);
+      });
   });
 }
 
 function checkAuth(user, password, callback) {
   if (!user) {
-    // Anonymous login
-    callback();
-  } else {
-    var correctPassword = mockConfig.users[user];
-    if (correctPassword && password == correctPassword) {
+      // Anonymous login
       callback();
-    } else {
-      callback(new Error('Unauthorized'));
-    }
+  } else {
+      var correctPassword = mockConfig.users[user];
+      if (correctPassword && (password === correctPassword)) {
+          callback();
+      } else {
+          callback(new Error('Unauthorized'));
+      }
   }
 }
 
@@ -198,4 +198,3 @@ function elementMatches(expected, actual) {
 
 setup();
 start();
-
