@@ -635,7 +635,6 @@ describe('Node Feed', function() {
           '/alice@localhost/content/posts/newid-json');
 
         body = JSON.parse(body);
-        console.log(body);
         body.id.should.equal('newid-json');
         body.author.should.equal('alice@localhost');
         body.content.should.equal('JSON TEST');
