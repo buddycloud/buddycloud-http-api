@@ -99,12 +99,11 @@ function start() {
 
   var server = new xmpp.C2SServer(serverOptions)
 
-
   server.registerSaslMechanism(require('node-xmpp-server').auth.Anonymous)
 
   server.on('connect', function(client) {
       client.on('authenticate', function(options, callback) {
-          checkAuth(options.jid.getLocal(), options.password, callback);
+          checkAuth(options, callback);
       });
       client.on('stanza', function(stanza) {
           handleStanza(client, stanza);
@@ -112,14 +111,16 @@ function start() {
   });
 }
 
-function checkAuth(user, password, callback) {
+function checkAuth(options, callback) {
+  var user = options.jid.getLocal()
+  var password = options.password
   if (!user) {
       // Anonymous login
       callback();
   } else {
       var correctPassword = mockConfig.users[user];
       if (correctPassword && (password === correctPassword)) {
-          callback();
+          callback(null, options);
       } else {
           callback(new Error('Unauthorized'));
       }
@@ -127,7 +128,7 @@ function checkAuth(user, password, callback) {
 }
 
 function handleStanza(client, stanza) {
-  if (stanza.name == 'presence') {
+  if (stanza.name === 'presence') {
     return;
   }
 
