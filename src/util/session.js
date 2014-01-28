@@ -100,20 +100,20 @@ function createSession(req, res, next) {
     }
   });
 
-  client.on('error', function(err) {
+  client.on('error', function(error) {
     // FIXME: Checking the error type bassed on the error message
     // is fragile, but this is the only information that node-xmpp
     // gives us.
-    console.error(err);
+    console.error(error);
     sessionCache.remove(req.credentials);
     for (var n = 0; n < session.waitingReqs.length; ++n) {
       var wr = session.waitingReqs[n];
       var wrRes = wr[1];
       var wrNext = wr[2];
-      if (err == 'XMPP authentication failure') {
-        api.sendUnauthorized(wrRes);
+      if (error === 'XMPP authentication failure') {
+          api.sendUnauthorized(wrRes);
       } else {
-        wrNext(err);
+          wrNext(error);
       }
     }
   });
