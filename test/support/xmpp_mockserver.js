@@ -96,6 +96,10 @@ function start() {
       domain: config.xmppHost,
       port: config.xmppPort
   });
+
+
+  server.registerSaslMechanism(require('node-xmpp-server').auth.Anonymous)
+
   server.on('connect', function(client) {
       client.on('authenticate', function(options, callback) {
           checkAuth(options.jid.getLocal(), options.password, callback);
