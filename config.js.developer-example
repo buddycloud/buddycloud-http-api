@@ -31,7 +31,6 @@ exports.development = {
 // Testing settings (used by the unit tests)
 exports.testing = {
   xmppDomain: 'localhost',
-  xmppAnonymousDomain: 'anon.localhost',
   xmppHost: 'localhost',
   xmppPort: '5888',
   sessionExpirationTime: 1

@@ -92,10 +92,12 @@ function removeInsignificantWhitespace(stanza) {
 }
 
 function start() {
-  var server = new xmpp.C2SServer({
+  var serverOptions = {
       domain: config.xmppHost,
       port: config.xmppPort
-  });
+  }
+
+  var server = new xmpp.C2SServer(serverOptions)
 
 
   server.registerSaslMechanism(require('node-xmpp-server').auth.Anonymous)

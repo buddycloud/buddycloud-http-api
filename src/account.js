@@ -56,12 +56,14 @@ function registerAccount(req, res) {
     username = [username, '@', domain].join('');
   }
 
-  var client = new Client({
+  var options = {
     jid: username,
     host: config.xmppHost,
     password: password,
     register: true
-  });
+  }
+
+  var client = new Client(options);
 
   client.on('online', function() {
     registerOnChannelServer(client, function() {
