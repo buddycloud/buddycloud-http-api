@@ -17,9 +17,9 @@
 // do_search.js:
 // Creates XMPP queries for the search component.
 
-var xmpp = require('node-xmpp');
-var xml = require('libxmljs');
-var config = require('./config');
+var xml = require('libxmljs')
+  , config = require('./config')
+  , ltx = require('ltx')
 
 var metadataNs = 'http://buddycloud.com/channel_directory/metadata_query';
 var contentNs = 'http://buddycloud.com/channel_directory/content_query';
@@ -32,12 +32,12 @@ var rsmNs = 'http://jabber.org/protocol/rsm';
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
+  return new ltx.Element('iq', attrs).c('query', { xmlns: ns || exports.ns })
 }
 
 exports.mostActive = function(max, index) {
   var queryNode = iq({type: 'get'}, mostActiveNs);
-  
+
   if (max || index) {
     var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
     if (max) {
@@ -47,14 +47,14 @@ exports.mostActive = function(max, index) {
       rsm.c('index').t(index);
     }
   }
-  
+
   return queryNode.root();
 };
 
 exports.recommend = function(userJid, max, index) {
   var queryNode = iq({type: 'get'}, recommendationNs);
   queryNode.c('user-jid').t(userJid);
-  
+
   if (max || index) {
     var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
     if (max) {
@@ -64,7 +64,7 @@ exports.recommend = function(userJid, max, index) {
       rsm.c('index').t(index);
     }
   }
-  
+
   return queryNode.root();
 };
 
@@ -89,7 +89,7 @@ exports.search = function(type, q, max, index) {
   }
   var queryNode = iq({type: 'get'}, ns);
   queryNode.c('search').t(q);
-  
+
   if (max || index) {
     var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
     if (max) {
@@ -99,7 +99,7 @@ exports.search = function(type, q, max, index) {
       rsm.c('index').t(index);
     }
   }
-  
+
   return queryNode.root();
 };
 
@@ -119,22 +119,22 @@ function channelToJson(item, ns) {
   var title = item.get('query:title', {query: ns});
   var defaultAffiliation = item.get('query:default_affiliation', {query: ns});
   var channelType = item.get('query:channel_type', {query: ns});
-  
+
   jsonItem = {
     jid : jid ? jid.value() : null,
     description : description ? description.value() : null,
     creationDate : creationDate ? creationDate.value() : null,
     title : title ? title.text() : null,
     channelType : channelType ? channelType.text() : null,
-    defaultAffiliation : defaultAffiliation ? defaultAffiliation.text() : null    
+    defaultAffiliation : defaultAffiliation ? defaultAffiliation.text() : null
   };
-  
+
   return jsonItem;
 }
 
 function postToJson(item) {
   var entry = item.child(0);
-  
+
   var id = item.attr('id');
   var author = entry.get("entry:author", {entry: entryNs});
   var content = entry.get("entry:content", {entry: entryNs});
@@ -143,7 +143,7 @@ function postToJson(item) {
   var parentFullid = entry.get("entry:parent_fullid", {entry: entryNs});
   var parentSimpleid = entry.get("entry:parent_simpleid", {entry: entryNs});
   var inReplyTo = entry.get("thr:in-reply-to", {thr: thrNs});
-  
+
   jsonItem = {
     id : id ? id.value() : null,
     author : author ? author.text() : null,
@@ -154,7 +154,7 @@ function postToJson(item) {
     parent_simpleid : parentSimpleid ? parentSimpleid.text() : null,
     in_reply_to : inReplyTo ? (inReplyTo.attr('ref') ? inReplyTo.attr('ref').value() : null) : null
   };
-  
+
   return jsonItem;
 }
 
@@ -169,11 +169,11 @@ exports.postsToJSON = function(reply) {
 
 exports.rsmToJSON = function(reply) {
   var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
-  var firstNode = rsmSet.get('set:first', {set: rsmNs}); 
+  var firstNode = rsmSet.get('set:first', {set: rsmNs});
   var index = 0;
   if (firstNode) {
     index = firstNode.attr('index').value();
-  }  
+  }
   var count = rsmSet.get('set:count', {set: rsmNs}).text();
   return {index: index, count: count};
 }

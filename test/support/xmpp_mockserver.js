@@ -39,9 +39,9 @@
 // 'users' defines the username/password combinations accepted by the
 // server. 'stanzas' specifies how each request is replied to.
 
-var ltx = require('ltx');
-var xmpp = require('node-xmpp');
-var config = require('../../src/util/config');
+var ltx = require('ltx')
+  , xmpp = require('node-xmpp-server')
+  , config = require('../../src/util/config')
 
 var stanzasNS = 'urn:ietf:params:xml:ns:xmpp-stanzas';
 var mockConfig;
@@ -146,7 +146,7 @@ function handleStanza(client, stanza) {
 }
 
 function replyServiceUnavailable(client, id) {
-  client.send(new xmpp.Iq({id: id, type: 'error'}).
+  client.send(new ltx.Element('iq', { id: id, type: 'error' }).
               c('error', {type: '503'}).
               c('service-unavailable', {xmlns: stanzasNS}));
 }

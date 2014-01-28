@@ -18,8 +18,12 @@
 // Loads and provides configuration options for the correct profile.
 // The exported names exactly match the ones of the corresponding
 // config options.
-
-var config = require('../../config');
+var config = null
+if ('testing' === process.env.NODE_ENV) {
+    config = require('../../config.js.developer-example')
+} else {
+    config = require('../../config');
+}
 
 // Defaults
 exports.requestExpirationTime = 60; // 1min

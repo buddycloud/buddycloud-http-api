@@ -17,13 +17,12 @@
 // similar.js:
 // Handles requests related to channel similarity (/:channel/similar/).
 
-var config = require('./util/config');
-var session = require('./util/session');
-var api = require('./util/api');
-
-var url = require('url');
-var xmpp = require('node-xmpp');
-var xml = require('libxmljs');
+var config = require('./util/config')
+  , session = require('./util/session')
+  , api = require('./util/api')
+  , url = require('url')
+  , xml = require('libxmljs')
+  , ltx = require('ltx')
 
 var ns = 'http://buddycloud.com/friend_finder/match';
 
@@ -44,9 +43,9 @@ function postMatchingContacts(req, res) {
     api.sendUnauthorized(res);
     return;
   }
-  
+
   var contacts = JSON.parse(req.body);
-  
+
   requestMatchingContacts(req, res, contacts.mine, contacts.others, function(reply) {
     var items = contactsToJSON(reply);
     var body = {items: items};
@@ -76,7 +75,7 @@ function requestMatchingContacts(req, res, mine, others, callback) {
 }
 
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('query', {xmlns: ns || exports.ns});
+  return new ltx.Element('iq', attrs).c('query', {xmlns: ns || exports.ns});
 }
 
 function getMatchingContactsIq(mine, others) {

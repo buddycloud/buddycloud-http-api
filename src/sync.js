@@ -17,16 +17,15 @@
 // sync.js:
 // Handles requests to synchronize unread counters and posts (/sync).
 
-var config = require('./util/config');
-var session = require('./util/session');
-var api = require('./util/api');
-var recent = require('./util/recent');
-var pubsub = require('./util/pubsub');
-var url = require('url');
-var crypto = require('crypto');
-
-var xmpp = require('node-xmpp');
-var xml = require('libxmljs');
+var config = require('./util/config')
+  , session = require('./util/session')
+  , api = require('./util/api')
+  , recent = require('./util/recent')
+  , pubsub = require('./util/pubsub')
+  , url = require('url')
+  , crypto = require('crypto')
+  , xml = require('libxmljs')
+  , ltx = require('ltx')
 
 /**
  * Registers resource URL handlers.
@@ -74,7 +73,7 @@ function getRecentItems(req, res) {
 }
 
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns});
+  return new ltx.Element('iq', attrs).c('pubsub', {xmlns: ns});
 }
 
 function createRecentItemsIQ(since, max, after) {

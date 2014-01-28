@@ -18,18 +18,18 @@
     "libxmljs": "~0.8.1",
     "ltx": "~0.3.0",
     "node-expat": "~2.0.0",
-    "node-stringprep": "~0.1.8",
-    "node-xmpp": "~0.7.1",
     "jwt-simple": "0.1.x",
     "iso8601": "1.1.1",
     "pubcontrol": "0.3.1",
-    "grip": "0.1.4"
+    "grip": "0.1.4",
+    "node-xmpp-client": "~0.2.0"
   },
   "devDependencies": {
-    "mocha": "1.0.3",
-    "should": "0.6.3"
+    "should": "~3.1.2",
+    "mocha": "~1.17.1",
+    "node-xmpp-server": "~0.4.0"
   },
   "engine": {
-    "node": ">=0.6"
+    "node": ">=0.8"
   }
 }

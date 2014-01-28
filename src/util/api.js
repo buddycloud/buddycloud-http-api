@@ -18,7 +18,6 @@
 // Utility functions and middleware used by the API resource handlers.
 
 var xml = require('libxmljs');
-var xmpp = require('node-xmpp');
 var griplib = require('grip');
 var atom = require('./atom');
 var auth = require('./auth');

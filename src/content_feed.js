@@ -18,7 +18,6 @@
 // Handles requests related to channel node feeds
 // (/<channel>/content/<node>).
 
-var xmpp = require('node-xmpp');
 var xml = require('libxmljs');
 var iso8601 = require('iso8601');
 var api = require('./util/api');
@@ -291,9 +290,9 @@ function generateThreadedNodeFeed(channel, node, reply) {
   var threads = replydoc.find('/iq/p:pubsub/p:thread', {
     p: pubsub.ns
   });
-  
+
   var feed = [];
-  
+
   threads.forEach(function(thread) {
     var entries = thread.find('p:item/a:entry', {
       p: pubsub.ns, a: atom.ns
@@ -304,11 +303,11 @@ function generateThreadedNodeFeed(channel, node, reply) {
       items.push(atom.toJSON(entry));
     });
     feed.push({
-      'id': thread.attr('id').value(), 
+      'id': thread.attr('id').value(),
       'updated': thread.attr('updated').value(),
       'items': items})
   });
-  
+
   return feed;
 }
 

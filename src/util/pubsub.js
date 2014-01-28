@@ -17,11 +17,10 @@
 // pubsub.js:
 // Supports the construction of XMPP Pub-Sub queries.
 
-var ltx = require('ltx');
-var xmpp = require('node-xmpp');
-var config = require('./config');
-var atom = require('./atom');
-var xml = require('libxmljs');
+var ltx = require('ltx')
+  , config = require('./config')
+  , atom = require('./atom')
+  , xml = require('libxmljs')
 
 /** The XMPP Pub-Sub XML namespaces. */
 exports.ns = 'http://jabber.org/protocol/pubsub';
@@ -45,16 +44,16 @@ exports.queryURI = function(host, action, node) {
 
 // Creates the basic skeleton for all types of Pub-Sub queries.
 function iq(attrs, ns) {
-  return new xmpp.Iq(attrs).c('pubsub', {xmlns: ns || exports.ns});
+  return new ltx.Element('iq', attrs).c('pubsub', { xmlns: ns || exports.ns })
 }
 
 /**
  * Creates an Pub-Sub node <query/> IQ to retrieve a node's metadata.
  */
 exports.metadataIq = function(nodeId) {
-  return new xmpp.Iq({type: 'get'}).
-    c('query', {node: nodeId, xmlns: 'http://jabber.org/protocol/disco#info'}).
-    root();
+  return new ltx.Element('iq', { type: 'get' })
+    .c('query', { node: nodeId, xmlns: 'http://jabber.org/protocol/disco#info' })
+    .root()
 };
 
 /**
@@ -156,21 +155,21 @@ exports.changeNodeAffiliationsIq = function(nodeId, newAffiliations) {
 };
 
 /**
- * Creates a Pub-Sub <subscriptions/> IQ, which approves 
+ * Creates a Pub-Sub <subscriptions/> IQ, which approves
  * pending subscriptions to a node.
  */
 exports.approveSubscriptionIq = function(nodeId, subscribers) {
   var iqBody = iq({type : 'set'}, exports.ownerNS).
       c('subscriptions', {node: nodeId});
   for (var i in subscribers) {
-    var subscriber = subscribers[i]; 
+    var subscriber = subscribers[i];
     iqBody.c('subscription', {jid: subscriber['jid'], subscription: subscriber['subscription']});
   }
   return iqBody.root();
 };
 
 /**
- * Creates a Pub-Sub <subscriptions/> IQ, that retrieves 
+ * Creates a Pub-Sub <subscriptions/> IQ, that retrieves
  * subscriptions from a node.
  */
 exports.nodeSubscriptionsIq = function(nodeId) {
@@ -180,7 +179,7 @@ exports.nodeSubscriptionsIq = function(nodeId) {
 };
 
 /**
- * Creates a Pub-Sub <subscriptions/> IQ, that retrieves 
+ * Creates a Pub-Sub <subscriptions/> IQ, that retrieves
  * subscriptions from an user.
  */
 exports.userSubscriptionsIq = function() {
@@ -256,12 +255,12 @@ exports.createTopicNodeIq = function(nodeId) {
   var pubsubIq = exports.createNodeIq(nodeId).getChild('pubsub', exports.ns);
   var form = pubsubIq.c('configure', {node: nodeId}).
       c('x', {xmlns: 'jabber:x:data', type: 'submit'});
-    
+
   addFormField(form, 'FORM_TYPE', 'hidden',
                'http://jabber.org/protocol/pubsub#node_config');
   addFormField(form, 'buddycloud#channel_type', 'text-single',
                'topic');
-  
+
   return pubsubIq.root();
 };
 

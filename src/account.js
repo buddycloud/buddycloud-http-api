@@ -17,14 +17,15 @@
 // account.js:
 // Handles account-related requests (/account).
 
-var config = require('./util/config');
-var pusher = require('./util/pusher');
-var friendFinder = require('./util/friendfinder');
-var session = require('./util/session');
-var api = require('./util/api');
-var connect = require('connect');
-var xmpp = require('node-xmpp');
-var crypto = require('crypto');
+var config = require('./util/config')
+  , pusher = require('./util/pusher')
+  , friendFinder = require('./util/friendfinder')
+  , session = require('./util/session')
+  , api = require('./util/api')
+  , connect = require('connect')
+  , Client = require('node-xmpp-client')
+  , crypto = require('crypto')
+  , ltx = require('ltx')
 
 /**
  * Registers resource URL handlers.
@@ -44,7 +45,7 @@ function registerAccount(req, res) {
   var username = req.body.username;
   var password = req.body.password;
   var email = req.body.email;
-  
+
   if (!username || !password || !email) {
     res.send(400);
     return;
@@ -55,13 +56,13 @@ function registerAccount(req, res) {
     username = [username, '@', domain].join('');
   }
 
-  var client = new xmpp.Client({
+  var client = new Client({
     jid: username,
     host: config.xmppHost,
     password: password,
     register: true
   });
-  
+
   client.on('online', function() {
     registerOnChannelServer(client, function() {
       if (config.pusherComponent) {
@@ -73,7 +74,7 @@ function registerAccount(req, res) {
       registrationSucessful(client, res);
     });
   });
-  
+
   client.on('error', function(err) {
     console.log(err);
     res.send(503);
@@ -81,7 +82,7 @@ function registerAccount(req, res) {
 }
 
 function getChannelServerRegIQ() {
-  var queryNode = new xmpp.Iq({type: 'set'}).c('query', {xmlns: 'jabber:iq:register'});
+  var queryNode = new ltx.Element('iq', {type: 'set' }).c('query', { xmlns: 'jabber:iq:register' })
   return queryNode.root();
 }
 
@@ -113,14 +114,14 @@ function sendRegisterIq(client, registerIq, to, callback) {
   iq.attr('from', client.jid.toString());
   iq.attr('to', to);
   iq.attr('id', iqId);
-  
+
   console.log("OUT xmpp: " + iq);
   client.on('stanza', function(stanza) {
     if (callback && stanza.attrs.id == iqId) {
       callback();
     }
   });
-  
+
   client.send(iq);
 }
 
@@ -131,13 +132,13 @@ function deleteAccount(req, res) {
     api.sendUnauthorized(res);
     return;
   }
-  
+
   unregisterFromChannelServer(req, res, function() {
-    var recipients = [config.pusherComponent, 
-        config.friendFinderComponent, 
+    var recipients = [config.pusherComponent,
+        config.friendFinderComponent,
         config.searchComponent,
         config.xmppDomain];
-    
+
     unregisterFrom(req, recipients, 0, function() {
       session.expire(req);
       res.send(200);
@@ -166,8 +167,8 @@ function unregisterFromChannelServer(req, res, callback) {
 }
 
 function createDeleteAccountIQ() {
-  var removeEl = new xmpp.Iq({type: 'set'})
-        .c('query', {xmlns: 'jabber:iq:register'})
-        .c('remove');
+  var removeEl = new ltx.Element('iq', { type: 'set' })
+        .c('query', { xmlns: 'jabber:iq:register' })
+        .c('remove')
   return removeEl.root();
 }
