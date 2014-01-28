@@ -84,7 +84,7 @@ function addStanzaRules(rules) {
 
 function removeInsignificantWhitespace(stanza) {
   var doc = ltx.parse(stanza.toString().replace(/>\s+</g, '><'));
-  if (typeof stanza != 'string') { // was an already-parsed document
+  if (typeof stanza !== 'string') { // was an already-parsed document
     return doc;
   } else {
     return doc.toString();
@@ -133,7 +133,7 @@ function handleStanza(client, stanza) {
   }
 
   var reply;
-  if (typeof action == 'object') {
+  if (typeof action === 'object') {
     addStanzaRules(action);
     reply = action[''];
   } else {
