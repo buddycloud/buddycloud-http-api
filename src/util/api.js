@@ -78,7 +78,7 @@ exports.sendQueryToFriendFinder = function(req, res, iq, callback) {
 };
 
 function checkError(reply, req, res, iq, callback) {
-	if (reply.type == 'error') {
+    if (reply.attrs.type == 'error') {
 		reportXmppError(req, res, reply);
 	} else {
         delete reply.attrs.xmlns;
@@ -87,13 +87,17 @@ function checkError(reply, req, res, iq, callback) {
 }
 
 function reportXmppError(req, res, errorStanza) {
-  var error = errorStanza.getChild('error');
+
+  var error = errorStanza.getChild('error')
+
   if (error) {
     if (error.getChild('not-authorized') ||
         error.getChild('not-allowed') ||
         error.getChild('pending-subscription') ||
         error.getChild('forbidden') ||
-        error.getChild('registration-required')) {
+        error.getChild('registration-required') ||
+        error.getChild('closed-node')) {
+
       if (req.user) {
         res.send(403);
       } else {

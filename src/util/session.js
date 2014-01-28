@@ -425,17 +425,17 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
   var iq = pubsub.subscribeIq(nodeId, this.jid, true);
   var self = this;
   this.sendQuery(iq, function(reply) {
-    if (reply.type == "result") {
+    if (reply.attrs.type === "result") {
       sub.state = 'subscribed';
       // TODO: record subid, needed for unsub
-      for(var i = 0; i < sub.pending.length; ++i) {
+      for (var i = 0; i < sub.pending.length; ++i) {
         sub.pending[i].onsub(sub.userData);
       }
     } else {
       var pending = sub.pending;
       delete self._subs[subkey];
       var reason = 'failed';
-      if (reply.type == 'error' && reply.getChild('error')
+      if ((reply.attrs.type == 'error') && reply.getChild('error')
               .getChild('registration-required')) {
         reason = 'registration-required';
       }
