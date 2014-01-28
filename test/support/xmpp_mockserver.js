@@ -114,9 +114,9 @@ function start() {
 function checkAuth(options, callback) {
   var user = options.jid.getLocal()
   var password = options.password
-  if (!user) {
+  if (options.saslmech === 'ANONYMOUS') {
       // Anonymous login
-      callback();
+      callback(null, options)
   } else {
       var correctPassword = mockConfig.users[user];
       if (correctPassword && (password === correctPassword)) {

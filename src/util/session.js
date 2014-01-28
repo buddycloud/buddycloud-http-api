@@ -435,7 +435,7 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
       var pending = sub.pending;
       delete self._subs[subkey];
       var reason = 'failed';
-      if ((reply.attrs.type == 'error') && reply.getChild('error')
+      if ((reply.attrs.type === 'error') && reply.getChild('error')
               .getChild('registration-required')) {
         reason = 'registration-required';
       }
