@@ -65,15 +65,6 @@ function nextItems(itemCache, since, lastTimestamp) {
   var entries = [];
   var cacheSize = itemCache.length;
 
-  // If it was the first request ever no since param is provided
-  if (!since) {
-    for (var i = 0; i < cacheSize; i++) {
-      entries.push(itemCache[i].item);
-    }
-
-    return entries;
-  }
-
   var i = cacheSize - 1;
   while (i >= 0 && itemCache[i].timestamp > since) {
     i--;
@@ -114,9 +105,22 @@ function listenForNextItem(req, res, next) {
         return;
       }
     }
+    
+    // Pause request
+    pause(req, res);
+  } else {
+    sendUpdateResponse(req, res);
   }
+}
 
-  // Pause request
-  // If no since param provided or if since > lastTimestamp
-  pause(req, res);
+function sendUpdateResponse(req, res) {
+  response = {};
+
+  var cacheSize = req.session.itemCache.length;
+  var lastTimestamp = cacheSize > 0 ? req.session.itemCache[cacheSize - 1].timestamp : new Date().getTime();
+
+  response['last'] = lastTimestamp;
+  response['items'] = [];
+  
+  res.send(response);
 }
