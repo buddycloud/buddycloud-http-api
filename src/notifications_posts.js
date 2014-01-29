@@ -116,11 +116,12 @@ function listenForNextItem(req, res, next) {
 function sendUpdateResponse(req, res) {
   response = {};
 
-  var cacheSize = req.session.itemCache.length;
-  var lastTimestamp = cacheSize > 0 ? req.session.itemCache[cacheSize - 1].timestamp : new Date().getTime();
+  var itemCache = req.session.itemCache;
+  var lastTimestamp = itemCache.length > 0 ?
+    itemCache[itemCache.length - 1].timestamp : new Date().getTime();
 
   response['last'] = lastTimestamp;
   response['items'] = [];
-  
+
   res.send(response);
 }
