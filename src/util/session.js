@@ -67,7 +67,7 @@ function provideSession(session, req, res, next) {
   if (session.ready) {
     next();
   } else {
-    session.waitingReqs.push([req, res, next]);
+    session._waitingReqs.push({'req': req, 'res': res, 'next': next});
   }
 }
 
@@ -93,10 +93,12 @@ function createSession(req, res, next) {
     session._sendGeneralPresence();
     session.sendPresenceOnline();
     console.log("Session created for jid: " + session.jid);
-    for (var n = 0; n < session.waitingReqs.length; ++n) {
-      var wr = session.waitingReqs[n];
-      var wrNext = wr[2];
-      wrNext();
+
+    // Handle waiting requests
+    for (var i = 0; i < session._waitingReqs.length; i++) {
+      var wr = session._waitingReqs[i];
+      var next = wr['next'];
+      next();
     }
   });
 
@@ -104,16 +106,17 @@ function createSession(req, res, next) {
     // FIXME: Checking the error type bassed on the error message
     // is fragile, but this is the only information that node-xmpp
     // gives us.
-    console.error(error);
+    console.error('Session error: ' + error);
     sessionCache.remove(req.credentials);
-    for (var n = 0; n < session.waitingReqs.length; ++n) {
-      var wr = session.waitingReqs[n];
-      var wrRes = wr[1];
-      var wrNext = wr[2];
+
+    // Handle waiting requests
+    for (var i = 0; i < session._waitingReqs.length; i++) {
+      var wr = session._waitingReqs[i];
       if (error === 'XMPP authentication failure') {
-          api.sendUnauthorized(wrRes);
+        api.sendUnauthorized(wr['res']);
       } else {
-          wrNext(error);
+        var next = wr['next'];
+        next(error);
       }
     }
   });
@@ -162,9 +165,10 @@ function Session(id, connection) {
   this.jid = connection.jid.toString();
   this.itemCache = [];
   this.ready = false;
-  this.waitingReqs = [];
   this._connection = connection;
   this._presenceCount = 0;
+  this._waitingReqs = []; // while connection was being created
+  this._pendingRequests = []; // long polling
   this._replyHandlers = new cache.Cache(config.requestExpirationTime);
   this._subs = new cache.Cache(config.sessionExpirationTime);
   this._subsPresences = {}; // refcounts
@@ -196,88 +200,33 @@ Session.prototype._setupExpirationHandler = function() {
   };*/
 };
 
+Session.prototype._handlePendingRequests = function() {
+  // Notify pending requests
+  for (var i = 0; i < this._pendingRequests.length; i++) {
+    var pending = this._pendingRequests[i];
+    if (pending.ctx.req) {
+      pending.callback(pending.ctx.req, pending.ctx.res);
+    }
+  }
+
+  this._pendingRequests = [];
+};
+
 Session.prototype._setupStanzaListener = function() {
   var self = this;
   this._connection.on('stanza', function(stanza) {
     console.log("IN xmpp: " + stanza);
-    if (stanza.name == "message") {
+    if (stanza.name === 'message') {
       if (pubsub.isPubSubItemMessage(stanza)) {
-        // save in the session-level cache, for use by /notifications/posts
-        var prevId = '' + self.itemCache.length;
         var item = pubsub.extractItem(stanza);
-        self.itemCache.push(item);
-        console.log('cache size for ' + self.jid + ' is now '+ self.itemCache.length);
-        var id = '' + self.itemCache.length;
+        var timestamp = new Date().getTime();
+        self.itemCache.push({'timestamp': timestamp, 'item': item});
 
-        var nodeId = item.get('a:source/a:id', {a: atom.ns}).text();
-        var at = nodeId.indexOf('/user/');
-        var channelAndNode = nodeId.substring(at + 6);
-        at = channelAndNode.indexOf('/');
-        var channel = channelAndNode.substring(0, at);
-        var node = channelAndNode.substring(at + 1);
+        // Expire old cache (items older than session expiration time)
+        self._expireOldCache(timestamp);
 
-        var gripChannel = grip.encodeChannel('np-' + self.jid);
-        var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, [item]);
-        api.publishAtomResponse(self.origin, gripChannel, feed.root(), id, prevId);
+        self._handlePendingRequests();
       }
-
-      /*var messagedoc = xml.parseXmlString(stanza.toString());
-      var items = messagedoc.get('/message/p:event/p:items', {
-        p: pubsub.ns + '#event',
-      });
-      if (items) {
-        var entries = messagedoc.find('/message/p:event/p:items/p:item/a:entry', {
-          p: pubsub.ns + '#event',
-          a: atom.ns
-        });
-        var nodeId = items.attr('node').value();
-        console.log("got items for node " + nodeId);
-        for(var i = 0; i < entries.length; ++i) {
-          console.log(" " + entries[i].toString());
-        }
-        var pubjid = config.channelDomain;
-        var subkey = pubjid + "_" + nodeId;
-        var sub = self._subs[subkey];
-        if (sub) {
-          sub = sub.userData;
-          if (sub.items === undefined) {
-            sub.items = [];
-            sub.from = stanza.attr('from');
-            sub.prevId = null;
-            sub.lastPublishedId = null;
-          }
-          for(var i = 0; i < entries.length; ++i) {
-            var entry = entries[i];
-            var item = {};
-            item.id = {};
-            item.id.id = entry.get('a:id', { a: atom.ns }).text();
-            var timestr = entry.get('a:updated', { a: atom.ns }).text();
-            item.id.time = Math.floor(iso8601.toDate(timestr).getTime() / 1000) * 1000;
-            item.entry = entries[i];
-            sub.items.push(item);
-          }
-
-          // publish using id of latest item, and prev id of last recorded
-          var item = sub.items[sub.items.length - 1];
-          var gripId = item.id.id + '_' + item.id.time;
-          var gripPrevId = null;
-          if (sub.lastPublishedId) {
-            gripPrevId = sub.lastPublishedId;
-          }
-          sub.lastPublishedId = gripId;
-
-          var at = nodeId.indexOf('/user/');
-          var channelAndNode = nodeId.substring(at + 6);
-          at = channelAndNode.indexOf('/');
-          var channel = channelAndNode.substring(0, at);
-          var node = channelAndNode.substring(at + 1);
-
-          var feed = api.generateNodeFeedFromEntries(channel, node, sub.from, entries);
-
-          gripChannel = grip.encodeChannel(self.jid + '_' + nodeId);
-          api.publishAtomResponse(gripChannel, feed.root(), gripId, gripPrevId);
-        }
-      }*/
     }
     if (stanza.attrs.id) {
       var handler = self._replyHandlers.get(stanza.attrs.id);
@@ -287,6 +236,22 @@ Session.prototype._setupStanzaListener = function() {
       }
     }
   });
+};
+
+Session.prototype._expireOldCache = function(timestamp) {
+  var sessionExpTime = config.sessionExpirationTime * 1000; // in milliseconds
+  var expTimeLimit = timestamp - sessionExpTime;
+
+  var i = 0;
+  while (i < this.itemCache.length && this.itemCache[i].timestamp < expTimeLimit) {
+    i++;
+  }
+
+  this.itemCache.splice(0, i);
+};
+
+Session.prototype.holdRequest = function(ctx, callback) {
+  this._pendingRequests.push({ctx: ctx, callback: callback});
 };
 
 /**
@@ -304,7 +269,7 @@ Session.prototype.removeStanzaListener = function(handler) {
 };
 
 Session.prototype.sendPresenceOnline = function() {
-  if (this._presenceCount == 0) {
+  if (this._presenceCount === 0) {
     this._sendPresence(undefined, config.channelDomain);
   } else {
     this._presenceCount++;

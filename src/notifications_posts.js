@@ -22,7 +22,6 @@ var atom = require('./util/atom');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
-var grip = require('./util/grip');
 
 exports.setup = function(app) {
   app.get('/notifications/posts',
@@ -30,61 +29,94 @@ exports.setup = function(app) {
           listenForNextItem);
 };
 
-function listenForNextItem(req, res, next) {
-  if (!req.gripProxied) {
-    api.sendGripUnsupported(res);
-    return;
-  }
+function notify(req, res) {
+  // Resume request
+  req.resume();
+  var itemCache = req.session.itemCache;
+  var lastTimestamp = itemCache[itemCache.length - 1].timestamp;
+  var entries = nextItems(itemCache, req.query.since, lastTimestamp);
+  sendResponse(req, res, entries, lastTimestamp);
+}
 
-  // repeated calls are okay, as it is only ever sent once. note though,
-  //   that we never send offline presence to undo any of this
-  req.session.sendPresenceOnline();
+function pause(req, res) {
+  var ctx = {
+    req : req,
+    res : res
+  };
 
-  var gripChannel = grip.encodeChannel('np-' + req.session.jid);
+  // TODO: get connectionTimeout from config file
+  var connectionTimeout = 60;
+  req.connection.setTimeout(connectionTimeout * 1000);
+  req.connection.on('timeout', function() {
+    ctx.req = null;
+    ctx.res = null;
+    console.log('Request from ' + ctx.req.session.getFullJID() + ' timeout');
+  });
 
-  if (req.query.since != null) {
-    var since = req.query.since;
-    if (since) {
-      var at = since.indexOf(':');
-      if (at == -1 || since.substring(0, at) != "cursor") {
-        res.send('Error: Invalid since value\n', 400);
-        return;
-      }
+  // Pause request
+  req.pause();
+  console.log('Request from ' + req.session.getFullJID() + ' paused');
 
-      var cur = parseInt(since.substring(at + 1));
-      if (isNaN(cur)) {
-        res.send('Error: Invalid cursor value\n', 400);
-        return;
-      }
+  // Session holds the request
+  req.session.holdRequest(ctx, notify);
+}
 
-      var last = req.session.itemCache.length;
-      if (cur < last) {
-        var entries = [];
-        for (var n = cur; n < last; ++n) {
-          entries.push(req.session.itemCache[n]);
-        }
+function nextItems(itemCache, since, lastTimestamp) {
+  var entries = [];
+  var cacheSize = itemCache.length;
 
-        var nodeId = entries[0].get('a:source/a:id', {a: atom.ns}).text();
-        var at = nodeId.indexOf('/user/');
-        var channelAndNode = nodeId.substring(at + 6);
-        at = channelAndNode.indexOf('/');
-        var channel = channelAndNode.substring(0, at);
-        var node = channelAndNode.substring(at + 1);
-
-        var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, entries);
-        api.sendAtomResponse(req, res, feed.root(), 200, '' + last);
-      } else {
-        api.sendHoldResponse(req, res, gripChannel, '' + last);
-      }
-    } else {
-      // if no cursor specified, then bootstrap with an empty response and cursor header
-      out = {};
-      out["last_cursor"] = '' + req.session.itemCache.length;
-      out["items"] = [];
-      res.send(out);
+  // If it was the first request ever no since param is provided
+  if (!since) {
+    for (var i = 0; i < cacheSize; i++) {
+      entries.push(itemCache[i].item);
     }
-  } else {
-    // if no since parameter at all, then hold
-    api.sendHoldResponse(req, res, gripChannel, '' + req.session.itemCache.length);
+
+    return entries;
   }
+
+  var i = cacheSize - 1;
+  while (i >= 0 && itemCache[i].timestamp > since) {
+    i--;
+  }
+
+  for (var j = i + 1; j < cacheSize; j++) {
+    entries.push(itemCache[j].item);
+  }
+
+  return entries;
+}
+
+function sendResponse(req, res, entries, lastTimestamp) {
+  // /user/:channel/:node
+  var nodeIdSplit = entries[0].get('a:source/a:id', {a: atom.ns}).text().split('/');
+  var channel = nodeIdSplit[2];
+  var node = nodeIdSplit[3];
+
+  // Send response
+  var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, entries);
+  api.sendAtomResponse(req, res, feed.root(), 200, lastTimestamp + '');
+}
+
+function listenForNextItem(req, res, next) {
+  // Repeated calls are okay, as it is only ever sent once. Note though,
+  // that we never send offline presence to undo any of this
+  req.session.sendPresenceOnline();
+  var since = req.query.since;
+  
+  if (since) {
+    var cacheSize = req.session.itemCache.length;
+    if (cacheSize > 0) {
+      var lastTimestamp = req.session.itemCache[cacheSize - 1].timestamp;
+
+      if (since < lastTimestamp) {
+        var entries = nextItems(req.session.itemCache, since, lastTimestamp);
+        sendResponse(req, res, entries, lastTimestamp);
+        return;
+      }
+    }
+  }
+
+  // Pause request
+  // If no since param provided or if since > lastTimestamp
+  pause(req, res);
 }

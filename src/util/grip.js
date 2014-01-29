@@ -18,8 +18,8 @@
 // Provides functions relating to GRIP realtime proxying.
 
 var pubcontrol = require('pubcontrol')
-var griplib = require('grip')
-var config = require('./config');
+  , griplib = require('grip')
+  , config = require('./config')
 
 // global PubControl list
 var pubs = null;

@@ -115,7 +115,7 @@ function reportXmppError(req, res, errorStanza) {
  * determined by the "Accept" request header (either
  * XML or JSON).
  */
-exports.sendAtomResponse = function(req, res, doc, statusCode, lastCursor) {
+exports.sendAtomResponse = function(req, res, doc, statusCode, lastTimestamp) {
   var response;
 
   if (req.accepts('application/atom+xml')) {
@@ -123,13 +123,12 @@ exports.sendAtomResponse = function(req, res, doc, statusCode, lastCursor) {
     response = doc.toString();
   } else if (req.accepts('application/json')) {
     res.contentType('json');
-    if (lastCursor != null) {
+    if (lastTimestamp) {
       response = {};
-      response['last_cursor'] = lastCursor;
+      response['last'] = lastTimestamp;
       response['items'] = atom.toJSON(doc);
       response = JSON.stringify(response);
-    }
-    else {
+    } else {
       response = JSON.stringify(atom.toJSON(doc));
     }
   } else {
