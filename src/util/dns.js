@@ -118,8 +118,13 @@ exports.discoverAPI = function(req, callback) {
   var channel = req.params.channel;
   var remoteDomain = channel.split('@')[1];
   
-  if (remoteDomain == config.xmppDomain) {
-    if (!config.homeMediaRoot) return callback();
+  if (remoteDomain == config.xmppDomain 
+        || remoteDomain == req.headers['x-forwarded-host']) {
+    
+    if (!config.homeMediaRoot) {
+      return callback();
+    }
+    
     mediaRoot = config.homeMediaRoot;
     localMediaAddress = mediaRoot.split('://')[1];
     localMediaAddressSplit = localMediaAddress.split(':');
