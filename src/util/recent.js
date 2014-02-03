@@ -34,91 +34,72 @@ exports.toJSON = function(reply, json, user, summary) {
 
       if (summary) {
         if (!json[node]) {
-          json[node] = {mentionsCount: 0, totalCount: 0, repliesCount: 0, postsThisWeek: []};
+          json[node] = {mentionsCount: 0, totalCount: 0};
         }
-        parseSummary(entries, user, json[node]);
+        parseAndUpdateSummary(entries, user, json[node]);
       } else {
         json[node] = json[node] || [];
 
-        for (var i in entries) {
-          var jsonEntry = atom.toJSON(entries[i]);
-          json[node].push(jsonEntry);
-        }
+        entries.forEach(function(entry) {
+          var jsonEntry = atom.toJSON(entry)
+          json[node].push(jsonEntry)
+        })
       }
   });
   return json;
 };
 
-function lastWeekDate() {
-  var weekInMillis = 7*(24*60*(60*1000));
-  var now = new Date();
-  return new Date(now - weekInMillis);
-}
-
-function countReplies(posts, replies) {
-  var repliesCount = 0;
-  for (var i in posts) {
-    repliesCount += replies[posts[i]] || 0;
-  }
-  return repliesCount;
-}
-
-function checkMentions(jsonEntry, user) {
+function checkMention(jsonEntry, user) {
   if (jsonEntry.author === user) {
     return 0;
   }
-  var content = jsonEntry.content || '';
-  var matches = content.match(CHANNEL_REGEX) || [];
-  for (var j in matches) {
-    if (matches[j] === user) {
-      return 1;
+
+  var content = jsonEntry.content || ''
+  var matches = content.match(CHANNEL_REGEX) || []
+
+  matches.forEach(function(match) {
+    if (match === user) {
+      return true
     }
-  }
-  return 0;
+  })
+
+  return false
 }
 
-function parseSummary(entries, user, obj) {
-  var lastWeek =  lastWeekDate();
-  var userPosts = [];
-  var replies = {};
-  var lastUpdated;
+function parseAndUpdateSummary(entries, user, summary) {
+  var lastMention
+    , lastPost
 
-  for (var i in entries) {
-    var jsonEntry = atom.toJSON(entries[i]);
-    if (jsonEntry.author != user) {
-      obj.totalCount += 1;
-    }
-    obj.mentionsCount += checkMentions(jsonEntry, user);
-    
-    var updated = new Date(jsonEntry.updated);
-    if (updated > lastWeek) {
-      obj.postsThisWeek.push(jsonEntry.updated);
+  entries.forEach(function(entry) {
+    var jsonEntry = atom.toJSON(entry)
+    if (jsonEntry.author !== user) {
+      summary.totalCount += 1
     }
 
-    if (!lastUpdated || updated > lastUpdated) {
-      lastUpdated = updated;
+    var updated = new Date(jsonEntry.updated)
+    if (!lastPost || updated > lastPost) {
+      lastPost = updated
     }
 
-    if (jsonEntry.replyTo) {
-      if (jsonEntry.author != user) {
-        var repliesToThread = replies[jsonEntry.replyTo];
-        replies[jsonEntry.replyTo] = repliesToThread ? repliesToThread + 1 : 1;
-      }
-    } else {
-      // Posts from this user
-      if (jsonEntry.author === user) {
-        userPosts.push(jsonEntry.id);
+    if (checkMention(jsonEntry, user)) {
+      summary.mentionsCount += 1
+      if (!lastMention || updated > lastMention) {
+        lastMention = updated
       }
     }
-  }
-  
-  if (lastUpdated) {
-    if (!obj.lastUpdated || lastUpdated > obj.lastUpdated) {
-      obj.lastUpdated = lastUpdated;
+  })
+
+  if (lastMention) {
+    if (!summary.lastMention || lastMention > summary.lastMention) {
+      summary.lastMention = lastMention
     }
   }
 
-  obj.repliesCount += countReplies(userPosts, replies);
+  if (lastPost) {
+    if (!summary.lastPost || lastPost > summary.lastPost) {
+      summary.lastPost = lastPost
+    }
+  }  
 }
 
 exports.rsmToJSON = function(reply) {

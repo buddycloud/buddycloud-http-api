@@ -61,7 +61,7 @@ function registerAccount(req, res) {
     host: config.xmppHost,
     password: password,
     register: true
-  }
+  };
 
   var client = new Client(options);
 
