@@ -17,10 +17,10 @@
 // test/content_item.js:
 // Tests requests on node items.
 
-var should = require('should');
-var xml = require('libxmljs');
-var atom = require('../src/util/atom');
-var tutil = require('./support/testutil');
+var should = require('should')
+  , atom = require('../src/util/atom')
+  , ltx = require('ltx')
+  , tutil = require('./support/testutil');
 
 // See xmpp_mockserver.js
 var mockConfig = {
@@ -101,14 +101,15 @@ describe('Node Item', function() {
       };
       tutil.get(options, function(res, body) {
         res.statusCode.should.equal(200);
-        var entry = xml.parseXmlString(body);
+        var entry = ltx.parse(body);
 
-        entry.root().name().should.equal('entry');
-        entry.root().namespace().href().should.equal(atom.ns);
-        atom.get(entry, 'atom:id').text().should.equal('foo');
-        atom.get(entry, 'atom:author/atom:name').text().should.equal('alice@localhost');
-        atom.get(entry, 'atom:content').text().should.equal('bar');
-        should.exist(atom.get(entry, 'atom:title'));
+        entry.is('entry').should.be.true;
+        entry.attrs.xmlns.should.equal(atom.ns);
+        entry.getChildText('id').should.equal('foo');
+        entry.getChild('author').getChildText('name')
+            .should.equal('alice@localhost');
+        entry.getChildText('content').should.equal('bar');
+        entry.getChild('title').should.exist;
 
         done();
       }).on('error', done);
