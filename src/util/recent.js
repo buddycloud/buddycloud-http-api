@@ -57,11 +57,11 @@ function checkMention(jsonEntry, user) {
   var content = jsonEntry.content || ''
   var matches = content.match(CHANNEL_REGEX) || []
 
-  matches.forEach(function(match) {
-    if (match === user) {
+  for (var i in matches) {
+    if (user === matches[i]) {
       return true
     }
-  })
+  }
 
   return false
 }
