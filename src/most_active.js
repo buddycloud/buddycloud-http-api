@@ -37,20 +37,22 @@ exports.setup = function(app) {
 //// GET /most_active /////////////////////////////////////////////////////////////
 
 function getMostActive(req, res) {
-  var params = url.parse(req.url, true).query;
-  var max = params.max;
-  var index = params.index;
+  var params = url.parse(req.url, true).query
+    , max = params.max
+    , index = params.index
+    , domain = params.domain
+    , period = params.period
 
-  requestMostActive(req, res, max, index, function(reply) {
-    var items = searchUtils.channelsToJSON(reply, mostActiveNs);
-    var rsm = searchUtils.rsmToJSON(reply);
-    var body = {items: items, rsm: rsm};
-    res.contentType('json');
-    res.send(body);
+  requestMostActive(req, res, max, index, domain, period, function(reply) {
+    var items = searchUtils.channelsToJSON(reply, mostActiveNs)
+      , rsm = searchUtils.rsmToJSON(reply)
+      , body = {items: items, rsm: rsm}
+    res.contentType('json')
+    res.send(body)
   });
 }
 
-function requestMostActive(req, res, max, index, callback) {
-  var searchIq = searchUtils.mostActive(max, index);
-  api.sendQueryToSearch(req, res, searchIq, callback);
+function requestMostActive(req, res, max, index, domain, period, callback) {
+  var searchIq = searchUtils.mostActive(max, index, domain, period)
+  api.sendQueryToSearch(req, res, searchIq, callback)
 }

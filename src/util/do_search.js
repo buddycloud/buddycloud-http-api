@@ -35,20 +35,28 @@ function iq(attrs, ns) {
   return new ltx.Element('iq', attrs).c('query', { xmlns: ns || exports.ns })
 }
 
-exports.mostActive = function(max, index) {
-  var queryNode = iq({type: 'get'}, mostActiveNs);
+exports.mostActive = function(max, index, domain, period) {
+  var queryNode = iq({type: 'get'}, mostActiveNs)
+  
+  if (period) {
+    queryNode.c('period').t(period)
+  }
+
+  if (domain) {
+    queryNode.c('domain').t(domain)
+  }
 
   if (max || index) {
-    var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'});
+    var rsm = queryNode.c('set', {xmlns: 'http://jabber.org/protocol/rsm'})
     if (max) {
-      rsm.c('max').t(max);
+      rsm.c('max').t(max)
     }
     if (index) {
-      rsm.c('index').t(index);
+      rsm.c('index').t(index)
     }
   }
 
-  return queryNode.root();
+  return queryNode.root()
 };
 
 exports.recommend = function(userJid, max, index) {
