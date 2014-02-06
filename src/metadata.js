@@ -18,10 +18,10 @@
 // Handles requests for getting and setting channel metadata
 // (/<channel>/metadata/<node>).
 
-var xml = require('libxmljs');
-var api = require('./util/api');
-var pubsub = require('./util/pubsub');
-var session = require('./util/session');
+var api = require('./util/api')
+  , ltx = require('ltx')
+  , pubsub = require('./util/pubsub')
+  , session = require('./util/session');
 
 /**
  * Registers resource URL handlers.
@@ -55,7 +55,7 @@ function requestNodeMetadata(req, res, channel, node, callback) {
 }
 
 function replyToJSON(reply) {
-  var replydoc = xml.parseXmlString(reply.toString());
+  var replydoc = ltx.parse(reply.toString());
 
   var title = getOption(replydoc, 'pubsub#title');
   var description = getOption(replydoc, 'pubsub#description');
@@ -75,9 +75,9 @@ function replyToJSON(reply) {
 }
 
 function getOption(reply, name) {
-  var query = '//x:field[@var="' + name + '"]/x:value';
-  var option = reply.get(query, {x: 'jabber:x:data'});
-  return option ? option.text() : undefined;
+  var query = reply.getChild('query').getChild('x')
+      .getChildByAttr('var', name);
+  return query ? query.getChildText('value') : query;
 }
 
 //// POST /<channel>/metadata/<node> ///////////////////////////////////////////
