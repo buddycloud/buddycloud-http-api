@@ -17,10 +17,10 @@
 // test/content_feed.js:
 // Tests node feed related requests.
 
-var should = require('should');
-var xml = require('libxmljs');
-var atom = require('../src/util/atom');
-var tutil = require('./support/testutil');
+var should = require('should')
+  , atom = require('../src/util/atom')
+  , tutil = require('./support/testutil')
+  , ltx = require('ltx')
 
 // See xmpp_mockserver.js
 var mockConfig = {
@@ -466,32 +466,36 @@ describe('Node Feed', function() {
       };
       tutil.get(options, function(res, body) {
         res.statusCode.should.equal(200);
-        var feed = xml.parseXmlString(body);
+        var feed = ltx.parse(body);
 
         var feedElem = feed.root();
-        feedElem.name().should.equal('feed');
-        feedElem.namespace().href().should.equal(atom.ns);
-        should.exist(atom.get(feedElem, 'atom:title'));
-        should.exist(atom.get(feedElem, 'atom:id'));
-        should.exist(atom.get(feedElem, 'atom:updated'));
+        feedElem.is('feed').should.be.true;
+        feedElem.attrs.xmlns.should.equal(atom.ns);
+        feedElem.getChild('title').should.exist;
+        feedElem.getChild('id').should.exist;
+        feedElem.getChild('updated').should.exist;
 
-        var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
+        var entries = feedElem.getChildren('entry', atom.ns)
         var e1 = entries[0];
-        atom.get(e1, 'atom:id').text().should.equal('1');
-        atom.get(e1, 'atom:author/atom:name').text().should.equal('alice@localhost');
-        atom.get(e1, 'atom:content').text().should.equal('one');
-        should.exist(atom.get(e1, 'atom:title'));
-        var e2 = entries[1];
-        atom.get(e2, 'atom:id').text().should.equal('2');
-        atom.get(e2, 'atom:author/atom:name').text().should.equal('alice@localhost');
-        atom.get(e2, 'atom:content').text().should.equal('two');
-        should.exist(atom.get(e2, 'atom:title'));
-        var e3 = entries[2];
-        atom.get(e3, 'atom:id').text().should.equal('3');
-        atom.get(e3, 'atom:author/atom:name').text().should.equal('ron@localhost');
-        atom.get(e3, 'atom:content').text().should.equal('three');
-        should.exist(atom.get(e3, 'atom:title'));
+        e1.getChildText('id').should.equal('1');
+        e1.getChild('author').getChildText('name')
+            .should.equal('alice@localhost');
+        e1.getChildText('content').should.equal('one');
+        e1.getChild('title').should.exist
 
+        var e2 = entries[1];
+        e2.getChildText('id').should.equal('2');
+        e2.getChild('author').getChildText('name')
+            .should.equal('alice@localhost');
+        e2.getChildText('content').should.equal('two');
+        e2.getChild('title').should.exist
+
+        var e3 = entries[2];
+        e3.getChildText('id').should.equal('3');
+        e3.getChild('author').getChildText('name')
+            .should.equal('ron@localhost');
+        e3.getChildText('content').should.equal('three');
+        e3.getChild('title').should.exist
         done();
       }).on('error', done);
     });
@@ -527,11 +531,11 @@ describe('Node Feed', function() {
       };
       tutil.get(options, function(res, body) {
         res.statusCode.should.equal(200);
-        var feed = xml.parseXmlString(body);
-        var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
+        var feed = ltx.parse(body);
+        var entries = feed.getChildren('entry', atom.ns)
         entries.length.should.equal(2);
-        atom.get(entries[0], 'atom:id').text().should.equal('1');
-        atom.get(entries[1], 'atom:id').text().should.equal('2');
+        entries[0].getChildText('id').should.equal('1');
+        entries[1].getChildText('id').should.equal('2');
         done();
       }).on('error', done);
     });
@@ -543,11 +547,12 @@ describe('Node Feed', function() {
       };
       tutil.get(options, function(res, body) {
         res.statusCode.should.equal(200);
-        var feed = xml.parseXmlString(body);
-        var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
+        var feed = ltx.parse(body);
+        feed.is('feed').should.be.true
+        var entries = feed.getChildren('entry', atom.ns);
         entries.length.should.equal(2);
-        atom.get(entries[0], 'atom:id').text().should.equal('2');
-        atom.get(entries[1], 'atom:id').text().should.equal('3');
+        entries[0].getChildText('id').should.equal('2');
+        entries[1].getChildText('id').should.equal('3');
         done();
       }).on('error', done);
     });
@@ -606,14 +611,16 @@ describe('Node Feed', function() {
           auth: 'alice@localhost/http:alice',
         };
         tutil.get(options2, function(res2, body2) {
-          var feed = xml.parseXmlString(body2);
-          var entries = feed.find('/a:feed/a:entry', {a: atom.ns});
+          var feed = ltx.parse(body2);
+          feed.is('feed').should.be.true;
+          var entries = feed.getChildren('entry', atom.ns);
           entries.length.should.equal(4);
 
-          var newest = atom.get(feed, '/atom:feed/atom:entry');
-          atom.get(newest, 'atom:id').text().should.equal('newid');
-          atom.get(newest, 'atom:author/atom:name').text().should.equal('alice@localhost');
-          atom.get(newest, 'atom:content').text().should.equal('TEST');
+          var newest = entries[0];
+          newest.getChildText('id').should.equal('newid');
+          newest.getChild('author').getChildText('name')
+              .should.equal('alice@localhost');
+          newest.getChildText('content').should.equal('TEST');
 
           done();
         }).on('error', done);
@@ -644,12 +651,14 @@ describe('Node Feed', function() {
           auth: 'alice@localhost/http:alice',
         };
         tutil.get(options2, function(res2, body2) {
-          var feed = xml.parseXmlString(body2);
+          var feed = ltx.parse(body2);
 
-          var newest = atom.get(feed, '/atom:feed/atom:entry');
-          atom.get(newest, 'atom:id').text().should.equal('newid-json');
-          atom.get(newest, 'atom:author/atom:name').text().should.equal('alice@localhost');
-          atom.get(newest, 'atom:content').text().should.equal('JSON TEST');
+          feed.is('feed').should.be.true;
+          var newest = feed.getChild('entry', atom.ns);
+          newest.getChildText('id').should.equal('newid-json');
+          newest.getChild('author').getChildText('name')
+              .should.equal('alice@localhost');
+          newest.getChildText('content').should.equal('JSON TEST');
 
           done();
         }).on('error', done);
@@ -672,9 +681,11 @@ describe('Node Feed', function() {
           auth: 'alice@localhost/http:alice',
         };
         tutil.get(options2, function(res2, body2) {
-          var feed = xml.parseXmlString(body2);
-          var newest = atom.get(feed, '/atom:feed/atom:entry');
-          atom.get(newest, 'atom:content').text().should.equal('ESCAPING & TEST');
+          var feed = ltx.parse(body2);
+          feed.is('feed').should.be.true
+          var newest = feed.getChild('entry', atom.ns);
+          newest.getChildText('content')
+              .should.equal('ESCAPING & TEST');
           done();
         }).on('error', done);
       }).on('error', done);
