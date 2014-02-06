@@ -22,7 +22,8 @@
     "pubcontrol": "0.3.1",
     "grip": "0.1.4",
     "node-xmpp-client": "~0.2.0",
-    "libxmljs": "~0.8.1"
+    "libxmljs": "~0.8.1",
+    "segfault-handler": "git+https://github.com/ddopson/node-segfault-handler.git"
   },
   "devDependencies": {
     "should": "~3.1.2",

@@ -22,6 +22,10 @@ var auth = require('./src/util/auth');
 var config = require('./src/util/config');
 var session = require('./src/util/session');
 var grip = require('./src/util/grip');
+var SegfaultHandler = require('segfault-handler');
+
+// Watch for segfaults
+SegfaultHandler.registerHandler();
 
 function setupConfig(app) {
   app.configure(function() {
