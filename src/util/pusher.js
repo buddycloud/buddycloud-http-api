@@ -17,8 +17,7 @@
 // pusher.js:
 // Creates XMPP queries for the pusher component.
 
-var ltx = require('ltx')
-  , xml = require('libxmljs')
+var ltx = require('ltx');
 
 var signupNs = 'http://buddycloud.com/pusher/signup';
 var settingsNs = "http://buddycloud.com/pusher/notification-settings";
@@ -37,7 +36,7 @@ exports.signup = function(username, email) {
 };
 
 exports.getSettings = function(type, target) {
-  var queryNode = iq({type: 'get'}, settingsNs);
+  var queryNode = iq({ type: 'get' }, settingsNs);
   queryNode.c('type').t(type);
   if (target) {
     queryNode.c('target').t(target);
@@ -47,30 +46,31 @@ exports.getSettings = function(type, target) {
 
 exports.settingsToJSON = function(reply) {
 
-  var replyEl = xml.parseXmlString(reply.toString());
+  var replyEl = ltx.parse(reply.toString());
 
-  var allSettings = replyEl.find('//query:notificationSettings', {query: settingsNs});
+  var allSettings = replyEl.getChild('query')
+      .getChildren('notificationSettings', settingsNs);
   var allSettingsJSON = []
 
   for (var i = 0; i < allSettings.length; i++) {
     var settings = allSettings[i];
 
-    var target = settings.get("query:target", {query: settingsNs});
-    var postAfterMe = settings.get("query:postAfterMe", {query: settingsNs});
-    var postMentionedMe = settings.get("query:postMentionedMe", {query: settingsNs});
-    var postOnMyChannel = settings.get("query:postOnMyChannel", {query: settingsNs});
-    var postOnSubscribedChannel = settings.get("query:postOnSubscribedChannel", {query: settingsNs});
-    var followMyChannel = settings.get("query:followMyChannel", {query: settingsNs});
-    var followRequest = settings.get("query:followRequest", {query: settingsNs});
+    var target = settings.getChild('target');
+    var postAfterMe = settings.getChild("postAfterMe");
+    var postMentionedMe = settings.getChild("postMentionedMe");
+    var postOnMyChannel = settings.getChild("postOnMyChannel");
+    var postOnSubscribedChannel = settings.getChild("postOnSubscribedChannel");
+    var followMyChannel = settings.getChild("followMyChannel");
+    var followRequest = settings.get("followRequest");
 
     jsonItem = {
-      target : target ? target.text() : null,
-      postAfterMe : postAfterMe ? postAfterMe.text() : null,
-      postMentionedMe : postMentionedMe ? postMentionedMe.text() : null,
-      postOnMyChannel : postOnMyChannel ? postOnMyChannel.text() : null,
-      postOnSubscribedChannel : postOnSubscribedChannel ? postOnSubscribedChannel.text() : null,
-      followMyChannel : followMyChannel ? followMyChannel.text() : null,
-      followRequest : followRequest ? followRequest.text() : null
+      target : target ? target.getText() : null,
+      postAfterMe : postAfterMe ? postAfterMe.getText() : null,
+      postMentionedMe : postMentionedMe ? postMentionedMe.getText() : null,
+      postOnMyChannel : postOnMyChannel ? postOnMyChannel.getText() : null,
+      postOnSubscribedChannel : postOnSubscribedChannel ? postOnSubscribedChannel.getText() : null,
+      followMyChannel : followMyChannel ? followMyChannel.getText() : null,
+      followRequest : followRequest ? followRequest.getText() : null
     };
 
     allSettingsJSON.push(jsonItem);
@@ -86,7 +86,7 @@ exports.getMetadata = function(type) {
 };
 
 exports.metadataToJSON = function(reply) {
-  var metadataXml = xml.parseXmlString(reply.toString()).get('//q:query', {q: metadataNs});
+  var metadataXml = ltx.parse(reply.toString()).get('//q:query', {q: metadataNs});
   var allNodes = metadataXml.childNodes();
   jsonItem = {};
 
