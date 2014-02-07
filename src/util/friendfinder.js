@@ -17,8 +17,7 @@
 // pusher.js:
 // Creates XMPP queries for the pusher component.
 
-var xml = require('libxmljs')
-  , crypto = require('crypto')
+var crypto = require('crypto')
   , ltx = require('ltx')
 
 var ns = 'http://buddycloud.com/friend_finder/match';
