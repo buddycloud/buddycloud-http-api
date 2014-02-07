@@ -21,7 +21,6 @@ var config = require('./util/config')
   , session = require('./util/session')
   , api = require('./util/api')
   , url = require('url')
-  , xml = require('libxmljs')
   , ltx = require('ltx')
 
 var ns = 'http://buddycloud.com/friend_finder/match';
@@ -55,7 +54,9 @@ function postMatchingContacts(req, res) {
 }
 
 function contactsToJSON(reply) {
-  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: ns});
+  var items = ltx.parse(reply.toString())
+      .getChild('query', ns)
+      .getChildren('item');
   var jsonItems = [];
   items.forEach(function(e){
     jsonItems.push(contactToJSON(e));
@@ -64,9 +65,9 @@ function contactsToJSON(reply) {
 }
 
 function contactToJSON(item) {
-  var jid = item.attr('jid');
-  var matchedHash = item.attr('matched-hash');
-  return {'jid' : jid.value(), 'matched-hash' : matchedHash.value()};
+  var jid = item.attrs.jid;
+  var matchedHash = item.attrs['matched-hash'];
+  return { jid: jid, 'matched-hash': matchedHash };
 }
 
 function requestMatchingContacts(req, res, mine, others, callback) {
