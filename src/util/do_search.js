@@ -17,8 +17,7 @@
 // do_search.js:
 // Creates XMPP queries for the search component.
 
-var xml = require('libxmljs')
-  , config = require('./config')
+var config = require('./config')
   , ltx = require('ltx')
 
 var metadataNs = 'http://buddycloud.com/channel_directory/metadata_query';
@@ -37,7 +36,7 @@ function iq(attrs, ns) {
 
 exports.mostActive = function(max, index, domain, period) {
   var queryNode = iq({type: 'get'}, mostActiveNs)
-  
+
   if (period) {
     queryNode.c('period').t(period)
   }
@@ -112,29 +111,32 @@ exports.search = function(type, q, max, index) {
 };
 
 exports.channelsToJSON = function(reply, ns) {
-  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: ns});
+  var items = xml.parse(reply.toString()).getChild('query')
+      .getChild('pubsub')
+      .getChildren('items');
   var jsonItems = [];
   items.forEach(function(e){
-    jsonItems.push(channelToJson(e, ns));
+    var item = e.getChild('item')
+    jsonItems.push(channelToJson(item, ns));
   });
   return jsonItems;
 }
 
 function channelToJson(item, ns) {
-  var jid = item.attr('jid');
-  var description = item.attr('description');
-  var creationDate = item.attr('created');
-  var title = item.get('query:title', {query: ns});
-  var defaultAffiliation = item.get('query:default_affiliation', {query: ns});
-  var channelType = item.get('query:channel_type', {query: ns});
+  var jid = item.attrs.jid;
+  var description = item.attrs.description;
+  var creationDate = item.attrs.created;
+  var title = item.getChild('title');
+  var defaultAffiliation = item.getChild('default_affiliation');
+  var channelType = item.getChild('channel_type');
 
   jsonItem = {
-    jid : jid ? jid.value() : null,
-    description : description ? description.value() : null,
-    creationDate : creationDate ? creationDate.value() : null,
-    title : title ? title.text() : null,
-    channelType : channelType ? channelType.text() : null,
-    defaultAffiliation : defaultAffiliation ? defaultAffiliation.text() : null
+    jid : jid ? jid.getText() : null,
+    description : description ? description.getText() : null,
+    creationDate : creationDate ? creationDate.getText() : null,
+    title : title ? title.getText() : null,
+    channelType : channelType ? channelType.getText() : null,
+    defaultAffiliation : defaultAffiliation ? defaultAffiliation.getText() : null
   };
 
   return jsonItem;
@@ -143,34 +145,35 @@ function channelToJson(item, ns) {
 function postToJson(item) {
   var entry = item.child(0);
 
-  var id = item.attr('id');
-  var author = entry.get("entry:author", {entry: entryNs});
-  var content = entry.get("entry:content", {entry: entryNs});
-  var updated = entry.get("entry:updated", {entry: entryNs});
-  var published = entry.get("entry:published", {entry: entryNs});
-  var parentFullid = entry.get("entry:parent_fullid", {entry: entryNs});
-  var parentSimpleid = entry.get("entry:parent_simpleid", {entry: entryNs});
-  var inReplyTo = entry.get("thr:in-reply-to", {thr: thrNs});
+  var id = item.attrs.id;
+  var author = entry.getChild("author");
+  var content = entry.getChild("content");
+  var updated = entry.getChild("updated");
+  var published = entry.getChild("published");
+  var parentFullid = entry.getChild("parent_fullid");
+  var parentSimpleid = entry.getChild("parent_simpleid");
+  var inReplyTo = entry.getChild("in-reply-to", thrNs);
 
   jsonItem = {
-    id : id ? id.value() : null,
-    author : author ? author.text() : null,
-    content : content ? content.text() : null,
-    updated : updated ? updated.text() : null,
-    published : published ? published.text() : null,
-    parent_fullid : parentFullid ? parentFullid.text() : null,
-    parent_simpleid : parentSimpleid ? parentSimpleid.text() : null,
-    in_reply_to : inReplyTo ? (inReplyTo.attr('ref') ? inReplyTo.attr('ref').value() : null) : null
+    id : id ? id : null,
+    author : author ? author.getText() : null,
+    content : content ? content.getText() : null,
+    updated : updated ? updated.getText() : null,
+    published : published ? published.getText() : null,
+    parent_fullid : parentFullid ? parentFullid.getText() : null,
+    parent_simpleid : parentSimpleid ? parentSimpleid.getText() : null,
+    in_reply_to : inReplyTo ? (inReplyTo.attrs.ref ? inReplyTo.attrs.ref : null) : null
   };
 
   return jsonItem;
 }
 
 exports.postsToJSON = function(reply) {
-  var items = xml.parseXmlString(reply.toString()).find('//query:item', {query: contentNs});
+  var items = ltx.parse(reply.toString()).getChild('query').getChild('pubsub').getChildren('items')
   var jsonItems = [];
   items.forEach(function(e){
-    jsonItems.push(postToJson(e));
+    var item = e.getChild('item');
+    jsonItems.push(postToJson(item));
   });
   return jsonItems;
 }
