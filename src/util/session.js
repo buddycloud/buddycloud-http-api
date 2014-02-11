@@ -19,7 +19,6 @@
 
 var Client = require('node-xmpp-client')
   , http = require('http')
-  , xml = require('libxmljs')
   , iso8601 = require('iso8601')
   , jwt = require('jwt-simple')
   , api = require('./api')

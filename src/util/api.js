@@ -17,7 +17,6 @@
 // api.js:
 // Utility functions and middleware used by the API resource handlers.
 
-var xml = require('libxmljs');
 var griplib = require('grip');
 var atom = require('./atom');
 var auth = require('./auth');
@@ -262,13 +261,12 @@ exports.mediaServerDiscoverer = function(req, res, next) {
 };
 
 exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
-  var feed = xml.Document();
-  feed.node('feed').namespace(atom.ns);
-  feed.root().node('title', channel + ' ' + node);
+  var feed = new ltx.Element('feed', { xmlns: atom.ns });
+  feed.c('title').t(channel + ' ' + node);
 
   var nodeId = pubsub.channelNodeId(channel, node);
   var queryURI = pubsub.queryURI(from, 'retrieve', nodeId);
-  feed.root().node('id', queryURI);
+  feed.catch('id').t(queryURI);
 
   entries.forEach(function(entry) {
     atom.normalizeEntry(entry);

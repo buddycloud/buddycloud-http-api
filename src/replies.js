@@ -25,7 +25,6 @@ var config = require('./util/config')
   , atom = require('./util/atom')
   , url = require('url')
   , crypto = require('crypto')
-  , xml = require('libxmljs')
   , ltx = require('ltx')
 
 /**
@@ -52,15 +51,12 @@ function getReplies(req, res) {
   var jsonResponse = {};
 
   var callback = function(reply) {
-    var items = xml.parseXmlString(reply.toString()).find('/iq/p:pubsub/p:items', {
-	  p: pubsub.ns
-	});
+    var items = ltx.parse(reply.toString())
+        .getChild('pubsub', pubsub.ns)
+        .getChild('items');
 	json = [];
 	items.forEach(function(e) {
-      var entries = e.find('p:item/a:entry', {
-        p: pubsub.ns,
-        a: atom.ns
-      });
+      var entries = e.getChild('item').getChild('entry', atom.ns);
       for (var i = 0; i < entries.length; i++) {
         var entry = entries[i];
         var jsonEntry = atom.toJSON(entry);

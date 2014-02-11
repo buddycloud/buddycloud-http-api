@@ -24,7 +24,6 @@ var config = require('./util/config')
   , pubsub = require('./util/pubsub')
   , url = require('url')
   , crypto = require('crypto')
-  , xml = require('libxmljs')
   , ltx = require('ltx')
 
 /**

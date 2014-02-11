@@ -18,10 +18,9 @@
 // Handles requests concerning topic channel creation
 // (/<channel>).
 
-var xml = require('libxmljs');
-var api = require('./util/api');
-var pubsub = require('./util/pubsub');
-var session = require('./util/session');
+var api = require('./util/api')
+  , pubsub = require('./util/pubsub')
+  , session = require('./util/session');
 
 var NODE_PREFIX = '/user/';
 var POSTS_NODE_SUFIX = '/posts';

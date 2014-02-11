@@ -19,8 +19,7 @@
 
 var ltx = require('ltx')
   , config = require('./config')
-  , atom = require('./atom')
-  , xml = require('libxmljs')
+  , atom = require('./atom');
 
 /** The XMPP Pub-Sub XML namespaces. */
 exports.ns = 'http://jabber.org/protocol/pubsub';
@@ -290,27 +289,17 @@ exports.isPubSubItemMessage = function(stanza) {
 }
 
 exports.extractItem = function(message) {
-  message = xml.parseXmlString(message.toString());
-  messageEl = message.get('/message');
-  // Fix for tigase xmlns
-  if (!messageEl) {
-    messageEl = message.get('/j:message', {j: 'jabber:client'})
-  }
-  var items = messageEl.get('p:event/p:items', {
-    p: exports.eventNS
-  });
-  var entry = items.get('p:item/a:entry', {
-    p: exports.eventNS,
-    a: atom.ns
-  });
-  addSourceToEntry(entry, items.attr('node').value());
+  var messageEl = xml.parse(message.toString());
+
+  var items = messageEl.getChild('event', exports.eventNS).getChildren('items')
+  var entry = items.getChild('item').getChild('entry', atom.NS);
+
+  addSourceToEntry(entry, items.attrs.node);
   return entry;
 }
 
 function addSourceToEntry(entry, node) {
-  var source = entry.node('source');
+  var source = entry.c('source');
   var queryURI = exports.queryURI(config.channelDomain, 'retrieve', node);
-  var sourceId = source.node('id', queryURI);
-  source.namespace(atom.ns);
-  sourceId.namespace(atom.ns);
+  var sourceId = source.c('id').t(queryURI);
 }
