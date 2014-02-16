@@ -111,80 +111,77 @@ exports.search = function(type, q, max, index) {
 };
 
 exports.channelsToJSON = function(reply, ns) {
-  var items = xml.parse(reply.toString()).getChild('query')
-      .getChild('pubsub')
-      .getChildren('items');
+  var items = ltx.parse(reply.toString()).getChild('query', ns)
+      .getChildren('item');
   var jsonItems = [];
-  items.forEach(function(e){
-    var item = e.getChild('item')
-    jsonItems.push(channelToJson(item, ns));
+  items.forEach(function(e) {
+    jsonItems.push(channelToJson(e, ns));
   });
   return jsonItems;
 }
 
 function channelToJson(item, ns) {
-  var jid = item.attrs.jid;
-  var description = item.attrs.description;
-  var creationDate = item.attrs.created;
+  var jid = item.attr('jid');
+  var description = item.attr('description');
+  var creationDate = item.attr('created');
   var title = item.getChild('title');
   var defaultAffiliation = item.getChild('default_affiliation');
   var channelType = item.getChild('channel_type');
 
   jsonItem = {
-    jid : jid ? jid.getText() : null,
-    description : description ? description.getText() : null,
-    creationDate : creationDate ? creationDate.getText() : null,
-    title : title ? title.getText() : null,
-    channelType : channelType ? channelType.getText() : null,
-    defaultAffiliation : defaultAffiliation ? defaultAffiliation.getText() : null
+    jid : jid,
+    description : description,
+    creationDate : creationDate,
+    title : title ? title.text() : null,
+    channelType : channelType ? channelType.text() : null,
+    defaultAffiliation : defaultAffiliation ? defaultAffiliation.text() : null
   };
 
   return jsonItem;
 }
 
 function postToJson(item) {
-  var entry = item.child(0);
+  var entry = item.getChild('entry');
 
-  var id = item.attrs.id;
-  var author = entry.getChild("author");
-  var content = entry.getChild("content");
-  var updated = entry.getChild("updated");
-  var published = entry.getChild("published");
-  var parentFullid = entry.getChild("parent_fullid");
-  var parentSimpleid = entry.getChild("parent_simpleid");
-  var inReplyTo = entry.getChild("in-reply-to", thrNs);
+  var id = item.attr('id');
+  var author = entry.getChild('author');
+  var content = entry.getChild('content');
+  var updated = entry.getChild('updated');
+  var published = entry.getChild('published');
+  var parentFullid = entry.getChild('parent_fullid');
+  var parentSimpleid = entry.getChild('parent_simpleid');
+  var inReplyTo = entry.getChild('in-reply-to', thrNs);
 
   jsonItem = {
-    id : id ? id : null,
-    author : author ? author.getText() : null,
-    content : content ? content.getText() : null,
-    updated : updated ? updated.getText() : null,
-    published : published ? published.getText() : null,
-    parent_fullid : parentFullid ? parentFullid.getText() : null,
-    parent_simpleid : parentSimpleid ? parentSimpleid.getText() : null,
-    in_reply_to : inReplyTo ? (inReplyTo.attrs.ref ? inReplyTo.attrs.ref : null) : null
+    id : id,
+    author : author ? author.text() : null,
+    content : content ? content.text() : null,
+    updated : updated ? updated.text() : null,
+    published : published ? published.text() : null,
+    parent_fullid : parentFullid ? parentFullid.text() : null,
+    parent_simpleid : parentSimpleid ? parentSimpleid.text() : null,
+    in_reply_to : inReplyTo ? inReplyTo.attr('ref') : null
   };
 
   return jsonItem;
 }
 
 exports.postsToJSON = function(reply) {
-  var items = ltx.parse(reply.toString()).getChild('query').getChild('pubsub').getChildren('items')
+  var items = ltx.parse(reply.toString()).getChild('query').getChildren('item')
   var jsonItems = [];
   items.forEach(function(e){
-    var item = e.getChild('item');
-    jsonItems.push(postToJson(item));
+    jsonItems.push(postToJson(e));
   });
   return jsonItems;
 }
 
 exports.rsmToJSON = function(reply) {
-  var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
-  var firstNode = rsmSet.get('set:first', {set: rsmNs});
+  var rsmSet = ltx.parse(reply.toString()).getChild('query').getChild('set', rsmNs);
+  var firstNode = rsmSet.getChild('first');
   var index = 0;
   if (firstNode) {
-    index = firstNode.attr('index').value();
+    index = firstNode.attr('index');
   }
-  var count = rsmSet.get('set:count', {set: rsmNs}).text();
+  var count = rsmSet.getChild('count').text();
   return {index: index, count: count};
 }
