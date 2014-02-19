@@ -39,6 +39,11 @@ exports.setup = function(app) {
 //// POST /<channel>/<node> ////////////////////////////////////////
 
 function createApplicationNode(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var channel = req.params.channel;
   var node = req.params.node;
 
@@ -55,6 +60,11 @@ function requestNodeCreation(req, res, channel, node, callback) {
 //// DELETE /<channel>/<node> ////////////////////////////////////////
 
 function deleteApplicationNode(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var channel = req.params.channel;
   var node = req.params.node;
 

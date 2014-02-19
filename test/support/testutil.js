@@ -118,7 +118,27 @@ exports.post = function(options, callback) {
       callback(response, body);
     });
   });
-  req.write(options.body);
+  if (options.body) {
+    req.write(options.body);
+  }
+  req.end();
+  return req;
+};
+
+/**
+ * Like http.get(), but with the target host and port automatically filled
+ * in from the server configuration.
+ */
+exports.delete = function(options, callback) {
+  options.method = 'DELETE';
+  options.host = 'localhost';
+  options.port = config.port;
+
+  var req = http.request(options, function(response) {
+    readBody(response, function(body) {
+      callback(response, body);
+    });
+  });
   req.end();
   return req;
 };
