@@ -59,7 +59,7 @@ var mockConfig = {
        </error>\
      </iq>',
      
-     // Password change - not allowed
+    // Password change - not allowed
     '<iq from="alice@localhost/http" type="set">\
        <query xmlns="jabber:iq:register">\
          <username>username-not-allowed</username>\
@@ -71,6 +71,25 @@ var mockConfig = {
          <not-allowed xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
        </error>\
      </iq>',
+     
+    // Password reset - bad request
+    '<iq from="alice@localhost/http" type="set">\
+       <query xmlns="http://buddycloud.com/pusher/password-reset">\
+       </query>\
+     </iq>':
+    '<iq type="error">\
+       <error type="modify">\
+         <bad-request xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
+       </error>\
+     </iq>',
+     
+     // successtul password reset
+    '<iq from="alice@localhost/http" type="set">\
+       <query xmlns="http://buddycloud.com/pusher/password-reset">\
+         <username>username@localhost</username>\
+       </query>\
+     </iq>':
+    '<iq type="result"/>'
   }
 };
 
@@ -149,6 +168,36 @@ describe('Password change/reset', function() {
         body: JSON.stringify({
           'username': 'username',
           'password': 'password'
+        })
+      };
+      tutil.post(options, function(res, body) {
+        res.statusCode.should.equal(200);
+        done();
+      }).on('error', done);
+    });
+
+  });
+
+  describe('POST', function() {
+
+    it('should not allow a bad request', function(done) {
+      var options = {
+        path: '/account/pw/reset',
+        auth: 'alice@localhost/http:alice',
+        body: JSON.stringify({})
+      };
+      tutil.post(options, function(res, body) {
+        res.statusCode.should.equal(400);
+        done();
+      }).on('error', done);
+    });
+
+    it('should reset the users password', function(done) {
+      var options = {
+        path: '/account/pw/reset',
+        auth: 'alice@localhost/http:alice',
+        body: JSON.stringify({
+          'username': 'username',
         })
       };
       tutil.post(options, function(res, body) {
