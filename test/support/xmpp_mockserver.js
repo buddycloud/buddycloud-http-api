@@ -98,9 +98,8 @@ function start() {
   }
 
   var server = new xmpp.C2SServer(serverOptions)
-
   server.registerSaslMechanism(require('node-xmpp-server').auth.Anonymous)
-
+  
   server.on('connect', function(client) {
       client.on('authenticate', function(options, callback) {
           checkAuth(options, callback);
@@ -108,6 +107,9 @@ function start() {
       client.on('stanza', function(stanza) {
           handleStanza(client, stanza);
       });
+      server.C2SStream.prototype.onRegistration = function (stanza) {
+          handleStanza(client, stanza);
+      }
   });
 }
 

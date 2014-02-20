@@ -39,6 +39,11 @@ exports.setup = function(app) {
 //// POST /account/pw/change /////////////////////////////////////////////////////////////
 
 function changePassword(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   try {
     var pwChange = JSON.parse(req.body);
   } catch (e) {
