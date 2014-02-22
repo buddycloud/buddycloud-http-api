@@ -40,6 +40,11 @@ exports.setup = function(app) {
 //// POST /<channel> ////////////////////////////////////////
 
 function createChannelNode(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var channel = req.params.channel;
 
   requestChannelCreation(req, res, channel, function(reply) {
@@ -55,6 +60,11 @@ function requestChannelCreation(req, res, channel, callback) {
 //// DELETE /<channel> ////////////////////////////////////////
 
 function deleteChannelNode(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var channel = req.params.channel;
 
   requestChannelDeletion(req, res, channel, function(reply) {
