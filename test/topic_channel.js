@@ -136,7 +136,7 @@ var mockConfig = {
        </pubsub>\
      </iq>':
     '<iq type="error">\
-       <error type="auth">\
+       <error type="cancel">\
          <item-not-found xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/>\
        </error>\
      </iq>'

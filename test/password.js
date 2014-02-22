@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// test/contact_matching.js:
-// Tests requests related to the contact matching endpoint.
+// test/password.js:
+// Tests requests related to the password endpoint.
 
 var should = require('should');
 var tutil = require('./support/testutil');

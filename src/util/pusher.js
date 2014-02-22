@@ -61,7 +61,7 @@ exports.settingsToJSON = function(reply) {
     var postOnMyChannel = settings.getChild("postOnMyChannel");
     var postOnSubscribedChannel = settings.getChild("postOnSubscribedChannel");
     var followMyChannel = settings.getChild("followMyChannel");
-    var followRequest = settings.get("followRequest");
+    var followRequest = settings.getChild("followRequest");
 
     jsonItem = {
       target : target ? target.getText() : null,
@@ -86,12 +86,14 @@ exports.getMetadata = function(type) {
 };
 
 exports.metadataToJSON = function(reply) {
-  var metadataXml = ltx.parse(reply.toString()).get('//q:query', {q: metadataNs});
-  var allNodes = metadataXml.childNodes();
+  var queryEl = ltx.parse(reply.toString()).getChild('query', metadataNs);
+  var allNodes = queryEl.getChildrenByFilter(function (c) {
+    return typeof c != 'string' 
+  });
   jsonItem = {};
-
+  
   for (var i = 0; i < allNodes.length; i++) {
-    var prop = allNodes[i].name();
+    var prop = allNodes[i].getName();
     var value = allNodes[i].text();
     jsonItem[prop] = value;
   }

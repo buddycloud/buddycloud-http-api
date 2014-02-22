@@ -102,6 +102,8 @@ function reportXmppError(req, res, errorStanza) {
       } else {
         exports.sendUnauthorized(res);
       }
+    } else if (error.getChild('bad-request')) {
+      res.send(400);
     } else if (error.getChild('item-not-found')) {
       res.send(404);
     }
