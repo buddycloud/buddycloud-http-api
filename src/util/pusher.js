@@ -64,13 +64,13 @@ exports.settingsToJSON = function(reply) {
     var followRequest = settings.getChild("followRequest");
 
     jsonItem = {
-      target : target ? target.getText() : null,
-      postAfterMe : postAfterMe ? postAfterMe.getText() : null,
-      postMentionedMe : postMentionedMe ? postMentionedMe.getText() : null,
-      postOnMyChannel : postOnMyChannel ? postOnMyChannel.getText() : null,
-      postOnSubscribedChannel : postOnSubscribedChannel ? postOnSubscribedChannel.getText() : null,
-      followMyChannel : followMyChannel ? followMyChannel.getText() : null,
-      followRequest : followRequest ? followRequest.getText() : null
+      target : target ? target.text() : null,
+      postAfterMe : postAfterMe ? postAfterMe.text() : null,
+      postMentionedMe : postMentionedMe ? postMentionedMe.text() : null,
+      postOnMyChannel : postOnMyChannel ? postOnMyChannel.text() : null,
+      postOnSubscribedChannel : postOnSubscribedChannel ? postOnSubscribedChannel.text() : null,
+      followMyChannel : followMyChannel ? followMyChannel.text() : null,
+      followRequest : followRequest ? followRequest.text() : null
     };
 
     allSettingsJSON.push(jsonItem);
@@ -116,9 +116,8 @@ exports.updateSettings = function(settings) {
 };
 
 exports.deleteSettings = function(settings) {
-  var removeEl = new ltx.Element({ type: 'set' })
-        .c('query', { xmlns: 'jabber:iq:register' })
-        .c('remove');
+  var queryEl = iq({ type: 'set' }, 'jabber:iq:register');
+  var removeEl = queryEl.c('remove');
   if (settings.type) {
     setEl('type', settings.type, removeEl);
   }

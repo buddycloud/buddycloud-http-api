@@ -139,6 +139,9 @@ exports.delete = function(options, callback) {
       callback(response, body);
     });
   });
+  if (options.body) {
+    req.write(options.body);
+  }
   req.end();
   return req;
 };
