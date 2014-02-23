@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// sync.js:
-// Handles requests to synchronize unread counters and posts (/sync).
+// replies.js:
+// Handles requests to retrieve replies of a given topic (/replies).
 
 var config = require('./util/config')
   , session = require('./util/session')
@@ -53,16 +53,14 @@ function getReplies(req, res) {
   var callback = function(reply) {
     var items = ltx.parse(reply.toString())
         .getChild('pubsub', pubsub.ns)
-        .getChild('items');
+        .getChild('items')
+        .getChildren('item');
+	
 	json = [];
-	items.forEach(function(e) {
-      var entries = e.getChild('item').getChild('entry', atom.ns);
-      for (var i = 0; i < entries.length; i++) {
-        var entry = entries[i];
-        var jsonEntry = atom.toJSON(entry);
-        json.push(jsonEntry);
-      }
-    });
+    for (var i = 0; i < items.length; i++) {
+      var jsonEntry = atom.toJSON(items[i].getChild('entry', atom.ns));
+      json.push(jsonEntry);
+    }
 
 	res.contentType('json');
     res.send(json);
