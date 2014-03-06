@@ -18,6 +18,7 @@
 // Utility functions and middleware used by the API resource handlers.
 
 var griplib = require('grip');
+var ltx = require('ltx');
 var atom = require('./atom');
 var auth = require('./auth');
 var cache = require('./cache');

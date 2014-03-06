@@ -33,5 +33,6 @@ exports.testing = {
   xmppDomain: 'localhost',
   xmppHost: 'localhost',
   xmppPort: '5888',
-  sessionExpirationTime: 1
+  sessionExpirationTime: 1,
+  debug: true
 };
