@@ -61,10 +61,12 @@ function ensureEntryHasAuthorName(entry) {
   var authorName = author ? author.getChild('name') : null;
   if (author && !authorName) {
     var name;
-    if (author.text().indexOf('acct:') === 0) {
-      name = author.text().split(':', 2)[1];
+    var uriEl = author.getChild('uri');
+    var uri = uriEl.text();
+    if (uri.indexOf('acct:') === 0) {
+      name = uri.split(':', 2)[1];
     } else {
-      name = author.text();
+      name = uri;
     }
     author.c('name').t(name);
   }
