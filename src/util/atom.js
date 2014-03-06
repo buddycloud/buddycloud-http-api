@@ -17,7 +17,7 @@
 // atom.js:
 // Simplifies working with Atom feeds.
 
-var xml = require('libxmljs');
+var ltx = require('ltx');
 
 /** The Atom XML namespace. */
 exports.ns = 'http://www.w3.org/2005/Atom';
@@ -27,12 +27,11 @@ exports.threadNS = 'http://purl.org/syndication/thread/1.0';
  * Like libxmljs.Element.get(), but automatically binds the 'atom:'
  * prefix to the Atom namespace.
  */
-exports.get = function(element, query, namespaces) {
-  if (!namespaces) {
-    namespaces = {};
+exports.get = function(element, query) {
+  if (!element) {
+    return null;
   }
-  namespaces.atom = exports.ns;
-  return element.get(query, namespaces);
+  return element.getChild(query, exports.ns);
 };
 
 exports.normalizeEntry = function(entry) {
@@ -41,11 +40,11 @@ exports.normalizeEntry = function(entry) {
 };
 
 function ensureEntryHasTitle(entry) {
-  var content = exports.get(entry, 'atom:content/text()');
-  var title = exports.get(entry, 'atom:title');
-  if (content && !title) {
-    var teaser = extractTeaser(content.toString());
-    entry.node('title', teaser).namespace(exports.ns);
+  var contentEl = exports.get(entry, 'content');
+  var titleEl = exports.get(entry, 'title');
+  if (contentEl && !titleEl) {
+    var teaser = extractTeaser(contentEl.text());
+    entry.c('title').t(teaser);
   }
 }
 
@@ -58,8 +57,8 @@ function extractTeaser(content) {
 }
 
 function ensureEntryHasAuthorName(entry) {
-  var author = exports.get(entry, 'atom:author');
-  var authorName = exports.get(entry, 'atom:author/atom:name');
+  var author = exports.get(entry, 'author');
+  var authorName = exports.get(author, 'name');
   if (author && !authorName) {
     var name;
     if (author.text().indexOf('acct:') === 0) {
@@ -67,7 +66,7 @@ function ensureEntryHasAuthorName(entry) {
     } else {
       name = author.text();
     }
-    author.node('name', name).namespace(exports.ns);
+    author.c('name').t(name);
   }
 }
 
@@ -76,7 +75,7 @@ function ensureEntryHasAuthorName(entry) {
  * contains the most important entry attributes.
  */
 exports.toJSON = function(element) {
-  if (element.name() == 'feed') {
+  if (element.getName() == 'feed') {
     return feedToJSON(element);
   } else {
     return entryToJSON(element);
@@ -85,8 +84,11 @@ exports.toJSON = function(element) {
 
 function feedToJSON(feed) {
   var json = [];
-
-  var entries = feed.find('a:entry', {a: exports.ns});
+  
+  var entries = feed.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'entry' && c.getNS() == exports.ns; 
+  }, true);
   entries.forEach(function(e) {
     json.push(entryToJSON(e));
   });
@@ -95,25 +97,26 @@ function feedToJSON(feed) {
 }
 
 function entryToJSON(entry) {
-  var id = exports.get(entry, 'atom:id');
-  var sourceId = exports.get(entry, 'atom:source/atom:id');
-  var author = exports.get(entry, 'atom:author');
-  var authorName = author ? exports.get(author, 'atom:name') : author;
-  var published = exports.get(entry, 'atom:published');
-  var updated = exports.get(entry, 'atom:updated');
-  var content = exports.get(entry, 'atom:content');
+  var id = exports.get(entry, 'id');
+  var sourceEl = exports.get(entry, 'source');
+  var sourceId = sourceEl ? sourceEl.getChild('id') : sourceEl;
+  var author = exports.get(entry, 'author');
+  var authorName = author ? exports.get(author, 'name') : author;
+  var published = exports.get(entry, 'published');
+  var updated = exports.get(entry, 'updated');
+  var content = exports.get(entry, 'content');
 
   // Workaround to handle entries result from post and get
-  var media = structuredFieldToJSON(entry.get('//media') || exports.get(entry, 'atom:media'),
+  var media = structuredFieldToJSON(entry.getChild('media') || exports.get(entry, 'media'),
     function(item) {
-      var id = item.attr('id').value();
-      var channel = item.attr('channel').value();
+      var id = item.attr('id');
+      var channel = item.attr('channel');
       return {id: id, channel: channel};
     }
   );
-  var replyTo = entry.get(
-    't:in-reply-to',
-    {t: 'http://purl.org/syndication/thread/1.0'}
+  var replyTo = entry.getChild(
+    'in-reply-to',
+    'http://purl.org/syndication/thread/1.0'
   );
 
   var localId = null;
@@ -130,15 +133,17 @@ function entryToJSON(entry) {
     updated: updated ? updated.text() : null,
     content: content ? content.text() : null,
     media: media.length > 0 ? media : null,
-    replyTo: replyTo ? replyTo.attr('ref').value() : undefined
+    replyTo: replyTo ? replyTo.attr('ref') : undefined
   };
 }
 
 function structuredFieldToJSON(field, parser) {
   var json = [];
   if (field) {
-    var items = field.childNodes();
-
+    var items = field.getChildrenByFilter(function (c) {
+      return typeof c != 'string' 
+    });
+    
     items.forEach(function(i) {
       json.push(parser(i));
     });
@@ -151,50 +156,36 @@ function structuredFieldToJSON(field, parser) {
  * Converts an JSON-serialized Atom entry into an Atom XML document.
  */
 exports.fromJSON = function(entry) {
-  var entrydoc = xml.Document();
-  entrydoc.node('entry').namespace(exports.ns);
+  var entrydoc = new ltx.Element('entry', {xmlns: exports.ns})
 
   if (entry.id) {
-    entrydoc.root().
-      node('id', escapeText(entry.id)).
-      namespace(exports.ns);
+    entrydoc.c('id').t(escapeText(entry.id));
   }
 
   if (entry.title) {
-    entrydoc.root().
-      node('title', escapeText(entry.id)).
-      namespace(exports.ns);
+    entrydoc.c('title').t(escapeText(entry.id));
   }
 
   if (entry.author) {
-    entrydoc.root().
-      node('author', escapeText(entry.author)).
-      namespace(exports.ns);
+    entrydoc.c('author').t(escapeText(entry.author));
   }
 
   var content = '';
   if (entry.content) {
     content = entry.content;
   }
-  entrydoc.root().
-	node('content', content).
-	namespace(exports.ns);
+  entrydoc.c('content').t(content);
 
   if (entry.replyTo) {
-    entrydoc.root().
-      node('in-reply-to').
-      attr('ref', entry.replyTo).
-      namespace(exports.threadNS);
+    entrydoc.c('in-reply-to', 
+      {xmlns: exports.threadNS, ref: entry.replyTo});
   }
 
   if (entry.media) {
-    var media = entrydoc.root().node('media');
+    var media = entrydoc.c('media');
     for (var m in entry.media) {
-      media.
-        node('item').
-        attr('id', entry.media[m].id).
-        attr('channel', entry.media[m].channel).
-        namespace(exports.ns);
+      media.c('item', 
+        {id: entry.media[m].id, channel: entry.media[m].channel});
     }
   }
 

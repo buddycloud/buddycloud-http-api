@@ -288,13 +288,37 @@ exports.isPubSubItemMessage = function(stanza) {
   }
 }
 
-exports.extractItem = function(message) {
-  var messageEl = xml.parse(message.toString());
+exports.extractEntries = function(iq) {
+  var rootEl = ltx.parse(iq.toString());
+  return rootEl.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'entry' && c.getNS() == atom.ns; 
+  }, true);
+}
 
-  var items = messageEl.getChild('event', exports.eventNS).getChildren('items')
+exports.extractItems = function(iq) {
+  var rootEl = ltx.parse(iq.toString());
+  return rootEl.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'item' && c.getNS() == exports.ns; 
+  }, true);
+}
+
+exports.extractThreads = function(iq) {
+  var rootEl = ltx.parse(iq.toString());
+  return rootEl.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'thread' && c.getNS() == exports.ns; 
+  }, true);
+}
+
+exports.extractItem = function(message) {
+  var messageEl = ltx.parse(message.toString());
+
+  var items = messageEl.getChild('event', exports.eventNS).getChild('items')
   var entry = items.getChild('item').getChild('entry', atom.NS);
 
-  addSourceToEntry(entry, items.attrs.node);
+  addSourceToEntry(entry, items.attr('node'));
   return entry;
 }
 

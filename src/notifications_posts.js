@@ -78,8 +78,11 @@ function nextItems(itemCache, since, lastTimestamp) {
 }
 
 function sendResponse(req, res, entries, lastTimestamp) {
+  var sourceEl = entries[0].getChild('source');
+  var idEl = sourceEl.getChild('id');
+  
   // /user/:channel/:node
-  var nodeIdSplit = entries[0].get('a:source/a:id', {a: atom.ns}).text().split('/');
+  var nodeIdSplit = idEl.text().split('/');
   var channel = nodeIdSplit[2];
   var node = nodeIdSplit[3];
 

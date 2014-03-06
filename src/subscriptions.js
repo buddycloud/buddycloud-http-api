@@ -19,7 +19,7 @@
 // (/subscribed, /<channel>/subscribers/<node>).
 
 var connect = require('connect');
-var xml = require('libxmljs');
+var ltx = require('ltx');
 var api = require('./util/api');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
@@ -87,34 +87,49 @@ function requestUserSubscriptions(req, res, callback) {
   api.sendQuery(req, res, iq, callback);
 }
 
+function findUserAffiliations(rootEl) {
+   return rootEl.getChildrenByFilter(function (c) {
+     return typeof c != 'string' && 
+       c.getName() == 'affiliation' && 
+       c.getNS() == pubsub.ns &&
+       c.attr('node') && c.attr('node').indexOf('/user/') == 0; 
+   }, true);
+}
+
+function findNodeAffiliations(rootEl) {
+   return rootEl.getChildrenByFilter(function (c) {
+     return typeof c != 'string' && 
+       c.getName() == 'affiliation' && 
+       c.getNS() == pubsub.ownerNS &&
+       c.attr('jid') && c.attr('jid').indexOf('@') != 0; 
+   }, true);
+}
+
 function replyToJSON(reply, target) {
-  var xpath;
-  var ns;
+  var filter;
   var key;
 
   if (target == 'user') {
-    xpath = '//pubsub:affiliation[starts-with(@node, "/user/")]';
-    ns = pubsub.ns;
+    filter = findUserAffiliations;
     key = 'node';
   } if (target == 'node') {
-    xpath = '//pubsub:affiliation[contains(@jid, "@")]';
-    ns = pubsub.ownerNS;
+    filter = findNodeAffiliations;
     key = 'jid';
   }
 
-  var replydoc = xml.parseXmlString(reply.toString());
-  var entries = replydoc.find(xpath, {pubsub: ns});
+  var replyDoc = ltx.parse(reply.toString());
+  var entries = filter(replyDoc);
   var subscriptions = {};
 
   entries.forEach(function(entry) {
-    var keyValue = entry.attr(key).value();
+    var keyValue = entry.attr(key);
 
     // Strip the leading "/user/" from node names
     if (target == 'user') {
       keyValue = stripUserPrefix(keyValue);
     }
 
-    var affiliation = entry.attr('affiliation').value();
+    var affiliation = entry.attr('affiliation');
     subscriptions[keyValue] = affiliation;
   });
 
@@ -244,18 +259,22 @@ function subscriptionsToJSON(reply, target) {
     ns = pubsub.ownerNS;
   }
 
-  var replydoc = xml.parseXmlString(reply.toString());
-  var entries = replydoc.find('//p:subscription', {p: ns});
+  var replyDoc = ltx.parse(reply.toString());
+  var entries = replyDoc.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'subscription' && c.getNS() == ns; 
+  }, true);
+  
   var subscriptions = [];
 
   entries.forEach(function(entry) {
-    var subscription = entry.attr('subscription').value();
+    var subscription = entry.attr('subscription');
     var response = {subscription: subscription};
     if (target == 'user') {
-      var node = entry.attr('node').value();
+      var node = entry.attr('node');
       response['node'] = stripUserPrefix(node);
     } else if (target == 'node') {
-      var jid = entry.attr('jid').value();
+      var jid = entry.attr('jid');
       response['jid'] = jid;
     }
     subscriptions.push(response);

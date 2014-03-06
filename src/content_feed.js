@@ -18,8 +18,8 @@
 // Handles requests related to channel node feeds
 // (/<channel>/content/<node>).
 
-var xml = require('libxmljs');
 var iso8601 = require('iso8601');
+var ltx = require('ltx');
 var api = require('./util/api');
 var atom = require('./util/atom');
 var config = require('./util/config');
@@ -139,30 +139,30 @@ function requestNodeItems(req, res, channel, node, callback) {
 }
 
 function generateNodeFeed(channel, node, reply) {
-  var feed = xml.Document();
-  feed.node('feed').namespace(atom.ns);
-  feed.root().node('title', channel + ' ' + node);
+  var feed = new ltx.Element('feed');
+  feed.attr('xmlns', atom.ns);
+  feed.c('title').t(channel + ' ' + node);
 
   var nodeId = pubsub.channelNodeId(channel, node);
   var queryURI = pubsub.queryURI(reply.attr('from'), 'retrieve', nodeId);
-  feed.root().node('id', queryURI);
-  var replydoc = xml.parseXmlString(reply.toString());
-  var updated = atom.get(replydoc, '//atom:entry[1]/atom:updated');
-  if (updated) {
-    feed.root().node('updated', updated.text());
+  feed.c('id').t(queryURI);
+  
+  var entries = pubsub.extractEntries(reply);
+  if (entries.length > 0) {
+    var updated = entries[0].getChild('updated');
+	if (updated) {
+	  feed.c('updated').t(updated.text());
+	}
   }
-  populateNodeFeed(feed, replydoc);
+  populateNodeFeed(feed, reply);
   return feed;
 }
 
-function populateNodeFeed(feed, replydoc) {
-  var entries = replydoc.find('/iq/p:pubsub/p:items/p:item/a:entry', {
-    p: pubsub.ns,
-    a: atom.ns
-  });
+function populateNodeFeed(feed, reply) {
+  var entries = pubsub.extractEntries(reply);
   entries.forEach(function(entry) {
     atom.normalizeEntry(entry);
-    feed.root().addChild(entry.remove());
+    feed.cnode(entry.clone());
   });
 }
 
@@ -185,7 +185,7 @@ function parseRequestBody(req, res) {
     if (req.is('json') || req.body.toString().match(/^\w*\{/)) {
       return atom.fromJSON(JSON.parse(req.body));
     } else {
-      return xml.parseXmlString(req.body);
+      return ltx.parse(req.body);
     }
   } catch (e) {
     res.send(400);
@@ -249,12 +249,9 @@ function updateNodeFeed(req, res) {
 }
 
 function getLatestItemId(reply) {
-  var replydoc = xml.parseXmlString(reply.toString());
-  var item = replydoc.get('/iq/p:pubsub/p:items/p:item[1]', {
-    p: pubsub.ns
-  });
-  if (item) {
-    return item.attr('id').value();
+  var items = pubsub.extractItems(reply);
+  if (items.length > 0) {
+    return items[0].attr('id');
   } else {
     return null;
   }
@@ -286,17 +283,16 @@ function getThreadedNodeFeed(req, res) {
 }
 
 function generateThreadedNodeFeed(channel, node, reply) {
-  var replydoc = xml.parseXmlString(reply.toString());
-  var threads = replydoc.find('/iq/p:pubsub/p:thread', {
-    p: pubsub.ns
-  });
+  var threads = pubsub.extractThreads(reply);
 
   var feed = [];
 
   threads.forEach(function(thread) {
-    var entries = thread.find('p:item/a:entry', {
-      p: pubsub.ns, a: atom.ns
-    });
+    var entries = thread.getChildrenByFilter(function (c) {
+      return typeof c != 'string' && 
+        c.getName() == 'entry' && c.getNS() == atom.ns; 
+    }, true);
+    
     var items = [];
     entries.forEach(function(entry) {
       atom.normalizeEntry(entry);

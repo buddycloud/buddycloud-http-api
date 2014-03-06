@@ -16,22 +16,20 @@
 
 var pubsub = require('./pubsub');
 var atom = require('./atom');
-var xml = require('libxmljs');
+var ltx = require('ltx');
 
 var rsmNs = 'http://jabber.org/protocol/rsm';
 var CHANNEL_REGEX = '\\b([\\w\\d][\\w\\d-_%&<>.]+@[\\w\\d-]{3,}\\.[\\w\\d-]{2,}(?:\\.[\\w]{2,6})?)\\b';
 
 exports.toJSON = function(reply, json, user, summary) {
-  var items = xml.parseXmlString(reply.toString()).find('/iq/p:pubsub/p:items', {
-    p: pubsub.ns
-  });
+  var items = pubsub.extractItems(reply.toString());
   items.forEach(function(e) {
-      var node = e.attr('node').value();
-      entries = e.find('p:item/a:entry', {
-        p: pubsub.ns,
-        a: atom.ns
-      });
-
+      var node = e.attr('node');
+      entries = e.getChildrenByFilter(function (c) {
+        return typeof c != 'string' && 
+          c.getName() == 'entry' && c.getNS() == atom.ns; 
+      }, true);
+      
       if (summary) {
         if (!json[node]) {
           json[node] = {mentionsCount: 0, totalCount: 0};
@@ -103,22 +101,28 @@ function parseAndUpdateSummary(entries, user, summary) {
 }
 
 exports.rsmToJSON = function(reply) {
-  var rsmSet = xml.parseXmlString(reply.toString()).get('//set:set', {set: rsmNs});
+  var replyDoc = ltx.parse(reply.toString());
+  var rsmFilter = replyDoc.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'set' && c.getNS() == rsmNs; 
+  }, true);
+  
   var rsm = {};
-
-  if (!rsmSet) {
+  if (rsmFilter.length == 0) {
     return rsm;
   }
+  
+  var rsmSet = rsmFilter[0];
 
-  var firstNode = rsmSet.get('set:first', {set: rsmNs});
+  var firstNode = rsmSet.getChild('first');
   if (firstNode) {
     rsm['first'] = firstNode.text();
   }
-  var lastNode = rsmSet.get('set:last', {set: rsmNs});
+  var lastNode = rsmSet.getChild('last');
   if (lastNode) {
     rsm['last'] = lastNode.text();
   }
-  var count = rsmSet.get('set:count', {set: rsmNs});
+  var count = rsmSet.getChild('count');
   if (count) {
     rsm['count'] = count.text();
   }

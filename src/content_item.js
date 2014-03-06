@@ -18,7 +18,6 @@
 // Handles requests concerning single node items
 // (/<channel>/content/<node>/<item>).
 
-var xml = require('libxmljs');
 var api = require('./util/api');
 var atom = require('./util/atom');
 var pubsub = require('./util/pubsub');
@@ -84,10 +83,10 @@ function requestNodeItem(req, res, channel, node, item, callback) {
 }
 
 function extractEntry(reply) {
-  var replyDoc = xml.parseXmlString(reply.toString());
-  return replyDoc.get('/iq/p:pubsub/p:items/p:item/a:entry', {
-    p: pubsub.ns,
-    a: atom.ns
-  });
+  var entries = pubsub.extractEntries(reply);
+  if (entries.length == 0) {
+    return null;
+  }
+  return entries[0];
 }
 
