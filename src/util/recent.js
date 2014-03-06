@@ -22,7 +22,11 @@ var rsmNs = 'http://jabber.org/protocol/rsm';
 var CHANNEL_REGEX = '\\b([\\w\\d][\\w\\d-_%&<>.]+@[\\w\\d-]{3,}\\.[\\w\\d-]{2,}(?:\\.[\\w]{2,6})?)\\b';
 
 exports.toJSON = function(reply, json, user, summary) {
-  var items = pubsub.extractItems(reply.toString());
+  var replyDoc = ltx.parse(reply.toString());
+  var items = replyDoc.getChildrenByFilter(function (c) {
+    return typeof c != 'string' && 
+      c.getName() == 'items' && c.getNS() == pubsub.ns; 
+  }, true);
   items.forEach(function(e) {
       var node = e.attr('node');
       entries = e.getChildrenByFilter(function (c) {
