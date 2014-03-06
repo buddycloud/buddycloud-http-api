@@ -299,8 +299,8 @@ function generateThreadedNodeFeed(channel, node, reply) {
       items.push(atom.toJSON(entry));
     });
     feed.push({
-      'id': thread.attr('id').value(),
-      'updated': thread.attr('updated').value(),
+      'id': thread.attr('id'),
+      'updated': thread.attr('updated'),
       'items': items})
   });
 
