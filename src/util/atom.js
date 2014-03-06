@@ -58,7 +58,7 @@ function extractTeaser(content) {
 
 function ensureEntryHasAuthorName(entry) {
   var author = exports.get(entry, 'author');
-  var authorName = exports.get(author, 'name');
+  var authorName = author ? author.getChild('name') : null;
   if (author && !authorName) {
     var name;
     if (author.text().indexOf('acct:') === 0) {
@@ -101,7 +101,7 @@ function entryToJSON(entry) {
   var sourceEl = exports.get(entry, 'source');
   var sourceId = sourceEl ? sourceEl.getChild('id') : sourceEl;
   var author = exports.get(entry, 'author');
-  var authorName = author ? exports.get(author, 'name') : author;
+  var authorName = author ? author.getChild('name') : author;
   var published = exports.get(entry, 'published');
   var updated = exports.get(entry, 'updated');
   var content = exports.get(entry, 'content');
