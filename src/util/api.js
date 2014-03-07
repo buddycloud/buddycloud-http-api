@@ -269,11 +269,11 @@ exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
 
   var nodeId = pubsub.channelNodeId(channel, node);
   var queryURI = pubsub.queryURI(from, 'retrieve', nodeId);
-  feed.catch('id').t(queryURI);
+  feed.c('id').t(queryURI);
 
   entries.forEach(function(entry) {
     atom.normalizeEntry(entry);
-    feed.root().addChild(entry.remove());
+    feed.cnode(entry.clone());
   });
   return feed;
 }
