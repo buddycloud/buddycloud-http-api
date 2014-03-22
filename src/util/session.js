@@ -114,8 +114,7 @@ function createSession(req, res, next) {
       if (error === 'XMPP authentication failure') {
         api.sendUnauthorized(wr['res']);
       } else {
-        var next = wr['next'];
-        next(error);
+        wr['res'].send(503);
       }
     }
   });
