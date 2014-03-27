@@ -28,6 +28,7 @@ var Client = require('node-xmpp-client')
   , atom = require('./atom')
   , grip = require('./grip')
   , ltx = require('ltx')
+  , crypto = require('crypto')
 
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
@@ -77,6 +78,39 @@ exports.expire = function(req) {
   }
 };
 
+function sendRegisterIq(client, registerIq, to, callback) {
+  var iqId = crypto.randomBytes(16).toString('hex');
+  var iq = registerIq.root();
+  iq.attr('from', client.jid.toString());
+  iq.attr('to', to);
+  iq.attr('id', iqId);
+
+  console.log("OUT xmpp: " + iq);
+  client.on('stanza', function(stanza) {
+    if (callback && stanza.attrs.id == iqId) {
+      callback();
+    }
+  });
+
+  client.send(iq);
+}
+
+function getChannelServerRegIQ() {
+  var queryNode = new ltx.Element('iq', {type: 'set' }).c('query', { xmlns: 'jabber:iq:register' })
+  return queryNode.root();
+}
+
+function registerOnChannelServer(client, callback) {
+  if (!config.createUserOnSessionCreation) {
+    callback();
+    return;
+  }
+  var signupIq = getChannelServerRegIQ();
+  sendRegisterIq(client, signupIq, config.channelDomain, function() {
+    callback();
+  });
+}
+
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
   var client = new Client(options);
@@ -91,14 +125,16 @@ function createSession(req, res, next) {
     session.ready = true;
     session._sendGeneralPresence();
     session.sendPresenceOnline();
-    console.log("Session created for jid: " + session.jid);
-
-    // Handle waiting requests
-    for (var i = 0; i < session._waitingReqs.length; i++) {
-      var wr = session._waitingReqs[i];
-      var next = wr['next'];
-      next();
-    }
+    registerOnChannelServer(client, function() {
+	  console.log("Session created for jid: " + session.jid);
+      // Handle waiting requests
+	  for (var i = 0; i < session._waitingReqs.length; i++) {
+	    var wr = session._waitingReqs[i];
+	    var next = wr['next'];
+	    next();
+	  }
+    });
+    
   });
 
   client.on('error', function(error) {
