@@ -114,7 +114,7 @@ function registerOnChannelServer(client, callback) {
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
   var client = new Client(options);
-  console.log("Creating connection for jid: " + options.jid);
+  console.log("Creating XMPP connection for jid: " + options.jid);
 
   var session = new Session(req.credentials, client);
 
@@ -122,6 +122,8 @@ function createSession(req, res, next) {
   provideSession(session, req, res, next);
 
   client.on('online', function() {
+    console.log("XMPP connection created for jid: " + session.jid);
+    console.log("Creating session for jid: " + session.jid);
     session.ready = true;
     session._sendGeneralPresence();
     session.sendPresenceOnline();
