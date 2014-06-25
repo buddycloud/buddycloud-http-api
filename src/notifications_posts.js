@@ -38,20 +38,21 @@ function notify(req, res) {
   sendResponse(req, res, entries, lastTimestamp);
 }
 
-function pause(req, res) {
+function pause(req, res, lastTimestamp) {
   var ctx = {
     req : req,
     res : res
   };
 
-  // TODO: get connectionTimeout from config file
-  var connectionTimeout = 60;
-  req.connection.setTimeout(connectionTimeout * 1000);
-  req.connection.on('timeout', function() {
+  var connectionTimeout = config.pollTimeout ? config.pollTimeout : 55;
+
+  setTimeout(function() {
     ctx.req = null;
     ctx.res = null;
-    console.log('Request from ' + ctx.req.session.getFullJID() + ' timeout');
-  });
+    req.resume()
+    sendResponse(req, res, [], lastTimestamp);
+    console.log('Request from ' + req.session.getFullJID() + ' timeout');
+  }, connectionTimeout * 1000);
 
   // Pause request
   req.pause();
@@ -78,26 +79,42 @@ function nextItems(itemCache, since, lastTimestamp) {
 }
 
 function sendResponse(req, res, entries, lastTimestamp) {
-  var sourceEl = entries[0].getChild('source');
-  var idEl = sourceEl.getChild('id');
+  if (entries.length > 0) {
+    var sourceEl = entries[0].getChild('source');
+    var idEl = sourceEl.getChild('id');
   
-  // /user/:channel/:node
-  var nodeIdSplit = idEl.text().split('/');
-  var channel = nodeIdSplit[2];
-  var node = nodeIdSplit[3];
+    // /user/:channel/:node
+    var nodeIdSplit = idEl.text().split('/');
+    var channel = nodeIdSplit[2];
+    var node = nodeIdSplit[3];
 
-  // Send response
-  var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, entries);
-  api.sendAtomResponse(req, res, feed.root(), 200, lastTimestamp + '');
+    // Send response
+    var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, entries);
+    api.sendAtomResponse(req, res, feed.root(), 200, '' + lastTimestamp);
+  } else {
+    // send empty response
+    var response = {};
+    response['last'] = '' + lastTimestamp;
+    response['items'] = [];
+    res.send(response);
+  }
 }
 
 function listenForNextItem(req, res, next) {
   // Repeated calls are okay, as it is only ever sent once. Note though,
   // that we never send offline presence to undo any of this
   req.session.sendPresenceOnline();
+
+  // make sure since is a non-negative int
   var since = req.query.since;
-  
-  if (since) {
+  if (since != null) {
+    since = parseInt(since);
+    if (isNaN(since) || since < 0)
+      since = null;
+  }
+
+  if (since != null) {
+    var lastTimestamp = null;
     var cacheSize = req.session.itemCache.length;
     if (cacheSize > 0) {
       var lastTimestamp = req.session.itemCache[cacheSize - 1].timestamp;
@@ -107,24 +124,14 @@ function listenForNextItem(req, res, next) {
         sendResponse(req, res, entries, lastTimestamp);
         return;
       }
+    } else {
+      lastTimestamp = new Date().getTime();
     }
-    
+
     // Pause request
-    pause(req, res);
+    pause(req, res, lastTimestamp);
   } else {
-    sendUpdateResponse(req, res);
+    // immediately send response with current time
+    sendResponse(req, res, [], new Date().getTime());
   }
-}
-
-function sendUpdateResponse(req, res) {
-  response = {};
-
-  var itemCache = req.session.itemCache;
-  var lastTimestamp = itemCache.length > 0 ?
-    itemCache[itemCache.length - 1].timestamp : new Date().getTime();
-
-  response['last'] = lastTimestamp;
-  response['items'] = [];
-
-  res.send(response);
 }
