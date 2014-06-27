@@ -22,6 +22,7 @@ var atom = require('./util/atom');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
+var grip = require('./util/grip');
 
 exports.setup = function(app) {
   app.get('/notifications/posts',
@@ -34,7 +35,7 @@ function notify(req, res) {
   req.resume();
   var itemCache = req.session.itemCache;
   var lastTimestamp = itemCache[itemCache.length - 1].timestamp;
-  var entries = nextItems(itemCache, req.query.since, lastTimestamp);
+  var entries = nextItems(itemCache, req.query.since);
   sendResponse(req, res, entries, lastTimestamp);
 }
 
@@ -62,7 +63,7 @@ function pause(req, res, lastTimestamp) {
   req.session.holdRequest(ctx, notify);
 }
 
-function nextItems(itemCache, since, lastTimestamp) {
+function nextItems(itemCache, since) {
   var entries = [];
   var cacheSize = itemCache.length;
 
@@ -109,27 +110,35 @@ function listenForNextItem(req, res, next) {
   var since = req.query.since;
   if (since != null) {
     since = parseInt(since);
-    if (isNaN(since) || since < 0)
+    if (isNaN(since) || since < 0) {
       since = null;
+    }
   }
 
   if (since != null) {
-    var lastTimestamp = null;
+    var lastItem = null;
     var cacheSize = req.session.itemCache.length;
     if (cacheSize > 0) {
-      var lastTimestamp = req.session.itemCache[cacheSize - 1].timestamp;
+      var lastItem = req.session.itemCache[cacheSize - 1];
 
-      if (since < lastTimestamp) {
-        var entries = nextItems(req.session.itemCache, since, lastTimestamp);
-        sendResponse(req, res, entries, lastTimestamp);
+      if (since < lastItem.timestamp) {
+        var entries = nextItems(req.session.itemCache, since);
+        sendResponse(req, res, entries, lastItem.timestamp);
         return;
       }
-    } else {
-      lastTimestamp = new Date().getTime();
     }
 
-    // Pause request
-    pause(req, res, lastTimestamp);
+    var lastTimestamp = (lastItem != null ? lastItem.timestamp : since);
+
+    if (req.gripProxied) {
+      // respond with instructions to the proxy
+      var gripChannel = grip.encodeChannel('np-' + req.session.jid);
+      var prevId = (lastItem != null ? lastItem.timestamp : null);
+      api.sendHoldResponse(req, res, gripChannel, prevId, lastTimestamp);
+    } else {
+      // Pause request
+      pause(req, res, lastTimestamp);
+    }
   } else {
     // immediately send response with current time
     sendResponse(req, res, [], new Date().getTime());

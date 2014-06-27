@@ -153,16 +153,17 @@ exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
           'Authorization, Content-Type, X-Requested-With, X-Session-Id';
   headers['Access-Control-Expose-Headers'] = 'Location, X-Session-Id';
 
-  headers['Content-Type'] = 'application/atom+xml';
+  // NOTE: forcing this code to use JSON always, as notifications_posts only supports JSON
+  /*headers['Content-Type'] = 'application/atom+xml';
   var response = doc.toString();
   var channel = channelBase + '-atom';
   console.log('grip: publishing on channel ' + channel);
-  grip.publish(channel, id, prevId, headers, response);
+  grip.publish(channel, id, prevId, headers, response);*/
 
   headers['Content-Type'] = 'application/json';
   if (id != null) {
     response = {};
-    response['last_cursor'] = id;
+    response['last'] = id;
     response['items'] = atom.toJSON(doc);
     response = JSON.stringify(response);
   } else {
@@ -174,7 +175,7 @@ exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
 };
 
 // suffixes -json or -atom to the channel name
-exports.sendHoldResponse = function(req, res, channelBase, prevId) {
+exports.sendHoldResponse = function(req, res, channelBase, prevId, lastTimestamp) {
   var origin = req.header('Origin', '*');
   if (origin == 'null') {
     origin = '*';
@@ -190,21 +191,22 @@ exports.sendHoldResponse = function(req, res, channelBase, prevId) {
   var channel;
   var contentType;
   var body;
-  if (req.accepts('application/atom+xml')) {
+  // NOTE: forcing this code to use JSON always, as notifications_posts only supports JSON
+  /*if (req.accepts('application/atom+xml')) {
     channel = channelBase + '-atom';
     contentType = 'application/atom+xml';
     body = '<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom"/>\n';
-  } else if (req.accepts('application/json')) {
+  } else if (req.accepts('application/json')) {*/
     channel = channelBase + '-json';
     contentType = 'application/json';
     body = {};
-    body['last_cursor'] = prevId;
+    body['last'] = '' + lastTimestamp;
     body['items'] = [];
-    body = JSON.stringify(body);
-  } else {
+    body = JSON.stringify(body, null, 2);
+  /*} else {
     res.send(406);
     return;
-  }
+  }*/
 
   var channelObj = new griplib.Channel(channel, prevId);
   headers['Content-Type'] = contentType;

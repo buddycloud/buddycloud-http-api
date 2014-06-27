@@ -254,7 +254,21 @@ Session.prototype._setupStanzaListener = function() {
     console.log("IN xmpp: " + stanza);
     if (stanza.name === 'message') {
       if (pubsub.isPubSubItemMessage(stanza)) {
+        var lastTimestamp = null;
+        if (self.itemCache.length > 0) {
+          lastTimestamp = self.itemCache[self.itemCache.length - 1].timestamp;
+        }
+
         var item = pubsub.extractItem(stanza);
+
+        var sourceEl = item.getChild('source');
+        var idEl = sourceEl.getChild('id');
+
+        // /user/:channel/:node
+        var nodeIdSplit = idEl.text().split('/');
+        var channel = nodeIdSplit[2];
+        var node = nodeIdSplit[3];
+
         var timestamp = new Date().getTime();
         self.itemCache.push({'timestamp': timestamp, 'item': item});
 
@@ -262,6 +276,11 @@ Session.prototype._setupStanzaListener = function() {
         self._expireOldCache(timestamp);
 
         self._handlePendingRequests();
+
+        // GRIP publish if possible
+        var gripChannel = grip.encodeChannel('np-' + self.jid);
+        var feed = api.generateNodeFeedFromEntries(channel, node, config.channelDomain, [item]);
+        api.publishAtomResponse(self.origin, gripChannel, feed.root(), '' + item.timestamp, '' + lastTimestamp);
       }
     }
     if (stanza.attrs.id) {
