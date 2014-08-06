@@ -7,6 +7,10 @@ Build status of master branch
 
 [![Build Status](https://travis-ci.org/buddycloud/buddycloud-http-api.svg?branch=master)](https://travis-ci.org/buddycloud/buddycloud-http-api)
 
+Build status of the develop branch
+
+[![Build Status](https://travis-ci.org/buddycloud/buddycloud-http-api.svg?branch=develop)](https://travis-ci.org/buddycloud/buddycloud-http-api)
+
 ## Install
 
 Install documentation is at https://buddycloud.org/wiki/Install
