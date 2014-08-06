@@ -3,3 +3,4 @@ config.js
 .project
 .settings
 .DS_Store
+public/scripts/primus.js
