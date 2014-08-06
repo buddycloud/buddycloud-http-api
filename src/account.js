@@ -78,7 +78,7 @@ function registerAccount(req, res) {
   });
 
   client.on('error', function(err) {
-    console.log(err);
+    console.log('Client error', err);
     res.send(503);
   });
 }
