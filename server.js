@@ -53,10 +53,8 @@ function setupConfig(app) {
 }
 
 function crossOriginAllower(req, res, next) {
-  var origin = req.header('Origin', '*');
-  if (origin == 'null') {
-    origin = '*';
-  }
+    
+  var origin = req.headers['origin'] || '*';
 
   res.header('Access-Control-Allow-Origin', origin);
   res.header('Access-Control-Allow-Credentials', 'true');
