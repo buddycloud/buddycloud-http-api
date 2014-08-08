@@ -26,6 +26,7 @@ var config = require('./config');
 var pubsub = require('./pubsub');
 var dns = require('./dns');
 var grip = require('./grip');
+var logger = require('./log');
 
 /**
  * Sends a "401 Unauthorized" response with the correct "WWW-Authenticate"
@@ -156,7 +157,7 @@ exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
   headers['Content-Type'] = 'application/atom+xml';
   var response = doc.toString();
   var channel = channelBase + '-atom';
-  console.log('grip: publishing on channel ' + channel);
+  logger.debug('grip: publishing on channel ' + channel);
   grip.publish(channel, id, prevId, headers, response);
 
   headers['Content-Type'] = 'application/json';
@@ -169,7 +170,7 @@ exports.publishAtomResponse = function(origin, channelBase, doc, id, prevId) {
     response = JSON.stringify(atom.toJSON(doc));
   }
   channel = channelBase + '-json';
-  console.log('grip: publishing on channel ' + channel);
+  logger.debug('grip: publishing on channel ' + channel);
   grip.publish(channel, id, prevId, headers, response);
 };
 
@@ -211,7 +212,7 @@ exports.sendHoldResponse = function(req, res, channelBase, prevId) {
   var response = new griplib.Response({'headers': headers, 'body': body});
   var instruct = griplib.createHoldResponse(channelObj, response);
 
-  console.log('grip: sending hold for channel ' + channel);
+  logger.debug('grip: sending hold for channel ' + channel);
   res.set('Content-Type', 'application/grip-instruct');
   res.send(instruct);
 };

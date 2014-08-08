@@ -29,11 +29,12 @@ var Client = require('node-xmpp-client')
   , grip = require('./grip')
   , ltx = require('ltx')
   , crypto = require('crypto')
+  , logger = require('./log')
 
 var anonymousSession;
 var sessionCache = new cache.Cache(config.sessionExpirationTime);
 sessionCache.onexpired = function(_, session) {
-  console.log("Session expired. Jid: " + session.jid);
+  logger.debug("Session expired. Jid: " + session.jid);
   session.end();
 };
 
@@ -85,7 +86,7 @@ function sendRegisterIq(client, registerIq, to, callback) {
   iq.attr('to', to);
   iq.attr('id', iqId);
 
-  console.log("OUT xmpp: " + iq);
+  logger.debug("OUT xmpp: " + iq);
   client.on('stanza', function(stanza) {
     if (callback && stanza.attrs.id == iqId) {
       callback();
@@ -114,7 +115,7 @@ function registerOnChannelServer(client, callback) {
 function createSession(req, res, next) {
   var options = xmppConnectionOptions(req);
   var client = new Client(options);
-  console.log("Creating XMPP connection for jid: " + options.jid);
+  logger.debug("Creating XMPP connection for jid: " + options.jid);
 
   var session = new Session(req.credentials, client);
 
@@ -122,13 +123,13 @@ function createSession(req, res, next) {
   provideSession(session, req, res, next);
 
   client.on('online', function() {
-    console.log("XMPP connection created for jid: " + session.jid);
-    console.log("Creating session for jid: " + session.jid);
+    logger.debug("XMPP connection created for jid: " + session.jid);
+    logger.debug("Creating session for jid: " + session.jid);
     session.ready = true;
     session._sendGeneralPresence();
     session.sendPresenceOnline();
     registerOnChannelServer(client, function() {
-	  console.log("Session created for jid: " + session.jid);
+	  logger.debug("Session created for jid: " + session.jid);
       // Handle waiting requests
 	  for (var i = 0; i < session._waitingReqs.length; i++) {
 	    var wr = session._waitingReqs[i];
@@ -143,7 +144,7 @@ function createSession(req, res, next) {
     // FIXME: Checking the error type bassed on the error message
     // is fragile, but this is the only information that node-xmpp
     // gives us.
-    console.error('Session error: ' + error);
+    logger.error('Session error: ' + error);
     sessionCache.remove(req.credentials);
 
     // Handle waiting requests
@@ -251,7 +252,7 @@ Session.prototype._handlePendingRequests = function() {
 Session.prototype._setupStanzaListener = function() {
   var self = this;
   this._connection.on('stanza', function(stanza) {
-    console.log("IN xmpp: " + stanza);
+    logger.debug("IN xmpp: " + stanza);
     if (stanza.name === 'message') {
       if (pubsub.isPubSubItemMessage(stanza)) {
         var item = pubsub.extractItem(stanza);
@@ -345,7 +346,7 @@ Session.prototype.sendQuery = function(iq, onreply, to) {
   iq.attr('from', this._connection.jid.toString());
   iq.attr('to', to);
   iq.attr('id', queryId);
-  console.log("OUT xmpp: " + iq);
+  logger.debug("OUT xmpp: " + iq);
   this._connection.send(iq);
 };
 
@@ -367,7 +368,7 @@ Session.prototype.replyToConfirm = function(message) {
   var from = message.attrs.from;
   message.attrs.to = from;
   message.attrs.from = to;
-  console.log("OUT xmpp: " + message);
+  logger.debug("OUT xmpp: " + message);
   this._connection.send(message);
 };
 
@@ -417,7 +418,7 @@ Session.prototype.subscribe = function(nodeId, onsub, onerror) {
       from: this.jid,
       to: pubjid,
     });
-    console.log("OUT xmpp: " + pres);
+    logger.debug("OUT xmpp: " + pres);
     this._connection.send(pres);
   } else {
     ++refs;

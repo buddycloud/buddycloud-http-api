@@ -20,6 +20,7 @@
 var pubcontrol = require('pubcontrol')
   , griplib = require('grip')
   , config = require('./config')
+  , logger = require('./log')
 
 // global PubControl list
 var pubs = null;
@@ -92,7 +93,7 @@ exports.publish = function(channel, id, prevId, rheaders, rbody, sbody) {
       var gripProxy = config.gripProxies[i];
       pubs[i].publish(channel, item, function(success, message) {
         if (!success) {
-          console.log("grip: failed to publish to " + gripProxy.controlUri + ", reason: " + message);
+          logger.debug("grip: failed to publish to " + gripProxy.controlUri + ", reason: " + message);
         }
       });
     }());
