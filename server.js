@@ -23,6 +23,7 @@ var config = require('./src/util/config');
 var session = require('./src/util/session');
 var grip = require('./src/util/grip');
 var SegfaultHandler = require('segfault-handler');
+var logger = require('./src/util/log');
 
 var Emitter    = require('primus-emitter')
   , Primus     = require('primus')
@@ -34,10 +35,10 @@ SegfaultHandler.registerHandler();
 
 function setupConfig(app) {
   app.configure(function() {
-    app.use(express.logger());
+    app.use(logger);
     app.use(function(req, res, next) {
         if (config.debug) 
-          console.log("Incoming request: " + req.method + " " + req.url)
+          logger.debug("Incoming request: " + req.method + " " + req.url)
         next()
     })
     app.use(express.static(__dirname + '/public'))
@@ -100,8 +101,8 @@ function setupResourceHandlers(app) {
 
 function printInitialMessage() {
   var profile = config.profile;
-  console.log('Server started with configuration profile "' + profile + '"');
-  console.log('Listening on port ' + config.port);
+  logger.debug('Server started with configuration profile "' + profile + '"');
+  logger.debug('Listening on port ' + config.port);
 }
 
 function createServer() {
@@ -111,7 +112,7 @@ function createServer() {
       key: config.httpsKey
     };
     if (!options.cert || !options.key) {
-      console.error('HTTPS enabled, but no certificate/key specified');
+      logger.error('HTTPS enabled, but no certificate/key specified');
       process.exit(1);
     }
     return express(options);
@@ -142,19 +143,19 @@ primus.use('emitter', Emitter)
 primus.save(__dirname + '/public/scripts/primus.js')
 
 primus.on('connection', function(socket) {
-    console.log('Websocket connection made')
+    logger.debug('Websocket connection made')
     var xmppFtw = new xmpp.Xmpp(socket)
     xmppFtw.addListener(new Buddycloud())
     socket.xmppFtw = xmppFtw
 })
 
 primus.on('disconnection', function(socket) {
-    console.log('Client disconnected, logging them out')
+    logger.debug('Client disconnected, logging them out')
     socket.xmppFtw.logout()
 })
 
 process.on('uncaughtException', function(error) {
     // Try and prevent issues crashing the whole system 
     // for other users too
-    console.error(error)
+    logger.error(error)
 })

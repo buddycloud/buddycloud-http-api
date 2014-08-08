@@ -27,7 +27,8 @@
     "primus": "^2.3.0",
     "xmpp-ftw": "^1.14.4",
     "xmpp-ftw-buddycloud": "^1.12.1",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "winston": "0.7.x"
   },
   "devDependencies": {
     "should": "~3.1.2",
