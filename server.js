@@ -28,24 +28,26 @@ var logger = require('./src/util/log');
 var Emitter    = require('primus-emitter')
   , Primus     = require('primus')
   , xmpp       = require('xmpp-ftw')
-  , Buddycloud = require('xmpp-ftw-buddycloud');
+  , Buddycloud = require('xmpp-ftw-buddycloud')
+  , expressWinston = require('express-winston');
 
 // Watch for segfaults
 SegfaultHandler.registerHandler();
 
 function setupConfig(app) {
+  transport = logger.transports[Object.keys(logger.transports)[0]];
   app.configure(function() {
-    app.use(logger);
-    app.use(function(req, res, next) {
-        if (config.debug) 
-          logger.debug("Incoming request: " + req.method + " " + req.url)
-        next()
-    })
     app.use(express.static(__dirname + '/public'))
     app.use(auth.parser);
     app.use(grip.parser);
     app.use(crossOriginAllower);
+    app.use(expressWinston.logger({
+      transports: [transport]
+    }));
     app.use(app.router);
+    app.use(expressWinston.errorLogger({
+      transports: [transport]
+    }));
     app.use(express.errorHandler({
       dumpExceptions: config.debug || false,
       showStack: config.debug || false

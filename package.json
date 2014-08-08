@@ -28,7 +28,8 @@
     "xmpp-ftw": "^1.14.4",
     "xmpp-ftw-buddycloud": "^1.12.1",
     "socket.io": "~0.9.16",
-    "winston": "0.7.x"
+    "winston": "0.7.x",
+    "express-winston": "0.2.x"
   },
   "devDependencies": {
     "should": "~3.1.2",
