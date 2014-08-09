@@ -20,6 +20,7 @@
 var child_process = require('child_process');
 var fork = child_process.fork;
 var spawn = child_process.spawn;
+var net = require('net');
 var http = require('http');
 var config = require('../../src/util/config');
 
@@ -31,19 +32,10 @@ var mockserver;
  */
 exports.startHttpServer = function(callback) {
   httpserver = spawn(process.execPath, ['server.js']);
-
-  // Wait until server is ready (and begins printing to stdout)
-  httpserver.stdout.on('data', function() {
-    if (callback) {
-      callback();
-      callback = null;
-    }
-  });
-
-  // Echo the server's error output
-  httpserver.stderr.on('data', function(data) {
-    console.error(data.toString());
-  });
+  setTimeout(function() {
+    callback();
+    callback = null;
+  }, 3000);
 };
 
 /**
