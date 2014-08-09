@@ -20,7 +20,6 @@
 var child_process = require('child_process');
 var fork = child_process.fork;
 var spawn = child_process.spawn;
-var net = require('net');
 var http = require('http');
 var config = require('../../src/util/config');
 
