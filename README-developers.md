@@ -72,33 +72,34 @@ As an example, the following snippet tells the server to listen on port
     };
 
     exports.testing = {
-      post: 3001,
+      port: 3001,
       …
     }
 
 The following configuration options are supported:
 
 - **debug** (Optional): If true, the API server includes exception traces in
-  "Internal Server Error" responses.
-- **port** (Required): The port on which the server listens for HTTP requests.
+  "Internal Server Error" responses
+- **port** (Required): The port on which the server listens for HTTP requests
 - **xmppDomain** (Required): The XMPP domain to which the server belongs. This
-  defines the XMPP server used for authentication and presence.
+  defines the XMPP server used for authentication and presence
 - **xmppHost** (Optional): The hostname of the proxied XMPP server. This is
   only needed if the hostname and port cannot be resolved from the *xmppDomain*
-  via DNS service discovery.
-- **xmppPort** (Optional): The proxied XMPP server's port. See above.
+  via DNS service discovery
+- **xmppPort** (Optional): The proxied XMPP server's port. See above
 - **xmppAnonymousDomain** (Optional): The XMPP domain used for anonymous
-  sessions. If omitted, *xmppDomain* is assumed to handle this case.
+  sessions. If omitted, *xmppDomain* is assumed to handle this case
 - **xmppAnonymousHost** (Optional): Like *xmppHost*, but for
-  *xmppAnonymousDomain*.
+  *xmppAnonymousDomain*
 - **xmppAnonymousPort** (Optional): Like *xmppPort*, but for
-  *xmppAnonymousDomain*.
-- **xmppDomain** (Required): The channel server's component domain.
+  *xmppAnonymousDomain*
+- **xmppDomain** (Required): The channel server's component domain
 - **requestExpirationTime** (Optional): Number of seconds to wait for
-  the response to an XMPP request. The default is 60.
+  the response to an XMPP request. The default is 60
 - **sessionExpirationTime** (Optional): Number of seconds before a proxied
-  XMPP session expires. By default, this is 600 (10 minutes).
+  XMPP session expires. By default, this is 600 (10 minutes)
 - **https** (Optional): If true, the server communicates exclusively via
-  HTTPS. *httpsCert* and *httpsKey* must be specified in this case.
-- **httpsCert** (Optional): The SSL certificate to use if **https** is defined.
-- **httpsKey** (Optional): The SSL private key to use if **https** is defined.
+  HTTPS. *httpsCert* and *httpsKey* must be specified in this case
+- **httpsCert** (Optional): The SSL certificate to use if **https** is defined
+- **httpsKey** (Optional): The SSL private key to use if **https** is defined
+- **mediaProxyPrefix** (Optional, default __media_proxy__): The media proxy URL prefix. All URLs beyond this point are proxied to the media server without modification
