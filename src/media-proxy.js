@@ -24,22 +24,22 @@ var url = require('url');
 var config = require('./util/config');
 var api = require('./util/api');
 
-var PROXY_PREFIX = config.mediaProxyPrefix;
+var PROXY_PREFIX = '/' + config.mediaProxyPrefix + '/';
 
 /**
  * Registers resource URL handlers.
  */
 exports.setup = function(app) {
-  app.post('/media_proxy/:channel',
+  app.post(PROXY_PREFIX + ':channel',
            api.bodyReader,
            proxyToMediaServer);
-  app.get('/media_proxy/:channel/:id',
+  app.get(PROXY_PREFIX + ':channel/:id',
            proxyToMediaServer);
-  app.get('/media_proxy/:channel/:id/metadata',
+  app.get(PROXY_PREFIX + ':channel/:id/metadata',
            proxyToMediaServer);
-  app.delete('/media_proxy/:channel/:id',
+  app.delete(PROXY_PREFIX + ':channel/:id',
            proxyToMediaServer);
-  app.put('/media_proxy/:channel/:id',
+  app.put(PROXY_PREFIX + ':channel/:id',
            api.bodyReader,
            proxyToMediaServer);
 };
