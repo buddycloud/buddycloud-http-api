@@ -34,6 +34,9 @@ function loadProfile(name) {
   for (var key in profile) {
     exports[key] = profile[key];
   }
+  if (!exports.mediaProxyPrefix) {
+      exports.mediaProxyPrefix = '/media_proxy';
+  }
 }
 
 loadProfile('_');

@@ -79,7 +79,7 @@ function setupResourceHandlers(app) {
   var handlers = [
     require('./src/account'),
     require('./src/password'),
-    require('./src/media_proxy'),
+    require('./src/media-proxy'),
     require('./src/content_feed'),
     require('./src/content_item'),
     require('./src/replies'),
