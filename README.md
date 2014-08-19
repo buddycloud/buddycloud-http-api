@@ -15,6 +15,13 @@ Build status of the develop branch
 
 Install documentation is at https://buddycloud.org/wiki/Install
 
+## Realtime connection
+
+A websocket (using the [xmpp-ftw](https://xmpp-ftw.jit.su) interface can be found at __$server/scripts/buddycloud.js__. This exposes a global object called *Buddycloud* 
+which you can instantiate to give you a websocket connection.
+
+Please see [buddycloud.com](http://www.buddycloud.com) for more information on using this connection.
+
 ## Issues
 
 Please log any issues at https://github.com/buddycloud/buddycloud-http-api/issues
