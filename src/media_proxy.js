@@ -35,6 +35,10 @@ exports.setup = function(app) {
            proxyToMediaServer);
   app.get('/media_proxy/:channel/:id',
            proxyToMediaServer);
+  app.get('/media_proxy/:channel/:id/metadata',
+           proxyToMediaServer);
+  app.delete('/media_proxy/:channel/:id',
+           proxyToMediaServer);
   app.put('/media_proxy/:channel/:id',
            api.bodyReader,
            proxyToMediaServer);
