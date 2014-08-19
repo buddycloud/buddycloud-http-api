@@ -24,7 +24,7 @@ var url = require('url');
 var config = require('./util/config');
 var api = require('./util/api');
 
-var PROXY_PREFIX = '/media_proxy';
+var PROXY_PREFIX = config.mediaProxyPrefix;
 
 /**
  * Registers resource URL handlers.
