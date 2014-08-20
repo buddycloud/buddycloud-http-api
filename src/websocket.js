@@ -12,7 +12,8 @@ module.exports = function(config, server, logger) {
             'htmlfile',
             'xhr-polling',
             'jsonp-polling'
-        ]
+        ],
+        global: 'Buddycloud'
     };
 
     var primus = new Primus(server, options);
