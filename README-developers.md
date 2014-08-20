@@ -103,3 +103,4 @@ The following configuration options are supported:
 - **httpsCert** (Optional): The SSL certificate to use if **https** is defined
 - **httpsKey** (Optional): The SSL private key to use if **https** is defined
 - **mediaProxyPrefix** (Optional, default __media_proxy__): The media proxy URL prefix. All URLs beyond this point are proxied to the media server without modification
+- **disableWebsocket**: Do not deploy the realtime/websocket endpoint
