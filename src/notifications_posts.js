@@ -51,7 +51,7 @@ function pause(req, res) {
   req.connection.on('timeout', function() {
     ctx.req = null;
     ctx.res = null;
-    logger.debug('Request from ' + ctx.req.session.getFullJID() + ' timeout');
+    logger.debug('Request from ' + req.session.getFullJID() + ' timeout');
   });
 
   // Pause request
