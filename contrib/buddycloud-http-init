@@ -30,7 +30,8 @@ SCRIPTNAME=/etc/init.d/$NAME
 LOGDIR=/var/log/buddycloud-http-api
 LOGFILE="$LOGDIR/buddycloud-http-api.log"
 
-# Exit if the package is not installed
+# Check if the node is installed, retry with nodejs, then give up
+[ -x "$DAEMON" ] || DAEMON=/usr/bin/nodejs
 [ -x "$DAEMON" ] || exit 1
 
 # Read configuration variable file if it is present
