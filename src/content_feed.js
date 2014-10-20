@@ -18,7 +18,6 @@
 // Handles requests related to channel node feeds
 // (/<channel>/content/<node>).
 
-var iso8601 = require('iso8601');
 var ltx = require('ltx');
 var api = require('./util/api');
 var atom = require('./util/atom');
@@ -73,8 +72,8 @@ function getNodeFeedNext(req, res) {
       var prevId = null;
       if (req.query.since_post && req.query.since_time) {
         var since_post = req.query.since_post;
-        var since_time = Math.floor(iso8601.toDate(req.query.since_time).getTime() / 1000) * 1000;
-        logger.debug("since_post=" + since_post + "&since_time=" + iso8601.fromDate(new Date(since_time)) + " (" + since_time + ")");
+        var since_time = Math.floor(Date.parse(req.query.since_time).getTime() / 1000) * 1000;
+        logger.debug("since_post=" + since_post + "&since_time=" + new Date(since_time).toISOString() + " (" + since_time + ")");
         var start = null;
         if (sub.items !== undefined) {
           for (var i = sub.items.length - 1; i >= 0; --i) {
