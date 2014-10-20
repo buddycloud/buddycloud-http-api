@@ -24,6 +24,7 @@ var https = require('https');
 var url = require('url');
 var api = require('./util/api');
 var session = require('./util/session');
+var logger = require('./util/log');
 
 /**
  * Registers resource URL handlers.
@@ -147,11 +148,11 @@ function removeListener(req, listener) {
 }
 
 function listenForConfirmationRequest(session, transactionId) {
-  console.log('Listening for confirmation request of transaction ' + transactionId);
+  logger.debug('Listening for confirmation request of transaction ' + transactionId);
   var listener = function(stanza) {
     var confirmEl = stanza.getChild('confirm');
     if (confirmEl && confirmEl.attrs.id == transactionId) {
-      console.log('Received confirmation request for transaction ' + transactionId);
+      logger.debug('Received confirmation request for transaction ' + transactionId);
       session.replyToConfirm(stanza);
       session.removeStanzaListener(listener);
     }

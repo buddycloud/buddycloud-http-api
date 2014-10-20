@@ -31,19 +31,10 @@ var mockserver;
  */
 exports.startHttpServer = function(callback) {
   httpserver = spawn(process.execPath, ['server.js']);
-
-  // Wait until server is ready (and begins printing to stdout)
-  httpserver.stdout.on('data', function() {
-    if (callback) {
-      callback();
-      callback = null;
-    }
-  });
-
-  // Echo the server's error output
-  httpserver.stderr.on('data', function(data) {
-    console.error(data.toString());
-  });
+  setTimeout(function() {
+    callback();
+    callback = null;
+  }, 3000);
 };
 
 /**

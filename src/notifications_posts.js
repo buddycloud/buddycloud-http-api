@@ -22,6 +22,7 @@ var atom = require('./util/atom');
 var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
+var logger = require('./util/log');
 
 exports.setup = function(app) {
   app.get('/notifications/posts',
@@ -50,12 +51,12 @@ function pause(req, res) {
   req.connection.on('timeout', function() {
     ctx.req = null;
     ctx.res = null;
-    console.log('Request from ' + ctx.req.session.getFullJID() + ' timeout');
+    logger.debug('Request from ' + req.session.getFullJID() + ' timeout');
   });
 
   // Pause request
   req.pause();
-  console.log('Request from ' + req.session.getFullJID() + ' paused');
+  logger.debug('Request from ' + req.session.getFullJID() + ' paused');
 
   // Session holds the request
   req.session.holdRequest(ctx, notify);

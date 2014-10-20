@@ -19,6 +19,9 @@
 exports._ = {
   // This is the port that your webserver's reverse proxy will forward requests to
   port: 9123,
+  
+  // Whether to disable the xmpp-ftw endpoint
+  disableWebsocket: false
 };
 
 // Production settings
@@ -53,6 +56,18 @@ exports.production = {
   // Creating buddycloud users/sessions on the fly
   // required to enable buddycloud support for existing users on your xmpp server
   // createUserOnSessionCreation: true,
+
+  // log transport (file | console)
+  logTransport: 'file',
+
+  // log file (only applies for file transport)
+  logFile: 'log',
+
+  // log level
+  logLevel: 'debug',
+
+  // log format (use json or not)
+  logUseJson: false,
 
   // pushpin and/or fanout.io is used for sending realtime data to clients
   //  gripProxies: [

@@ -18,7 +18,6 @@
 // Handles requests related to channel node feeds
 // (/<channel>/content/<node>).
 
-var iso8601 = require('iso8601');
 var ltx = require('ltx');
 var api = require('./util/api');
 var atom = require('./util/atom');
@@ -26,6 +25,7 @@ var config = require('./util/config');
 var pubsub = require('./util/pubsub');
 var session = require('./util/session');
 var grip = require('./util/grip');
+var logger = require('./util/log');
 
 /**
  * Registers resource URL handlers.
@@ -72,8 +72,8 @@ function getNodeFeedNext(req, res) {
       var prevId = null;
       if (req.query.since_post && req.query.since_time) {
         var since_post = req.query.since_post;
-        var since_time = Math.floor(iso8601.toDate(req.query.since_time).getTime() / 1000) * 1000;
-        console.log("since_post=" + since_post + "&since_time=" + iso8601.fromDate(new Date(since_time)) + " (" + since_time + ")");
+        var since_time = Math.floor(Date.parse(req.query.since_time).getTime() / 1000) * 1000;
+        logger.debug("since_post=" + since_post + "&since_time=" + new Date(since_time).toISOString() + " (" + since_time + ")");
         var start = null;
         if (sub.items !== undefined) {
           for (var i = sub.items.length - 1; i >= 0; --i) {
@@ -81,16 +81,16 @@ function getNodeFeedNext(req, res) {
             if (si.id.id == since_post && si.id.time == since_time) {
               start = i + 1;
               prevId = si.id.id + '_' + si.id.time;
-              console.log("found in cache at pos=" + i);
+              logger.debug("found in cache at pos=" + i);
               break;
             }
           }
           if (start === null) {
-            console.log("checking against " + sub.prevId.id + " " + sub.prevId.time);
+            logger.debug("checking against " + sub.prevId.id + " " + sub.prevId.time);
             if (sub.prevId && sub.prevId.id == since_post && sub.prevId.time == since_time) {
               start = 0;
               prevId = sub.prevId.id + '_' + sub.prevId.time;
-              console.log("found as initial cursor");
+              logger.debug("found as initial cursor");
             }
           }
         }

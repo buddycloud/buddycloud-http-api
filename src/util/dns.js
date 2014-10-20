@@ -19,7 +19,7 @@ var net = require('net');
 var config = require('./config');
 
 var API_SRV_PREFIX = '_buddycloud-api._tcp.';
-var MEDIA_PROXY_ENDPOINT = '/media_proxy';
+var MEDIA_PROXY_ENDPOINT = '/' + config.mediaProxyPrefix;
 
 var TXT_TOKENS = ['v', 'host', 'protocol', 'path', 'port'];
 

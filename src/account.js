@@ -22,6 +22,7 @@ var config = require('./util/config')
   , friendFinder = require('./util/friendfinder')
   , session = require('./util/session')
   , api = require('./util/api')
+  , logger = require('./util/log')
   , connect = require('connect')
   , Client = require('node-xmpp-client')
   , crypto = require('crypto')
@@ -78,7 +79,7 @@ function registerAccount(req, res) {
   });
 
   client.on('error', function(err) {
-    console.log('Client error', err);
+    logger.debug('Client error', err);
     res.send(503);
   });
 }
@@ -117,7 +118,7 @@ function sendRegisterIq(client, registerIq, to, callback) {
   iq.attr('to', to);
   iq.attr('id', iqId);
 
-  console.log("OUT xmpp: " + iq);
+  logger.debug("OUT xmpp: " + iq);
   client.on('stanza', function(stanza) {
     if (callback && stanza.attrs.id == iqId) {
       callback();

@@ -23,22 +23,26 @@ var config = require('./src/util/config');
 var session = require('./src/util/session');
 var grip = require('./src/util/grip');
 var SegfaultHandler = require('segfault-handler');
+var logger = require('./src/util/log');
+var expressWinston = require('express-winston');
 
 // Watch for segfaults
 SegfaultHandler.registerHandler();
 
 function setupConfig(app) {
+  transport = logger.transports[Object.keys(logger.transports)[0]];
   app.configure(function() {
-    app.use(express.logger());
-    app.use(function(req, res, next) {
-        if (config.debug) 
-          console.log("Incoming request: " + req.method + " " + req.url)
-        next()
-    })
+    app.use(express.static(__dirname + '/public'))
     app.use(auth.parser);
     app.use(grip.parser);
     app.use(crossOriginAllower);
+    app.use(expressWinston.logger({
+      transports: [transport]
+    }));
     app.use(app.router);
+    app.use(expressWinston.errorLogger({
+      transports: [transport]
+    }));
     app.use(express.errorHandler({
       dumpExceptions: config.debug || false,
       showStack: config.debug || false
@@ -70,7 +74,7 @@ function setupResourceHandlers(app) {
   var handlers = [
     require('./src/account'),
     require('./src/password'),
-    require('./src/media_proxy'),
+    require('./src/media-proxy'),
     require('./src/content_feed'),
     require('./src/content_item'),
     require('./src/replies'),
@@ -94,8 +98,8 @@ function setupResourceHandlers(app) {
 
 function printInitialMessage() {
   var profile = config.profile;
-  console.log('Server started with configuration profile "' + profile + '"');
-  console.log('Listening on port ' + config.port);
+  logger.debug('Server started with configuration profile "' + profile + '"');
+  logger.debug('Listening on port ' + config.port);
 }
 
 function createServer() {
@@ -105,7 +109,7 @@ function createServer() {
       key: config.httpsKey
     };
     if (!options.cert || !options.key) {
-      console.error('HTTPS enabled, but no certificate/key specified');
+      logger.error('HTTPS enabled, but no certificate/key specified');
       process.exit(1);
     }
     return express(options);
@@ -118,10 +122,14 @@ var app = createServer();
 setupConfig(app);
 setupResourceHandlers(app);
 printInitialMessage();
-app.listen(config.port);
+var server = app.listen(config.port);
+
+if (!config.disableWebsocket) {
+    require('./src/websocket')(config, server, logger);
+}
 
 process.on('uncaughtException', function(error) {
     // Try and prevent issues crashing the whole system 
     // for other users too
-    console.error(error)
+    logger.error(error)
 })
