@@ -29,7 +29,7 @@ There is a docker image available for the API server. Configuration is currently
 |      Configuration     	|          Example         	|                                             Description                                             	| Required or default 	|
 |:----------------------:	|:------------------------:	|:---------------------------------------------------------------------------------------------------:	|:-------------------:	|
 | XMPP_DOMAIN            	| buddycloud.org           	| The XMPP domain for your server                                                                     	| ✓                   	|
-| XMPP_HOST              	| 192.168.0.55             	| The host of your XMPP server                                                                        	| ✓                   	|
+| XMPP_HOST              	| 192.168.0.55             	| The hostname or IP of your XMPP server                                                                        	| ✓                   	|
 | CHANNEL_COMPONENT      	| channels.buddycloud.org  	| The channel server component address                                                                	| ✓                   	|
 | ANONYMOUS_COMPONENT    	| anon.buddycloud.org      	| An 'anonymous' component which can be used for open nodes                                           	| null                	|
 | MEDIA_ENDPOINT         	| http://192.168.0.56:9000 	| The endpoint for a [media server](https://github.com/buddycloud/buddycloud-media-server)            	| null                	|
