@@ -19,6 +19,9 @@
 exports._ = {
   // This is the port that your webserver's reverse proxy will forward requests to
   port: 9123,
+  
+  // Whether to disable the xmpp-ftw endpoint
+  disableWebsocket: false
 };
 
 // Production settings
