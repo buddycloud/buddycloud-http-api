@@ -18,7 +18,7 @@
 // Tests requests related to the creation of application nodes.
 
 var should = require('should');
-var tutil = require('./support/testutil');
+var tutil = require('../support/testutil');
 
 var mockConfig = {
   users: {
@@ -28,17 +28,7 @@ var mockConfig = {
     // Create node that already exists
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-         <create node="/user/existing_princely_musings@localhost/posts"/>\
-         <configure>\
-           <x xmlns="jabber:x:data" type="submit">\
-             <field var="FORM_TYPE" type="hidden">\
-               <value>http://jabber.org/protocol/pubsub#node_config</value>\
-             </field>\
-             <field var="buddycloud#channel_type">\
-               <value>topic</value>\
-             </field>\
-           </x>\
-         </configure>\
+         <create node="/user/alice@localhost/existing_princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -50,17 +40,7 @@ var mockConfig = {
     // Requesting entity is prohibited from creating nodes
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-         <create node="/user/forbidden_princely_musings@localhost/posts"/>\
-         <configure>\
-           <x xmlns="jabber:x:data" type="submit">\
-             <field var="FORM_TYPE" type="hidden">\
-               <value>http://jabber.org/protocol/pubsub#node_config</value>\
-             </field>\
-             <field var="buddycloud#channel_type">\
-               <value>topic</value>\
-             </field>\
-           </x>\
-         </configure>\
+         <create node="/user/alice@localhost/forbidden_princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -72,17 +52,7 @@ var mockConfig = {
     // Service requires registration
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-         <create node="/user/unregistered_princely_musings@localhost/posts"/>\
-         <configure>\
-           <x xmlns="jabber:x:data" type="submit">\
-             <field var="FORM_TYPE" type="hidden">\
-               <value>http://jabber.org/protocol/pubsub#node_config</value>\
-             </field>\
-             <field var="buddycloud#channel_type">\
-               <value>topic</value>\
-             </field>\
-           </x>\
-         </configure>\
+         <create node="/user/alice@localhost/unregistered_princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -94,17 +64,7 @@ var mockConfig = {
     // Successful node creation
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
-         <create node="/user/princely_musings@localhost/posts"/>\
-         <configure>\
-           <x xmlns="jabber:x:data" type="submit">\
-             <field var="FORM_TYPE" type="hidden">\
-               <value>http://jabber.org/protocol/pubsub#node_config</value>\
-             </field>\
-             <field var="buddycloud#channel_type">\
-               <value>topic</value>\
-             </field>\
-           </x>\
-         </configure>\
+         <create node="/user/alice@localhost/princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="result"/>',
@@ -112,7 +72,7 @@ var mockConfig = {
     // Successful node deletion
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
-         <delete node="/user/princely_musings@localhost/posts"/>\
+         <delete node="/user/alice@localhost/princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="result"/>',
@@ -120,7 +80,7 @@ var mockConfig = {
     // Insufficient Privileges
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
-         <delete node="/user/forbidden_princely_musings@localhost/posts"/>\
+         <delete node="/user/alice@localhost/forbidden_princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -132,7 +92,7 @@ var mockConfig = {
      // Node not found
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
-         <delete node="/user/not_found_princely_musings@localhost/posts"/>\
+         <delete node="/user/alice@localhost/not_found_princely_musings"/>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -143,7 +103,7 @@ var mockConfig = {
   }
 };
 
-describe('Topic channels', function() {
+describe('Application node', function() {
 
   before(function(done) {
     tutil.startHttpServer(function() {
@@ -155,7 +115,7 @@ describe('Topic channels', function() {
 
     it('should not allow unauthorized access', function(done) {
       var options = {
-        path: '/princely_musings@localhost'
+        path: '/alice@localhost/princely_musings'
       };
       tutil.post(options, function(res, body) {
         res.statusCode.should.equal(401);
@@ -165,7 +125,7 @@ describe('Topic channels', function() {
 
     it('should not create a node that already exists', function(done) {
       var options = {
-        path: '/existing_princely_musings@localhost',
+        path: '/alice@localhost/existing_princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.post(options, function(res, body) {
@@ -176,7 +136,7 @@ describe('Topic channels', function() {
     
     it('requesting entity is prohibited from creating nodes', function(done) {
       var options = {
-        path: '/forbidden_princely_musings@localhost',
+        path: '/alice@localhost/forbidden_princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.post(options, function(res, body) {
@@ -187,7 +147,7 @@ describe('Topic channels', function() {
 
     it('requires registration', function(done) {
       var options = {
-        path: '/unregistered_princely_musings@localhost',
+        path: '/alice@localhost/unregistered_princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.post(options, function(res, body) {
@@ -196,9 +156,9 @@ describe('Topic channels', function() {
       }).on('error', done);
     });
     
-    it('should create a topic node/channel', function(done) {
+    it('should create an app node', function(done) {
       var options = {
-        path: '/princely_musings@localhost',
+        path: '/alice@localhost/princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.post(options, function(res, body) {
@@ -213,7 +173,7 @@ describe('Topic channels', function() {
 
     it('should not allow unauthorized access', function(done) {
       var options = {
-        path: '/princely_musings@localhost'
+        path: '/alice@localhost/princely_musings'
       };
       tutil.delete(options, function(res, body) {
         res.statusCode.should.equal(401);
@@ -223,7 +183,7 @@ describe('Topic channels', function() {
 
     it('should not delete a node with insufficient privileges', function(done) {
       var options = {
-        path: '/forbidden_princely_musings@localhost',
+        path: '/alice@localhost/forbidden_princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.delete(options, function(res, body) {
@@ -234,7 +194,7 @@ describe('Topic channels', function() {
     
     it('should not delete an inexistent node', function(done) {
       var options = {
-        path: '/not_found_princely_musings@localhost',
+        path: '/alice@localhost/not_found_princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.delete(options, function(res, body) {
@@ -243,9 +203,9 @@ describe('Topic channels', function() {
       }).on('error', done);
     });
     
-    it('should delete a topic node/channel', function(done) {
+    it('should delete an app node', function(done) {
       var options = {
-        path: '/princely_musings@localhost',
+        path: '/alice@localhost/princely_musings',
         auth: 'alice@localhost/http:alice'
       };
       tutil.delete(options, function(res, body) {

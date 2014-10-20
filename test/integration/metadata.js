@@ -18,7 +18,7 @@
 // Tests requests related to node metadata.
 
 var should = require('should');
-var tutil = require('./support/testutil');
+var tutil = require('../support/testutil');
 
 // See xmpp_mockserver.js
 var mockConfig = {

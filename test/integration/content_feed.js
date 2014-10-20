@@ -18,8 +18,8 @@
 // Tests node feed related requests.
 
 var should = require('should')
-  , atom = require('../src/util/atom')
-  , tutil = require('./support/testutil')
+  , atom = require('../../src/util/atom')
+  , tutil = require('../support/testutil')
   , ltx = require('ltx')
 
 // See xmpp_mockserver.js

@@ -18,7 +18,7 @@
 // Tests requests related to the creation of application nodes.
 
 var should = require('should');
-var tutil = require('./support/testutil');
+var tutil = require('../support/testutil');
 
 var mockConfig = {
   users: {

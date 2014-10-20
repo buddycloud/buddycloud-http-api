@@ -18,7 +18,7 @@
 // Tests requests related to the contact matching endpoint.
 
 var should = require('should');
-var tutil = require('./support/testutil');
+var tutil = require('../support/testutil');
 
 var mockConfig = {
   users: {

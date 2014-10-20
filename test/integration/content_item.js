@@ -18,9 +18,9 @@
 // Tests requests on node items.
 
 var should = require('should')
-  , atom = require('../src/util/atom')
+  , atom = require('../../src/util/atom')
   , ltx = require('ltx')
-  , tutil = require('./support/testutil');
+  , tutil = require('../support/testutil');
 
 // See xmpp_mockserver.js
 var mockConfig = {
