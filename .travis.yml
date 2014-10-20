@@ -7,7 +7,6 @@ before_install:
   - sudo ln -s /run/shm /dev/shm
   - npm i -g npm
   - npm install -g grunt-cli
-  - npm i -g npm
 language: node_js
 node_js:
   - "0.10"
