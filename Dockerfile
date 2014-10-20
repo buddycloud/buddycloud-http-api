@@ -9,8 +9,6 @@ MAINTAINER Lloyd Watkin <lloyd@evilprofessor.co.uk>
 
 EXPOSE 9123
 
-ENV NODE_ENV $NODE_ENV
-
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y --no-install-recommends git git-core libicu-dev libexpat-dev build-essential libssl-dev build-essential g++
