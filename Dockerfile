@@ -17,4 +17,8 @@ RUN apt-get install -y git git-core libicu-dev libexpat-dev build-essential libs
 
 RUN git clone https://github.com/buddycloud/buddycloud-http-api.git api-server
 RUN cd api-server && git checkout docker
-RUN cd api-server && npm i . && cp contrib/docker/config.js . && npm start
+RUN cd api-server && npm i . && cp contrib/docker/config.js .
+ADD contrib/docker/start.sh /data/
+
+RUN chmod +x start.sh
+CMD ./start.sh
