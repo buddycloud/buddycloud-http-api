@@ -18,7 +18,6 @@
     "ltx": "~0.3.0",
     "node-expat": "~2.0.0",
     "jwt-simple": "0.1.x",
-    "iso8601": "1.1.1",
     "pubcontrol": "0.3.1",
     "grip": "0.1.4",
     "segfault-handler": "git+https://github.com/ddopson/node-segfault-handler.git",
