@@ -1,5 +1,6 @@
 node_modules/
 config.js
+!contrib/docker/config.js
 .project
 .settings
 .DS_Store
