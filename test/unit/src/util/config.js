@@ -6,7 +6,7 @@ describe('lockTo', function() {
    
     it('Handles no `lockTo` configuration parameter', function() {
         var config = proxyquire(
-            '../../../src/util/config', 
+            '../../../../src/util/config', 
             {
                 '../../config.js.developer-example': {},
                 '../../config': {}
@@ -18,7 +18,7 @@ describe('lockTo', function() {
     it('Breaks `lockTo` values down as expected', function() {
         var stub = { '_': { lockTo: 'buddycloud.org,buddycloud.com' } }
         var config = proxyquire(
-            '../../../src/util/config', 
+            '../../../../src/util/config', 
             {
                 '../../config.js.developer-example': stub,
                 '../../config': stub

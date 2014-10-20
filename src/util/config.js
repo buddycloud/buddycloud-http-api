@@ -38,15 +38,15 @@ function loadProfile(name) {
       exports.mediaProxyPrefix = '/media_proxy';
   }
     
-  //if (profile.lockTo) {
-  //    exports.lockTo = profile.lockTo.split(',');
-  //}
+  if (profile.lockTo) {
+      exports.lockTo = profile.lockTo.split(',');
+  }
 }
 
 loadProfile('_');
 exports.profile = process.env.NODE_ENV || 'production';
 loadProfile(exports.profile);
 
-//if (!exports.lockTo) {
-//    exports.lockTo = false;
-//}
+if (!exports.lockTo) {
+    exports.lockTo = false;
+}

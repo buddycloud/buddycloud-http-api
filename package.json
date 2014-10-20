@@ -6,7 +6,7 @@
   "license": "Apache 2.0",
   "scripts": {
     "start": "node ./server.js",
-    "test": "NODE_ENV=testing ./node_modules/.bin/mocha --recursive --timeout 5000 -r should -R spec"
+    "test": "NODE_ENV=testing ./node_modules/.bin/mocha --recursive --timeout 5000 -r should -R spec test/unit test/integration"
   },
   "repository": {
     "type": "git",
