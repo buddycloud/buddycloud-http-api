@@ -13,7 +13,7 @@ ENV NODE_ENV $NODE_ENV
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y git git-core libicu-dev libexpat-dev build-essential libssl-dev build-essential g++
+RUN apt-get install -y --no-install-recommends git git-core libicu-dev libexpat-dev build-essential libssl-dev build-essential g++
 
 RUN git clone https://github.com/buddycloud/buddycloud-http-api.git api-server
 RUN cd api-server && git checkout docker
