@@ -5,3 +5,4 @@ config.js
 .settings
 .DS_Store
 public/scripts/buddycloud.js
+npm-debug.log
