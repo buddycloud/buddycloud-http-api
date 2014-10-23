@@ -236,6 +236,11 @@ function changeNodeSubscriptions(req, res) {
 //// GET /<channel>/subscribers/<node>/approve /////////////////////////////////////////
 
 function getPendingNodeSubscriptions(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var channel = req.params.channel;
   var node = req.params.node;
   requestNodeSubscriptions(req, res, channel, node, function(reply) {
