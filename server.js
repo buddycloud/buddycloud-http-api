@@ -22,12 +22,8 @@ var auth = require('./src/util/auth');
 var config = require('./src/util/config');
 var session = require('./src/util/session');
 var grip = require('./src/util/grip');
-var SegfaultHandler = require('segfault-handler');
 var logger = require('./src/util/log');
 var expressWinston = require('express-winston');
-
-// Watch for segfaults
-SegfaultHandler.registerHandler();
 
 function setupConfig(app) {
   transport = logger.transports[Object.keys(logger.transports)[0]];
