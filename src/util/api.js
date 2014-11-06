@@ -35,7 +35,7 @@ var logger = require('./log');
 exports.sendUnauthorized = function(res) {
   res.header(
     'WWW-Authenticate',
-    'Basic realm="' + config.xmppDomain + '"'
+    'Basic realm="XMPP Session"'
   );
   res.send(401);
 };
@@ -51,7 +51,7 @@ exports.sendGripUnsupported = function(res) {
 exports.sendQuery = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
-  }, config.channelDomain);
+  }, req.config.channelDomain);
 };
 
 exports.sendQueryToXmpp = function(req, res, iq, domain, callback) {
@@ -63,19 +63,19 @@ exports.sendQueryToXmpp = function(req, res, iq, domain, callback) {
 exports.sendQueryToSearch = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
-  }, config.searchComponent);
+  }, req.config.searchComponent);
 };
 
 exports.sendQueryToPusher = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
-  }, config.pusherComponent);
+  }, req.config.pusherComponent);
 };
 
 exports.sendQueryToFriendFinder = function(req, res, iq, callback) {
   req.session.sendQuery(iq, function(reply) {
     checkError(reply, req, res, iq, callback);
-  }, config.friendFinderComponent);
+  }, req.config.friendFinderComponent);
 };
 
 function checkError(reply, req, res, iq, callback) {

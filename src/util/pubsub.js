@@ -277,7 +277,7 @@ function addFormField(form, name, type, value) {
 }
 
 exports.isPubSubItemMessage = function(stanza) {
-  if (stanza.attrs.from == config.channelDomain) {
+  if (stanza.attrs.from == req.config.channelDomain) {
     var eventEl = stanza.getChild('event', exports.eventNS);
     var itemsEl = eventEl ? eventEl.getChild('items') : null;
     var itemEl = itemsEl ? itemsEl.getChild('item') : null;
@@ -324,6 +324,6 @@ exports.extractItem = function(message) {
 
 function addSourceToEntry(entry, node) {
   var source = entry.c('source');
-  var queryURI = exports.queryURI(config.channelDomain, 'retrieve', node);
+  var queryURI = exports.queryURI(req.config.channelDomain, 'retrieve', node);
   var sourceId = source.c('id').t(queryURI);
 }

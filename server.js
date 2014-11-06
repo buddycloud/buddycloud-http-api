@@ -25,6 +25,7 @@ var grip = require('./src/util/grip');
 var SegfaultHandler = require('segfault-handler');
 var logger = require('./src/util/log');
 var expressWinston = require('express-winston');
+var sessionConfig = require('./src/util/session-config')
 
 // Watch for segfaults
 SegfaultHandler.registerHandler();
@@ -34,6 +35,7 @@ function setupConfig(app) {
   app.configure(function() {
     app.use(express.static(__dirname + '/public'))
     app.use(auth.parser);
+    app.use(sessionConfig);
     app.use(grip.parser);
     app.use(crossOriginAllower);
     app.use(expressWinston.logger({

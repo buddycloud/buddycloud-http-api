@@ -118,14 +118,14 @@ exports.discoverAPI = function(req, callback) {
   var channel = req.params.channel;
   var remoteDomain = channel.split('@')[1];
   
-  if (remoteDomain == config.xmppDomain 
-        || remoteDomain == req.headers['x-forwarded-host']) {
+  if (remoteDomain === req.config.xmppDomain 
+        || remoteDomain === req.headers['x-forwarded-host']) {
     
-    if (!config.homeMediaRoot) {
+    if (!req.config.homeMediaRoot) {
       return callback();
     }
     
-    mediaRoot = config.homeMediaRoot;
+    mediaRoot = req.config.homeMediaRoot;
     localMediaAddress = mediaRoot.split('://')[1];
     localMediaAddressSplit = localMediaAddress.split(':');
     ping(localMediaAddressSplit[0], localMediaAddressSplit[1], function() {

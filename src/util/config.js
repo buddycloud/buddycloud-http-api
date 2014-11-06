@@ -13,40 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var ltx = require('ltx');
 
 // config.js:
 // Loads and provides configuration options for the correct profile.
 // The exported names exactly match the ones of the corresponding
 // config options.
-var config = null
+var baseConfig = null
 if ('testing' === process.env.NODE_ENV) {
-    config = require('../../config.js.developer-example')
+    baseConfig = require('../../config.js.developer-example')
 } else {
-    config = require('../../config');
+    baseConfig = require('../../config');
 }
+
+var config = {}
+var autoDiscoverCache = {}
 
 // Defaults
 exports.requestExpirationTime = 60; // 1min
 exports.sessionExpirationTime = 600; // 10min
 
 function loadProfile(name) {
-  var profile = config[name] || {};
+  var profile = baseConfig[name] || {};
   for (var key in profile) {
-    exports[key] = profile[key];
+    config[key] = profile[key];
   }
-  if (!exports.mediaProxyPrefix) {
-      exports.mediaProxyPrefix = '/media_proxy';
+  if (!config.mediaProxyPrefix) {
+      config.mediaProxyPrefix = '/media_proxy';
   }
     
   if (profile.lockTo) {
-      exports.lockTo = profile.lockTo.split(',');
+      config.lockTo = profile.lockTo.split(',');
   }
 }
 
 loadProfile('_');
-exports.profile = process.env.NODE_ENV || 'production';
-loadProfile(exports.profile);
+config.profile = process.env.NODE_ENV || 'production';
+loadProfile(config.profile);
 
-if (!exports.lockTo) {
-    exports.lockTo = false;
+if (!config.lockTo) {
+    config.lockTo = false;
 }
+
+var discoverComponents = function(domain, client, callback) {
+    var discoItems = new ltx.Element('iq', { type: 'get', to: 'domain' )
+        .c('query', { xmlns: 'http://jabber.org/protocol/disco#info' })
+    var baseId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 12)
+    var stanzaListener = client.on('stanza', function(stanza) {
+        
+    })
+    client.send(discoItems)
+    
+    
+        
+    client.removeEventListener(stanzaListener)
+        
+}
+
+config.getSessionConfig = function(domain, client, callback) {
+    if (!config.autoDiscover) return callback(null, config)
+    if (autoDiscoverCache[domain]) return callback(null, autoDiscoverCache[domain])
+    discoverComponents(domain, callback)
+}
+
+
+module.exports = config

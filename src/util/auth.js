@@ -17,8 +17,6 @@
 // auth.js:
 // Provides functions relating to HTTP authentication.
 
-var config = require('./config');
-
 /**
  * Middleware that parses the HTTP "Authorization" header and stores
  * the read credentials into req.user and req.password.
@@ -51,7 +49,7 @@ exports.parser = function(req, res, next) {
 
   // If the username has no domain part, assume the home domain
   if (req.user.indexOf('@') < 0) {
-    req.user += '@' + config.xmppDomain;
+    return next(new Error('Bad Request'));
   }
 
   next();

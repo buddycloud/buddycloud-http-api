@@ -100,13 +100,13 @@ function getChannelServerRegIQ() {
   return queryNode.root();
 }
 
-function registerOnChannelServer(client, callback) {
+function registerOnChannelServer(client, sessionConfig, callback) {
   if (!config.createUserOnSessionCreation) {
     callback();
     return;
   }
   var signupIq = getChannelServerRegIQ();
-  sendRegisterIq(client, signupIq, config.channelDomain, function() {
+  sendRegisterIq(client, signupIq, sessionConfig.channelDomain, function() {
     callback();
   });
 }
@@ -121,21 +121,25 @@ function createSession(req, res, next) {
   // initially the session is cached in a non-ready state
   provideSession(session, req, res, next);
 
-  client.on('online', function() {
+  client.on('online', function(data) {
     logger.debug("XMPP connection created for jid: " + session.jid);
     logger.debug("Creating session for jid: " + session.jid);
-    session.ready = true;
-    session._sendGeneralPresence();
-    session.sendPresenceOnline();
-    registerOnChannelServer(client, function() {
-	  logger.debug("Session created for jid: " + session.jid);
-      // Handle waiting requests
-	  for (var i = 0; i < session._waitingReqs.length; i++) {
-	    var wr = session._waitingReqs[i];
-	    var next = wr['next'];
-	    next();
-	  }
-    });
+    config.getSessionConfig(session.fullJid.domain, client, function(error, sessionConfig) {
+        req.config = sessionConfig
+        session.ready = true;
+        session.fullJid = data.jid
+        session._sendGeneralPresence();
+        session.sendPresenceOnline();
+        registerOnChannelServer(client, sessionConfig, function() {
+          logger.debug("Session created for jid: " + session.jid);
+          // Handle waiting requests
+          for (var i = 0; i < session._waitingReqs.length; i++) {
+            var wr = session._waitingReqs[i];
+            var next = wr['next'];
+            next();
+          }
+        });
+    })
     
   });
 
@@ -159,6 +163,22 @@ function createSession(req, res, next) {
 }
 
 function xmppConnectionOptions(req) {
+  if (config.autoDiscover) {
+      if (req.user) {
+          return {
+              jid: req.user,
+              password: req.password
+          }
+      } else {
+          var domain = config.xmppAnonymousDomain || 'anon.' + req.headers['x-forwarded-host'];
+          return {
+            jid: '@' + domain,
+            host: host,
+            port: port,
+            preferredSaslMechanism: 'ANONYMOUS'
+          };
+      }
+  }
   if (req.user) {
     return {
       jid: req.user,
@@ -170,7 +190,7 @@ function xmppConnectionOptions(req) {
     var domain = config.xmppAnonymousDomain || config.xmppDomain
       || 'anon.' + req.headers['x-forwarded-host'];
     var host = config.xmppAnonymousHost || config.xmppHost;
-    var port = config.xmppAnonymousPort ||config.xmppPort;
+    var port = config.xmppAnonymousPort || config.xmppPort;
     return {
       jid: '@' + domain,
       host: host,

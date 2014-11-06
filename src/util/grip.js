@@ -30,7 +30,7 @@ var pubs = null;
  * req.gripProxied.
  */
 exports.parser = function(req, res, next) {
-  if (!config.gripProxies || config.gripProxies.length < 1) {
+  if (!req.config.gripProxies || req.config.gripProxies.length < 1) {
     next();
     return;
   }
@@ -41,8 +41,8 @@ exports.parser = function(req, res, next) {
     return;
   }
 
-  for(var i = 0; i < config.gripProxies.length; ++i) {
-    var gripProxy = config.gripProxies[i];
+  for(var i = 0; i < req.config.gripProxies.length; ++i) {
+    var gripProxy = req.config.gripProxies[i];
     if (griplib.validateSig(sig, gripProxy.key)) {
       req.gripProxied = true;
       break;
@@ -60,15 +60,15 @@ exports.encodeChannel = function(channel) {
  * Convenience publish function.
  */
 exports.publish = function(channel, id, prevId, rheaders, rbody, sbody) {
-  if (!config.gripProxies || config.gripProxies.length < 1) {
+  if (!req.config.gripProxies || req.config.gripProxies.length < 1) {
     return;
   }
 
   if (!pubs) {
     pubs = [];
 
-    for(var i = 0; i < config.gripProxies.length; ++i) {
-      var gripProxy = config.gripProxies[i];
+    for(var i = 0; i < req.config.gripProxies.length; ++i) {
+      var gripProxy = req.config.gripProxies[i];
       var auth = null;  
       if(gripProxy.controlIss) {
         auth = new pubcontrol.Auth.AuthJwt({'iss': gripProxy.controlIss}, gripProxy.key);
@@ -88,9 +88,9 @@ exports.publish = function(channel, id, prevId, rheaders, rbody, sbody) {
 
   var item = new pubcontrol.Item(formats, id, prevId);
 
-  for(var i = 0; i < config.gripProxies.length; ++i) {
+  for(var i = 0; i < req.config.gripProxies.length; ++i) {
     (function() {
-      var gripProxy = config.gripProxies[i];
+      var gripProxy = req.config.gripProxies[i];
       pubs[i].publish(channel, item, function(success, message) {
         if (!success) {
           logger.debug("grip: failed to publish to " + gripProxy.controlUri + ", reason: " + message);
