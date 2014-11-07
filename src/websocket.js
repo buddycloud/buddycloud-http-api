@@ -3,6 +3,8 @@ var Emitter    = require('primus-emitter')
   , xmpp       = require('xmpp-ftw')
   , Buddycloud = require('xmpp-ftw-buddycloud');
 
+var cache = {}
+
 module.exports = function(config, server, logger) {
     var options = {
         transformer: 'socket.io',
@@ -23,7 +25,9 @@ module.exports = function(config, server, logger) {
     primus.on('connection', function(socket) {
         logger.debug('Websocket connection made');
         var xmppFtw = new xmpp.Xmpp(socket);
-        xmppFtw.addListener(new Buddycloud());
+        var buddycloud = new Buddycloud();
+        buddycloud.setCache(cache);
+        xmppFtw.addListener(buddycloud);
         socket.xmppFtw = xmppFtw; 
     })
 
