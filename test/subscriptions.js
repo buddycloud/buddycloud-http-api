@@ -50,7 +50,7 @@ var mockConfig = {
        </pubsub>\
      </iq>':
     '<iq type="result">\
-       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
          <affiliations>\
            <affiliation node="/user/alice@localhost/posts" \
                         affiliation="owner"/>\
@@ -67,7 +67,7 @@ var mockConfig = {
        </pubsub>\
      </iq>':
     '<iq type="result">\
-       <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
+       <pubsub xmlns="http://jabber.org/protocol/pubsub">\
          <affiliations node="/user/alice@localhost/posts">\
            <affiliation jid="alice@localhost" affiliation="owner"/>\
            <affiliation jid="bob@localhost" affiliation="subscriber"/>\
@@ -98,7 +98,7 @@ var mockConfig = {
          </pubsub>\
        </iq>':
       '<iq type="result">\
-         <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
+         <pubsub xmlns="http://jabber.org/protocol/pubsub">\
            <affiliations node="/user/alice@localhost/posts">\
              <affiliation jid="alice@localhost" affiliation="owner"/>\
              <affiliation jid="bob@localhost" affiliation="subscriber"/>\
@@ -125,7 +125,7 @@ var mockConfig = {
          </pubsub>\
        </iq>':
       '<iq type="result">\
-         <pubsub xmlns="http://jabber.org/protocol/pubsub#owner">\
+         <pubsub xmlns="http://jabber.org/protocol/pubsub">\
            <affiliations node="/user/alice@localhost/posts">\
              <affiliation jid="alice@localhost" affiliation="owner"/>\
              <affiliation jid="bob@localhost" affiliation="subscriber"/>\
