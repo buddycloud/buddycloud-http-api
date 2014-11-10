@@ -91,7 +91,7 @@ function findUserAffiliations(rootEl) {
    return rootEl.getChildrenByFilter(function (c) {
      return typeof c != 'string' && 
        c.getName() == 'affiliation' && 
-       c.getNS() == pubsub.ns &&
+       c.getNS() == pubsub.ownerNS &&
        c.attr('node') && c.attr('node').indexOf('/user/') == 0; 
    }, true);
 }
@@ -100,7 +100,7 @@ function findNodeAffiliations(rootEl) {
    return rootEl.getChildrenByFilter(function (c) {
      return typeof c != 'string' && 
        c.getName() == 'affiliation' && 
-       c.getNS() == pubsub.ownerNS &&
+       c.getNS() == pubsub.ns &&
        c.attr('jid') && c.attr('jid').indexOf('@') != 0; 
    }, true);
 }
@@ -236,6 +236,11 @@ function changeNodeSubscriptions(req, res) {
 //// GET /<channel>/subscribers/<node>/approve /////////////////////////////////////////
 
 function getPendingNodeSubscriptions(req, res) {
+  if (!req.user) {
+    api.sendUnauthorized(res);
+    return;
+  }
+  
   var channel = req.params.channel;
   var node = req.params.node;
   requestNodeSubscriptions(req, res, channel, node, function(reply) {
