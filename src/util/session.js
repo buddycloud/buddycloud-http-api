@@ -183,8 +183,7 @@ function xmppConnectionOptions(req) {
     return {
       jid: '@' + domain,
       host: host,
-      port: port,
-      reconnect: false,
+      port: port
       //preferredSaslMechanism: 'ANONYMOUS'
     };
   }
