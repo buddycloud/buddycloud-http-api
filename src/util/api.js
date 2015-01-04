@@ -277,4 +277,14 @@ exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
     feed.cnode(entry.clone());
   });
   return feed;
+};
+
+exports.normalizeForwardedHost = function(req) {
+  var forwardedHost = req.headers['x-forwarded-host'];
+  hostnamePrefix = 'buddycloud.';
+  if (forwardedHost.indexOf(hostnamePrefix) == 0) {
+    forwardedHost = forwardedHost.slice(
+        hostnamePrefix.length, forwardedHost.length);
+  }
+  return forwardedHost;
 }

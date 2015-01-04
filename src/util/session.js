@@ -177,7 +177,7 @@ function xmppConnectionOptions(req) {
     };
   } else {
     var domain = config.xmppAnonymousDomain || config.xmppDomain
-      || 'anon.' + req.headers['x-forwarded-host'];
+      || 'anon.' + api.normalizeForwardedHost(req);
     var host = config.xmppAnonymousHost || config.xmppHost;
     var port = config.xmppAnonymousPort ||config.xmppPort;
     return {
