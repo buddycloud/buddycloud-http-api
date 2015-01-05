@@ -280,11 +280,5 @@ exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
 };
 
 exports.normalizeForwardedHost = function(req) {
-  var forwardedHost = req.headers['x-forwarded-host'];
-  hostnamePrefix = 'buddycloud.';
-  if (forwardedHost && forwardedHost.indexOf(hostnamePrefix) == 0) {
-    forwardedHost = forwardedHost.slice(
-        hostnamePrefix.length, forwardedHost.length);
-  }
-  return forwardedHost;
+  return req.headers['x-forwarded-host'];
 }
