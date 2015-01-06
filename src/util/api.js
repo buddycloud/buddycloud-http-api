@@ -277,4 +277,8 @@ exports.generateNodeFeedFromEntries = function(channel, node, from, entries) {
     feed.cnode(entry.clone());
   });
   return feed;
+};
+
+exports.normalizeForwardedHost = function(req) {
+  return req.headers['x-forwarded-host'];
 }

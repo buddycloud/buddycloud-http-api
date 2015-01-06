@@ -53,7 +53,7 @@ function registerAccount(req, res) {
   }
 
   if (username.indexOf("@") == -1) {
-    domain = config.xmppDomain || req.headers['x-forwarded-host'];
+    domain = config.xmppDomain || api.normalizeForwardedHost(req);
     username = [username, '@', domain].join('');
   }
 
