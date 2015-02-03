@@ -243,6 +243,10 @@ exports.configureIq = function(nodeId, fields) {
 exports.createNodeIq = function(nodeId) {
   var pubsubIq = iq({type: 'set'}, exports.ns);
   pubsubIq.c('create', {node: nodeId});
+  var form = pubsubIq.c('configure', {node: nodeId}).
+      c('x', {xmlns: 'jabber:x:data', type: 'submit'});
+  addFormField(form, 'FORM_TYPE', 'hidden',
+               'http://jabber.org/protocol/pubsub#node_config');
 
   return pubsubIq.root();
 };
@@ -252,14 +256,8 @@ exports.createNodeIq = function(nodeId) {
  */
 exports.createTopicNodeIq = function(nodeId) {
   var pubsubIq = exports.createNodeIq(nodeId).getChild('pubsub', exports.ns);
-  var form = pubsubIq.c('configure', {node: nodeId}).
-      c('x', {xmlns: 'jabber:x:data', type: 'submit'});
-
-  addFormField(form, 'FORM_TYPE', 'hidden',
-               'http://jabber.org/protocol/pubsub#node_config');
-  addFormField(form, 'buddycloud#channel_type', 'text-single',
-               'topic');
-
+  var form = pubsub.getChild('configure').getChild('x', 'jabber:x:data');
+  addFormField(form, 'buddycloud#channel_type', 'text-single', 'topic');
   return pubsubIq.root();
 };
 
