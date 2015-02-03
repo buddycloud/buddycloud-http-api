@@ -29,6 +29,13 @@ var mockConfig = {
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
          <create node="/user/alice@localhost/existing_princely_musings"/>\
+         <configure node="/user/alice@localhost/existing_princely_musings">\
+           <x xmlns="jabber:x:data" type="submit">\
+             <field var="FORM_TYPE" type="hidden">\
+               <value>http://jabber.org/protocol/pubsub#node_config</value>\
+             </field>\
+           </x>\
+         </configure>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -41,6 +48,13 @@ var mockConfig = {
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
          <create node="/user/alice@localhost/forbidden_princely_musings"/>\
+         <configure node="/user/alice@localhost/forbidden_princely_musings">\
+           <x xmlns="jabber:x:data" type="submit">\
+             <field var="FORM_TYPE" type="hidden">\
+               <value>http://jabber.org/protocol/pubsub#node_config</value>\
+             </field>\
+           </x>\
+         </configure>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -53,6 +67,13 @@ var mockConfig = {
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
          <create node="/user/alice@localhost/unregistered_princely_musings"/>\
+         <configure node="/user/alice@localhost/unregistered_princely_musings">\
+           <x xmlns="jabber:x:data" type="submit">\
+             <field var="FORM_TYPE" type="hidden">\
+               <value>http://jabber.org/protocol/pubsub#node_config</value>\
+             </field>\
+           </x>\
+         </configure>\
        </pubsub>\
      </iq>':
     '<iq type="error">\
@@ -65,6 +86,13 @@ var mockConfig = {
     '<iq from="alice@localhost/http" type="set">\
        <pubsub xmlns="http://jabber.org/protocol/pubsub">\
          <create node="/user/alice@localhost/princely_musings"/>\
+         <configure node="/user/alice@localhost/princely_musings">\
+           <x xmlns="jabber:x:data" type="submit">\
+             <field var="FORM_TYPE" type="hidden">\
+               <value>http://jabber.org/protocol/pubsub#node_config</value>\
+             </field>\
+           </x>\
+         </configure>\
        </pubsub>\
      </iq>':
     '<iq type="result"/>',
