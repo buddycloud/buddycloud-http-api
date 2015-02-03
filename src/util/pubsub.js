@@ -256,7 +256,7 @@ exports.createNodeIq = function(nodeId) {
  */
 exports.createTopicNodeIq = function(nodeId) {
   var pubsubIq = exports.createNodeIq(nodeId).getChild('pubsub', exports.ns);
-  var form = pubsub.getChild('configure').getChild('x', 'jabber:x:data');
+  var form = pubsubIq.getChild('configure').getChild('x', 'jabber:x:data');
   addFormField(form, 'buddycloud#channel_type', 'text-single', 'topic');
   return pubsubIq.root();
 };
