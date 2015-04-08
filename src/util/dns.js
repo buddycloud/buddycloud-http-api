@@ -17,6 +17,7 @@
 var dns = require('dns');
 var net = require('net');
 var config = require('./config');
+var api = require('./api');
 
 var API_SRV_PREFIX = '_buddycloud-api._tcp.';
 var MEDIA_PROXY_ENDPOINT = '/' + config.mediaProxyPrefix;
@@ -119,7 +120,7 @@ exports.discoverAPI = function(req, callback) {
   var remoteDomain = channel.split('@')[1];
   
   if (remoteDomain == config.xmppDomain 
-        || remoteDomain == req.headers['x-forwarded-host']) {
+        || remoteDomain == api.normalizeForwardedHost(req)) {
     
     if (!config.homeMediaRoot) {
       return callback();

@@ -156,6 +156,15 @@ function createSession(req, res, next) {
       }
     }
   });
+
+  client.on('offline', function(error) {
+    logger.error('Session went offline.');
+    sessionCache.remove(req.credentials);
+    for (var i = 0; i < session._waitingReqs.length; i++) {
+      var wr = session._waitingReqs[i];
+      wr['res'].send(503);
+    }
+  });
 }
 
 function xmppConnectionOptions(req) {
@@ -168,13 +177,13 @@ function xmppConnectionOptions(req) {
     };
   } else {
     var domain = config.xmppAnonymousDomain || config.xmppDomain
-      || 'anon.' + req.headers['x-forwarded-host'];
+      || 'anon.' + api.normalizeForwardedHost(req);
     var host = config.xmppAnonymousHost || config.xmppHost;
     var port = config.xmppAnonymousPort ||config.xmppPort;
     return {
       jid: '@' + domain,
       host: host,
-      port: port,
+      port: port
       //preferredSaslMechanism: 'ANONYMOUS'
     };
   }
