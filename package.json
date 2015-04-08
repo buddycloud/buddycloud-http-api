@@ -31,9 +31,9 @@
     "express-winston": "0.2.x"
   },
   "devDependencies": {
-    "should": "~3.1.2",
     "mocha": "~1.17.1",
-    "node-xmpp-server": "~0.5.0"
+    "node-xmpp-server": "^1.0.0-alpha12",
+    "should": "~3.1.2"
   },
   "engine": {
     "node": ">=0.8"
