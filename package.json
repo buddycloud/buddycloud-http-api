@@ -16,7 +16,7 @@
     "connect": "2.4.x",
     "express": "3.5.1",
     "ltx": "~0.3.0",
-    "node-expat": "~2.0.0",
+    "node-expat": "~2.3.0",
     "jwt-simple": "0.1.x",
     "pubcontrol": "0.3.1",
     "grip": "0.1.4",
