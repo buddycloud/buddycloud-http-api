@@ -1,5 +1,4 @@
-Implements https://buddycloud.org/wiki/Buddycloud_HTTP_API
-
+Implements http://buddycloud.com/api
 
 ## Build status
 
